@@ -14,7 +14,6 @@
 package org.eclipse.mylar.java.ui.editor;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.List;
 
 import org.eclipse.core.runtime.Preferences.IPropertyChangeListener;
@@ -52,17 +51,12 @@ public class ActiveFoldingListener implements IMylarContextListener {
 	public static void resetProjection(JavaEditor javaEditor) {
         try {
         	Class editorClass = JavaEditor.class;
-        	try { // 3.2 method
-	        	Method method = editorClass.getDeclaredMethod("resetProjection", new Class[] {});
-	        	method.invoke(javaEditor, new Object[] {});
-        	} catch (NoSuchMethodException e) {
-	            Field field = editorClass.getDeclaredField("fProjectionModelUpdater");
-	            field.setAccessible(true);
-	            IJavaFoldingStructureProvider fProjectionModelUpdater = (IJavaFoldingStructureProvider)field.get(javaEditor);
-	    		if (fProjectionModelUpdater != null) {
-	    			fProjectionModelUpdater.initialize();
-	    		}
-        	}
+            Field field = editorClass.getDeclaredField("fProjectionModelUpdater");
+            field.setAccessible(true);
+            IJavaFoldingStructureProvider fProjectionModelUpdater = (IJavaFoldingStructureProvider)field.get(javaEditor);
+    		if (fProjectionModelUpdater != null) {
+    			fProjectionModelUpdater.initialize();
+    		} 
         } catch (Exception e) {
         	MylarPlugin.fail(e, "couldn't get reset folding", true);
         }
