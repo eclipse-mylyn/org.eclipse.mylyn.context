@@ -14,6 +14,8 @@
 package org.eclipse.mylar.java.ui;
 
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
@@ -26,13 +28,14 @@ import org.eclipse.mylar.core.IMylarContextNode;
 import org.eclipse.mylar.core.internal.MylarContextManager;
 import org.eclipse.mylar.java.JavaStructureBridge;
 import org.eclipse.mylar.java.MylarJavaPlugin;
-import org.eclipse.mylar.java.search.AbstractJavaRelationshipProvider;
+import org.eclipse.mylar.java.search.AbstractJavaRelationProvider;
 import org.eclipse.mylar.java.search.JUnitReferencesProvider;
 import org.eclipse.mylar.java.search.JavaImplementorsProvider;
 import org.eclipse.mylar.java.search.JavaReadAccessProvider;
 import org.eclipse.mylar.java.search.JavaReferencesProvider;
 import org.eclipse.mylar.java.search.JavaWriteAccessProvider;
 import org.eclipse.mylar.ui.MylarImages;
+import org.eclipse.mylar.ui.views.MylarContextLabelProvider;
 import org.eclipse.swt.graphics.Image;
 
 /**
@@ -49,18 +52,32 @@ public class JavaContextLabelProvider extends DecoratingJavaLabelProvider {
         if (object instanceof IMylarContextNode) { 
             IMylarContextNode node = (IMylarContextNode)object;
             if (node == null) return "<missing info>";
-            if (JavaStructureBridge.CONTENT_TYPE.equals(node.getContentKind())) {
+            if (JavaStructureBridge.CONTENT_TYPE.equals(node.getContentType())) {
                 IJavaElement element = JavaCore.create(node.getElementHandle());
                 if (element == null) {
                     return "<missing element>";                     
                 } else {
-                    return super.getText(element);
+                	return getTextForElement(element);
                 }
             } 
         } else if (object instanceof IMylarContextEdge) {
         	return getNameForRelationship(((IMylarContextEdge)object).getRelationshipHandle());
-        }
+        } else if (object instanceof IJavaElement) {
+        	return getTextForElement((IJavaElement)object);
+        } 
         return super.getText(object);
+	}
+
+	private String getTextForElement(IJavaElement element) {
+    	if (MylarContextLabelProvider.isQualifyNamesMode()) {
+    		if (element instanceof IMember && !(element instanceof IType)) {
+    			String parentName = ((IMember)element).getParent().getElementName();
+    			if (parentName != null && parentName != "" ) {
+    				return parentName + '.' + super.getText(element);
+    			}
+     		}
+    	}
+    	return super.getText(element);
 	}
 
 	@Override
@@ -68,7 +85,7 @@ public class JavaContextLabelProvider extends DecoratingJavaLabelProvider {
         if (object instanceof IMylarContextNode) {
             IMylarContextNode node = (IMylarContextNode)object;
             if (node == null) return null;
-            if (node.getContentKind().equals(JavaStructureBridge.CONTENT_TYPE)) {
+            if (node.getContentType().equals(JavaStructureBridge.CONTENT_TYPE)) {
                 return super.getImage(JavaCore.create(node.getElementHandle()));
             } 
         } else if (object instanceof IMylarContextEdge) {
@@ -78,7 +95,7 @@ public class JavaContextLabelProvider extends DecoratingJavaLabelProvider {
 	}
 	
     private ImageDescriptor getIconForRelationship(String relationshipHandle) {
-    	if (relationshipHandle.equals(AbstractJavaRelationshipProvider.ID_GENERIC)) {
+    	if (relationshipHandle.equals(AbstractJavaRelationProvider.ID_GENERIC)) {
             return MylarImages.EDGE_REFERENCE; 
         } else if (relationshipHandle.equals(JavaReferencesProvider.ID)) {
             return MylarImages.EDGE_REFERENCE; 
@@ -96,8 +113,8 @@ public class JavaContextLabelProvider extends DecoratingJavaLabelProvider {
     }
     
     private String getNameForRelationship(String relationshipHandle) {
-    	if (relationshipHandle.equals(AbstractJavaRelationshipProvider.ID_GENERIC)) {
-            return AbstractJavaRelationshipProvider.NAME; 
+    	if (relationshipHandle.equals(AbstractJavaRelationProvider.ID_GENERIC)) {
+            return AbstractJavaRelationProvider.NAME; 
         } else if (relationshipHandle.equals(JavaReferencesProvider.ID)) {
             return JavaReferencesProvider.NAME; 
         } else if (relationshipHandle.equals(JavaImplementorsProvider.ID)) {
