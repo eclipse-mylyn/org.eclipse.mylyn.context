@@ -22,6 +22,7 @@ import org.eclipse.mylar.core.MylarPlugin;
 import org.eclipse.mylar.java.ui.LandmarkMarkerManager;
 import org.eclipse.mylar.java.ui.actions.ApplyMylarToBrowsingPerspectiveAction;
 import org.eclipse.mylar.java.ui.actions.ApplyMylarToPackageExplorerAction;
+import org.eclipse.mylar.java.ui.actions.LinkActiveSearchWithEditorAction;
 import org.eclipse.mylar.java.ui.editor.ActiveFoldingListener;
 import org.eclipse.mylar.java.ui.wizards.MylarPreferenceWizard;
 import org.eclipse.swt.widgets.Shell;
@@ -30,6 +31,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IFileEditorMapping;
+import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -80,8 +82,7 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 	 */
     @Override
 	public void start(BundleContext context) throws Exception {
-		super.start(context);
-		
+		super.start(context);		
         MylarPlugin.getContextManager().addListener(packageExplorerManager);
         MylarPlugin.getContextManager().addListener(typeHistoryManager);
         MylarPlugin.getContextManager().addListener(landmarkMarkerManager);
@@ -109,13 +110,22 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
             	if (ApplyMylarToBrowsingPerspectiveAction.getDefault() != null) {
             		ApplyMylarToBrowsingPerspectiveAction.getDefault().update();
             	}
-
+            	if (ApplyMylarToBrowsingPerspectiveAction.getDefault() != null) {
+            		ApplyMylarToBrowsingPerspectiveAction.getDefault().update();
+            	}
+            	if (LinkActiveSearchWithEditorAction.getDefault() != null) {
+            		LinkActiveSearchWithEditorAction.getDefault().update();
+            	}
+            	
             	javaEditingMonitor = new JavaEditingMonitor();
                 MylarPlugin.getDefault().getSelectionMonitors().add(javaEditingMonitor);
         		installEditorTracker(workbench);
         		
         		JavaPlugin.getDefault().getProblemMarkerManager().addListener(problemListener);
         	
+        	    ISelectionService service = Workbench.getInstance().getActiveWorkbenchWindow().getSelectionService();
+        		service.addPostSelectionListener(packageExplorerManager); 
+        		
 //        		 needed because Mylar source viewer configuration does not get initialized properly
 //        		resetActiveEditor();
             }
@@ -139,7 +149,11 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
     	}
     	
     	JavaPlugin.getDefault().getProblemMarkerManager().removeListener(problemListener);
-        
+    	
+    	if (Workbench.getInstance() != null && Workbench.getInstance().getActiveWorkbenchWindow() != null) {
+    		ISelectionService service = Workbench.getInstance().getActiveWorkbenchWindow().getSelectionService();
+    		service.removePostSelectionListener(packageExplorerManager); 
+    	}
         // TODO: uninstall editor tracker
 	}
 
