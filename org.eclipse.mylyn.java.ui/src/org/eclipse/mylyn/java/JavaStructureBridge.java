@@ -27,12 +27,14 @@ import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JarEntryFile;
 import org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
+import org.eclipse.jdt.internal.core.PackageFragment;
 import org.eclipse.jdt.internal.ui.packageview.ClassPathContainer;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 import org.eclipse.mylar.core.AbstractRelationProvider;
@@ -92,7 +94,17 @@ public class JavaStructureBridge implements IMylarStructureBridge {
      * Uses resource-compatible path for projects
      */
     public String getHandleIdentifier(Object object) {
-        if (object == null || !(object instanceof IJavaElement)) return null;
+    	if (object instanceof PackageFragment) {
+//			System.err.println("??????????? " + ((PackageFragment)object).getElementName());
+//			return null;
+		}
+        if (object == null || !(object instanceof IJavaElement)) {
+//        	if (object instanceof PackageFragment) {
+//        		System.err.println(((PackageFragment)object).getElementName());
+//        	}
+//        	System.err.println(" > " + object.getClass().getCanonicalName());
+        	return null;
+        }
         return ((IJavaElement)object).getHandleIdentifier();
     }
 
@@ -121,6 +133,7 @@ public class JavaStructureBridge implements IMylarStructureBridge {
             || object instanceof ClassPathContainer
             || object instanceof ClassPathContainer.RequiredProjectWrapper
             || object instanceof JarEntryFile
+            || object instanceof IPackageFragment
             || object instanceof IJavaProject; // TODO: redundant?
         return accepts;
     }
@@ -140,16 +153,14 @@ public class JavaStructureBridge implements IMylarStructureBridge {
             for (int i = 0; i < children.length; i++) {
                 if (children[i] instanceof JarPackageFragmentRoot) {
                     JarPackageFragmentRoot element = (JarPackageFragmentRoot)children[i];
-                    IMylarElement node = MylarPlugin.getContextManager().getNode(element.getHandleIdentifier());
+                    IMylarElement node = MylarPlugin.getContextManager().getElement(element.getHandleIdentifier());
                     if (node != null && node.getDegreeOfInterest().isInteresting()) {
-                        return false;
+                    	return false;
                     } 
                 } 
-            } 
-            return true; 
-        } else {
-            return true;
+            }
         }
+        return true;
     }
 
     public boolean isDocument(String handle) {
