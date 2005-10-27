@@ -74,6 +74,7 @@ public class ActiveHierarchyView extends ViewPart {
     
     private TreeViewer viewer;
     private Map<String, TreeParent> nodeMap = new HashMap<String, TreeParent>();
+//    private List<ITypeHierarchy> currentHierarchies = new ArrayList<ITypeHierarchy>();
     
 	final IMylarContextListener MODEL_LISTENER = new IMylarContextListener() { 
         
