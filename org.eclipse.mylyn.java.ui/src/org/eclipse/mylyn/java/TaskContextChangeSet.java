@@ -16,6 +16,7 @@ import java.util.List;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.mylar.ide.MylarIdePlugin;
 import org.eclipse.mylar.tasklist.ITask;
+import org.eclipse.mylar.tasklist.MylarTasklistPlugin;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.internal.core.subscribers.ActiveChangeSet;
 import org.eclipse.team.internal.core.subscribers.SubscriberChangeSetCollector;
@@ -25,29 +26,40 @@ import org.eclipse.team.internal.core.subscribers.SubscriberChangeSetCollector;
  */
 public class TaskContextChangeSet extends ActiveChangeSet {
 
+	private static final String PREFIX_URL = "Issue URL: ";
 	private static final String LABEL_PREFIX = "Mylar Task";
+	private static final String LABEL_BUG = "Bug";
 	private List<IResource> resources;
 	private ITask task;
 	
 	public TaskContextChangeSet(ITask task, SubscriberChangeSetCollector collector) {
 		super(collector, LABEL_PREFIX);
 		this.task = task;
-		super.setTitle(LABEL_PREFIX + ": " + this.task.getDescription(true));
+		if (task.isLocal()) {
+			super.setTitle(LABEL_PREFIX + ": " + this.task.getDescription(true));
+		} else {
+			super.setTitle(LABEL_PREFIX + ": " + LABEL_BUG + " " + this.task.getDescription(true));
+		}
 	}
 	
 	@Override
-	public String getComment() {
-		String prefix = "";
+	public String getComment() { 
+		String completedPrefix = MylarTasklistPlugin.getPrefs().getString(MylarTasklistPlugin.COMMIT_PREFIX_COMPLETED);
+		String progressPrefix = MylarTasklistPlugin.getPrefs().getString(MylarTasklistPlugin.COMMIT_PREFIX_PROGRESS);
+		String comment = "";
 		if (task.isCompleted()) {
-			prefix = "Completed "; 
+			comment = completedPrefix + " "; 
 		} else {
-			prefix = "Progress on ";
+			comment = progressPrefix + " ";
 		}
-		if (task.isDirectlyModifiable()) {
-			return prefix + task.getDescription(false);
+		if (task.isLocal()) {
+			comment += task.getDescription(false);
 		} else { // bug report
-			return prefix + "Bug " + task.getDescription(false);
+			comment += LABEL_BUG + " " + task.getDescription(false);
 		}
+		String url = task.getIssueReportURL();
+		if (url != null && !url.endsWith("//")) comment += "\n" + PREFIX_URL + url;
+		return comment;
 	}
 	
 	@Override
