@@ -20,7 +20,6 @@ import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.mylar.core.MylarPlugin;
 import org.eclipse.mylar.java.MylarJavaPlugin;
 import org.eclipse.mylar.java.ui.editor.AutoFoldingStructureProvider;
-import org.eclipse.mylar.tasklist.ui.views.TaskListView;
 import org.eclipse.mylar.ui.MylarImages;
 import org.eclipse.mylar.ui.MylarUiPlugin;
 import org.eclipse.mylar.ui.internal.MylarWorkingSetPage;
@@ -31,7 +30,7 @@ import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.dialogs.IWorkingSetNewWizard;
 
-public class MylarPreferenceWizard extends Wizard implements INewWizard {
+public class MylarPreferenceWizard extends Wizard implements INewWizard{
 
 	private MylarPreferenceWizardPage preferencePage;
 	
@@ -41,29 +40,21 @@ public class MylarPreferenceWizard extends Wizard implements INewWizard {
 	
 	private IPreferenceStore javaPrefs = JavaPlugin.getDefault().getPreferenceStore();
 	
-	public void init(String htmlDocs){
+	public void init(){
+		
+	}
+	
+	public MylarPreferenceWizard(String htmlDocs){
+		super();
 		setDefaultPageImageDescriptor(MylarImages.MYLAR);
 		setWindowTitle("Mylar Preferences Wizard");
 		super.setDefaultPageImageDescriptor(MylarJavaPlugin.imageDescriptorFromPlugin(MylarJavaPlugin.PLUGIN_ID, "icons/wizban/banner-prefs.gif"));
-		preferencePage = new MylarPreferenceWizardPage("Mylar Configuration", htmlDocs); 
-	}
-	
-	public MylarPreferenceWizard() {
-		super();
-		init(MylarJavaPlugin.FIRST_USE);
-	}
-	
-	public MylarPreferenceWizard(String htmlDocs) {
-		super();
-		init(htmlDocs);
+		preferencePage = new MylarPreferenceWizardPage("Mylar Configuration", htmlDocs);
 	}
 	
 	@Override
 	public boolean performFinish() {
 		setPreferences();
-		if (preferencePage.isOpenTaskList()) {
-			TaskListView.openInActivePerspective();
-		}
 		return true;
 	}
 	

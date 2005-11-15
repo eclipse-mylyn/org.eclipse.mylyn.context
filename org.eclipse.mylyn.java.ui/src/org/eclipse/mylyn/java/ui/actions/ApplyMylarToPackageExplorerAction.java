@@ -11,14 +11,12 @@
 
 package org.eclipse.mylar.java.ui.actions;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.mylar.java.MylarJavaPlugin;
 import org.eclipse.mylar.ui.InterestFilter;
 import org.eclipse.mylar.ui.MylarUiPlugin;
@@ -47,18 +45,20 @@ public class ApplyMylarToPackageExplorerAction extends AbstractApplyMylarAction 
 	}
 	
 	@Override
-	public List<StructuredViewer> getViewers() {
-		List<StructuredViewer> viewers = new ArrayList<StructuredViewer>();
+	public StructuredViewer getViewer() {
 		PackageExplorerPart part = PackageExplorerPart.getFromActivePerspective();
-		if (part != null) viewers.add(part.getTreeViewer());
-		return viewers;
+		if (part != null) {
+			return part.getTreeViewer();
+		} else {
+			return null;
+		}
 	}
 
-//	@Override
-//	public void refreshViewer() {
-//		TreeViewer viewer = (TreeViewer)getViewer();
-//		viewer.refresh();
-//	}
+	@Override
+	public void refreshViewer() {
+		TreeViewer viewer = (TreeViewer)getViewer();
+		viewer.refresh();
+	}
 
 	public static ApplyMylarToPackageExplorerAction getDefault() {
 		return INSTANCE;
@@ -72,9 +72,9 @@ public class ApplyMylarToPackageExplorerAction extends AbstractApplyMylarAction 
 
 	private void configureAction() {
 		if (MylarJavaPlugin.getDefault().getPreferenceStore().getBoolean(MylarJavaPlugin.PACKAGE_EXPLORER_AUTO_FILTER_ENABLE)) {
-			MylarUiPlugin.getDefault().getViewerManager().addManagedAction(this);
+			MylarUiPlugin.getDefault().getUiUpdateManager().addManagedAction(this);
 		} else {
-			MylarUiPlugin.getDefault().getViewerManager().removeManagedAction(this);
+			MylarUiPlugin.getDefault().getUiUpdateManager().removeManagedAction(this);
 		}
 	}
 

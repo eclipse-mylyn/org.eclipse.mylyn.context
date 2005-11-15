@@ -24,14 +24,15 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
+import org.eclipse.jdt.internal.ui.viewsupport.JavaUILabelProvider;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.util.TransferDragSourceListener;
-import org.eclipse.jface.viewers.DecoratingLabelProvider;
+import org.eclipse.jface.viewers.IFontProvider;
 import org.eclipse.jface.viewers.IOpenListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -41,28 +42,22 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.mylar.core.IMylarContext;
 import org.eclipse.mylar.core.IMylarContextListener;
-import org.eclipse.mylar.core.IMylarElement;
+import org.eclipse.mylar.core.IMylarContextNode;
 import org.eclipse.mylar.core.MylarPlugin;
-import org.eclipse.mylar.dt.MylarWebRef;
-import org.eclipse.mylar.ide.ui.views.ActiveViewDelegatingDragAdapter;
-import org.eclipse.mylar.ide.ui.views.ActiveViewDropAdapter;
-import org.eclipse.mylar.ide.ui.views.ActiveViewResourceDragAdapter;
-import org.eclipse.mylar.ide.ui.views.ActiveViewSelectionDragAdapter;
 import org.eclipse.mylar.java.JavaStructureBridge;
 import org.eclipse.mylar.java.ui.JavaContextLabelProvider;
+import org.eclipse.mylar.ui.MylarUiPlugin;
+import org.eclipse.mylar.ui.internal.UiUtil;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchActionConstants;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.Workbench;
-import org.eclipse.ui.part.ResourceTransfer;
 import org.eclipse.ui.part.ViewPart;
-import org.eclipse.ui.views.navigator.LocalSelectionTransfer;
 
 /**
  * @author Mik Kersten
@@ -73,8 +68,7 @@ public class ActiveHierarchyView extends ViewPart {
     private TreeParent root = new TreeParent("<no hierarchy>");
     
     private TreeViewer viewer;
-    private Map<String, TreeParent> nodeMap = new HashMap<String, TreeParent>();
-//    private List<ITypeHierarchy> currentHierarchies = new ArrayList<ITypeHierarchy>();
+    Map<String, TreeParent> nodeMap = new HashMap<String, TreeParent>();
     
 	final IMylarContextListener MODEL_LISTENER = new IMylarContextListener() { 
         
@@ -86,21 +80,21 @@ public class ActiveHierarchyView extends ViewPart {
             refreshHierarchy();
         }        
         
-	    public void interestChanged(IMylarElement info) { 
+	    public void interestChanged(IMylarContextNode info) { 
 	    }
         
-        public void interestChanged(List<IMylarElement> nodes) {
+        public void interestChanged(List<IMylarContextNode> nodes) {
         } 
         
-        public void landmarkAdded(IMylarElement element) { 
+        public void landmarkAdded(IMylarContextNode element) { 
             refreshHierarchy();
         }
 
-        public void landmarkRemoved(IMylarElement element) { 
+        public void landmarkRemoved(IMylarContextNode element) { 
             refreshHierarchy();
         }
 
-        public void edgesChanged(IMylarElement node) {
+        public void edgesChanged(IMylarContextNode node) {
         }
  
         public void presentationSettingsChanging(UpdateKind kind) {
@@ -110,14 +104,15 @@ public class ActiveHierarchyView extends ViewPart {
             refreshHierarchy();
         }
 
-        public void nodeDeleted(IMylarElement node) {
+        public void nodeDeleted(IMylarContextNode node) {
         }
 	};
 
-	class ViewContentProvider implements IStructuredContentProvider, ITreeContentProvider {
+	class ViewContentProvider implements IStructuredContentProvider, 
+										   ITreeContentProvider {
 		
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {
-			// ignore
+			// don't care when the input is changed
 		}
 		
 		public void dispose() { 
@@ -125,42 +120,21 @@ public class ActiveHierarchyView extends ViewPart {
 		}
 		
 		public Object[] getElements(Object parent) {
-			Object[] types = new Object[root.getChildren().length];
-			for (int i = 0; i < root.getChildren().length; i++) {
-				types[i] = root.getChildren()[i].getElement();
-			}
-			return types;
+		    return root.getChildren();  
 		}
 
         public Object getParent(Object child) {
-        	return null;
-//            return ((TreeParent)child).getParent();
+            return ((TreeParent)child).getParent();
 		}
-        
 		public Object [] getChildren(Object parent) {
-			if (parent instanceof IType) {
-				TreeParent node = nodeMap.get(((IType)parent).getHandleIdentifier());
-				if (node != null) {
-					Object[] types = new Object[node.getChildren().length];
-					for (int i = 0; i < node.getChildren().length; i++) {
-						types[i] = node.getChildren()[i].getElement();
-					}
-					return types;
-				}
+			if (parent instanceof TreeParent) {
+				return ((TreeParent)parent).getChildren();
 			}
-//			if (parent instanceof TreeParent) {
-//				return ((TreeParent)parent).getChildren();
-//			}
 			return new Object[0];
 		}
-		
 		public boolean hasChildren(Object parent) {
-			if (parent instanceof IType) {
-				TreeParent node = nodeMap.get(((IType)parent).getHandleIdentifier());
-				if (node != null) {
-					return node.getChildren().length > 0;
-				}
-			}
+			if (parent instanceof TreeParent)
+				return ((TreeParent)parent).hasChildren();
 			return false;
 		}
 	}
@@ -177,31 +151,29 @@ public class ActiveHierarchyView extends ViewPart {
 	/**
 	 * Public for testing.
 	 */
-	public void refreshHierarchy(boolean asyncRefreshMode) {
+	public void refreshHierarchy(boolean async) {
         try {    
         	if (root != null && root.getChildren().length > 0) root.removeAllChildren();
             nodeMap.clear();
-        	List<IMylarElement> landmarks = MylarPlugin.getContextManager().getActiveLandmarks();
-            for (Iterator<IMylarElement> it = landmarks.iterator(); it.hasNext();) {
-                IMylarElement node = it.next();
+        	List<IMylarContextNode> landmarks = MylarPlugin.getContextManager().getActiveLandmarks();
+            for (Iterator<IMylarContextNode> it = landmarks.iterator(); it.hasNext();) {
+                IMylarContextNode node = it.next();
                 IJavaElement element = null;
-                if (node.getContentType().equals(JavaStructureBridge.CONTENT_TYPE)) {
-                    element = JavaCore.create(node.getHandleIdentifier());
+                if (node.getContentKind().equals(JavaStructureBridge.CONTENT_TYPE)) {
+                    element = JavaCore.create(node.getElementHandle());
                 }
                 if (element != null && element instanceof IType && element.exists()) {	
                     IType type = (IType)element;
                     ITypeHierarchy hierarchy = type.newSupertypeHierarchy(null);
-                    if (hierarchy != null) {
-	                    IType[] supertypes = hierarchy.getAllSuperclasses(type);
-	                    List<IType> hierarchyTypes = new ArrayList<IType>(Arrays.asList(supertypes));
-	                    Collections.reverse(hierarchyTypes);
-	                    hierarchyTypes.add(type);
-	                    addHierarchy(root, hierarchyTypes);
-                    }
+                    IType[] supertypes = hierarchy.getAllSuperclasses(type);
+                    List<IType> hierarchyTypes = new ArrayList<IType>(Arrays.asList(supertypes));
+                    Collections.reverse(hierarchyTypes);
+                    hierarchyTypes.add(type);
+                    addHierarchy(root, hierarchyTypes);
                 }
             }
 
-            if (!asyncRefreshMode) { // for testing
+            if (!async) {
             	refreshViewer();
             } else {
 			    Workbench.getInstance().getDisplay().asyncExec(new Runnable() {
@@ -232,10 +204,8 @@ public class ActiveHierarchyView extends ViewPart {
 	private void refreshViewer() {
 		try {
 			if (viewer != null && !viewer.getTree().isDisposed()) {
-				viewer.getControl().setRedraw(false);
 			    viewer.refresh();
 			    viewer.expandAll();
-			    viewer.getControl().setRedraw(true);
 			}
 	    } catch (Throwable t) {
 	        MylarPlugin.fail(t, "Could not update viewer", false);
@@ -247,53 +217,33 @@ public class ActiveHierarchyView extends ViewPart {
 		try {
 		    viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 			viewer.setContentProvider(new ViewContentProvider());
-			viewer.setLabelProvider(new DecoratingLabelProvider(
-					JavaContextLabelProvider.createJavaUiLabelProvider(),
-	                PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator()));
+			viewer.setLabelProvider(new HierarchyLabelProvider(JavaContextLabelProvider.createJavaUiLabelProvider()));
 			viewer.setInput(getViewSite());
             
             viewer.addOpenListener(new IOpenListener() {
                 public void open(OpenEvent event) {
-	                StructuredSelection selection = (StructuredSelection)viewer.getSelection();
-	                if (selection.getFirstElement() != null && selection.getFirstElement() instanceof IJavaElement) {
-	                    IJavaElement element = (IJavaElement)selection.getFirstElement();
-	                	try {
-	                        IEditorPart part = JavaUI.openInEditor(element);
-	                        JavaUI.revealInEditor(part, element);
-	                    } catch (Throwable t) { 
-	                    	MylarPlugin.log(t, "Could not open type");
-	                    }
-	                } 
+                StructuredSelection selection = (StructuredSelection)viewer.getSelection();
+                if (selection.getFirstElement() != null && selection.getFirstElement() instanceof TreeParent) {
+                    TreeParent treeParent = (TreeParent)selection.getFirstElement();
+                    if (treeParent.getElement() != null && !treeParent.getElement().getElementName().contains("Object"))
+                        try {
+                            JavaUI.openInEditor(treeParent.getElement());
+                        } catch (Throwable e) { 
+                        	MylarPlugin.log(e, "open problem");
+                        }
+                    } else {
+                        return;
+                    }
                 }
             });
 			hookContextMenu();
 			contributeToActionBars();
-			
-			initDrop();
-			initDrag();
+			viewer.getTree().setBackground(MylarUiPlugin.getDefault().getColorMap().BACKGROUND_COLOR);
         } catch (Throwable t) {
         	MylarPlugin.log(t, "create failed");
         }
 	}
 
-	@MylarWebRef(name="Drag and drop article", url="http://www.eclipse.org/articles/Article-Workbench-DND/drag_drop.html")
-    private void initDrop() {
-		Transfer[] types = new Transfer[] { LocalSelectionTransfer.getInstance() };
-		viewer.addDropSupport(DND.DROP_MOVE, types, new ActiveViewDropAdapter(viewer));
-	}
-	
-	private void initDrag() {
-		int ops= DND.DROP_COPY | DND.DROP_MOVE | DND.DROP_LINK;
-		Transfer[] transfers= new Transfer[] {
-			LocalSelectionTransfer.getInstance(), 
-			ResourceTransfer.getInstance()};
-		TransferDragSourceListener[] dragListeners = new TransferDragSourceListener[] {
-			new ActiveViewSelectionDragAdapter(viewer),
-			new ActiveViewResourceDragAdapter(viewer)
-		}; 
-		viewer.addDragSupport(ops, transfers, new ActiveViewDelegatingDragAdapter(dragListeners));
-	}
-    
 	private void hookContextMenu() {
 		MenuManager menuMgr = new MenuManager("#PopupMenu");
 		menuMgr.setRemoveAllWhenShown(true);
@@ -368,8 +318,7 @@ class TreeParent implements IAdaptable {
 	}
 	
 	public Object getAdapter(Class key) {
-		return element;
-//		return null;
+		return null;
 	}
     
 	public IJavaElement getElement() {
@@ -408,47 +357,51 @@ class TreeParent implements IAdaptable {
 	}
 } 
 
-///**
-// * Unwraps the elements.
-// * TODO: use workbench decorator mechanism?
-// * 
-// * @author Mik Kersten
-// */
-//class HierarchyLabelProvider extends AppearanceAwareLabelProvider implements IFontProvider {
-//
-//    public HierarchyLabelProvider(JavaUILabelProvider labelProvider) {
-////        super(labelProvider, PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator());
-//    }
-//    @Override
-//    public Color getForeground(Object element) {
-//        IJavaElement javaElement = ((TreeParent)element).getElement();
-//        IMylarElement node = MylarPlugin.getContextManager().getNode(javaElement.getHandleIdentifier());
-//        return UiUtil.getForegroundForElement(node);
-//    }
-//
-//    @Override
-//    public Color getBackground(Object element) {
-//        IJavaElement javaElement = ((TreeParent)element).getElement();
-//        IMylarElement node = MylarPlugin.getContextManager().getNode(javaElement.getHandleIdentifier());
-//        return UiUtil.getBackgroundForElement(node);
-//    }
-//
-//    @Override
-//    public Image getImage(Object element) {
-//        return super.getImage(((TreeParent)element).getElement());
-//    }
-//
-//    @Override
-//    public String getText(Object element) {
-//        return super.getText(((TreeParent)element).getElement());
-//    }
-//    
-//    public Font getFont(Object element) {
-//        IJavaElement javaElement = ((TreeParent)element).getElement();
-//        IMylarElement node = MylarPlugin.getContextManager().getNode(javaElement.getHandleIdentifier());
-//        if (node.getDegreeOfInterest().isLandmark() && !node.getDegreeOfInterest().isPropagated()) {
-//            return MylarUiPlugin.BOLD;
-//        }
-//        return null;
-//    }
-//}
+/**
+ * Unwraps the elements.
+ * TODO: use workbench decorator mechanism?
+ * 
+ * @author Mik Kersten
+ */
+class HierarchyLabelProvider extends AppearanceAwareLabelProvider implements IFontProvider {
+
+    public HierarchyLabelProvider(JavaUILabelProvider labelProvider) {
+//        super(labelProvider, PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator());
+    }
+    @Override
+    public Color getForeground(Object element) {
+        IJavaElement javaElement = ((TreeParent)element).getElement();
+        IMylarContextNode node = MylarPlugin.getContextManager().getNode(javaElement.getHandleIdentifier());
+        return UiUtil.getForegroundForElement(node);
+    }
+
+    @Override
+    public Color getBackground(Object element) {
+        IJavaElement javaElement = ((TreeParent)element).getElement();
+        IMylarContextNode node = MylarPlugin.getContextManager().getNode(javaElement.getHandleIdentifier());
+        return UiUtil.getBackgroundForElement(node);
+    }
+
+    @Override
+    public Image getImage(Object element) {
+        return super.getImage(((TreeParent)element).getElement());
+    }
+
+    @Override
+    public String getText(Object element) {
+        return super.getText(((TreeParent)element).getElement());
+    }
+    
+    public Font getFont(Object element) {
+        IJavaElement javaElement = ((TreeParent)element).getElement();
+        IMylarContextNode node = MylarPlugin.getContextManager().getNode(javaElement.getHandleIdentifier());
+        if (node.getDegreeOfInterest().isLandmark() && !node.getDegreeOfInterest().isPropagated()) {
+            return MylarUiPlugin.BOLD;
+        }
+        return null;
+    }
+}
+
+//IType[] subtypes = hierarchy.getSubtypes(type);
+//if (subtypes.length > 0) hierarchyTypes.add(subtypes[0]); 
+//if (subtypes.length > 1) hierarchyTypes.add(subtypes[1]);

@@ -14,95 +14,71 @@
 package org.eclipse.mylar.java.ui;
 
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
+import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.JavaElementImageProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.TreeHierarchyLayoutProblemsDecorator;
 import org.eclipse.jdt.ui.JavaElementLabels;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.mylar.core.IMylarElement;
-import org.eclipse.mylar.core.IMylarRelation;
+import org.eclipse.mylar.core.IMylarContextEdge;
+import org.eclipse.mylar.core.IMylarContextNode;
 import org.eclipse.mylar.core.internal.MylarContextManager;
 import org.eclipse.mylar.java.JavaStructureBridge;
 import org.eclipse.mylar.java.MylarJavaPlugin;
-import org.eclipse.mylar.java.search.AbstractJavaRelationProvider;
+import org.eclipse.mylar.java.search.AbstractJavaRelationshipProvider;
 import org.eclipse.mylar.java.search.JUnitReferencesProvider;
 import org.eclipse.mylar.java.search.JavaImplementorsProvider;
 import org.eclipse.mylar.java.search.JavaReadAccessProvider;
 import org.eclipse.mylar.java.search.JavaReferencesProvider;
 import org.eclipse.mylar.java.search.JavaWriteAccessProvider;
 import org.eclipse.mylar.ui.MylarImages;
-import org.eclipse.mylar.ui.views.MylarDelegatingContextLabelProvider;
 import org.eclipse.swt.graphics.Image;
 
 /**
  * @author Mik Kersten
  */
-public class JavaContextLabelProvider extends AppearanceAwareLabelProvider {
+public class JavaContextLabelProvider extends DecoratingJavaLabelProvider {
 
 	public JavaContextLabelProvider() {
-//		super(createJavaUiLabelProvider());
-		super(				
-			AppearanceAwareLabelProvider.DEFAULT_TEXTFLAGS | JavaElementLabels.P_COMPRESSED,
-            AppearanceAwareLabelProvider.DEFAULT_IMAGEFLAGS | JavaElementImageProvider.SMALL_ICONS);
+		super(createJavaUiLabelProvider());
 	}
 	
 	@Override
 	public String getText(Object object) {
-        if (object instanceof IMylarElement) { 
-            IMylarElement node = (IMylarElement)object;
+        if (object instanceof IMylarContextNode) { 
+            IMylarContextNode node = (IMylarContextNode)object;
             if (node == null) return "<missing info>";
-            if (JavaStructureBridge.CONTENT_TYPE.equals(node.getContentType())) {
-                IJavaElement element = JavaCore.create(node.getHandleIdentifier());
+            if (JavaStructureBridge.CONTENT_TYPE.equals(node.getContentKind())) {
+                IJavaElement element = JavaCore.create(node.getElementHandle());
                 if (element == null) {
                     return "<missing element>";                     
                 } else {
-                	return getTextForElement(element);
+                    return super.getText(element);
                 }
             } 
-        } else if (object instanceof IMylarRelation) {
-        	return getNameForRelationship(((IMylarRelation)object).getRelationshipHandle());
-        } else if (object instanceof IJavaElement) {
-        	return getTextForElement((IJavaElement)object);
-        } 
+        } else if (object instanceof IMylarContextEdge) {
+        	return getNameForRelationship(((IMylarContextEdge)object).getRelationshipHandle());
+        }
         return super.getText(object);
-	}
-
-	private String getTextForElement(IJavaElement element) {
-    	if (MylarDelegatingContextLabelProvider.isQualifyNamesMode()) {
-    		if (element instanceof IMember && !(element instanceof IType)) {
-    			String parentName = ((IMember)element).getParent().getElementName();
-    			if (parentName != null && parentName != "" ) {
-    				return parentName + '.' + super.getText(element);
-    			}
-     		}
-    	}
-    	return super.getText(element);
 	}
 
 	@Override
 	public Image getImage(Object object) { 
-        if (object instanceof IMylarElement) {
-            IMylarElement node = (IMylarElement)object;
+        if (object instanceof IMylarContextNode) {
+            IMylarContextNode node = (IMylarContextNode)object;
             if (node == null) return null;
-            if (node.getContentType().equals(JavaStructureBridge.CONTENT_TYPE)) {
-                return super.getImage(JavaCore.create(node.getHandleIdentifier()));
+            if (node.getContentKind().equals(JavaStructureBridge.CONTENT_TYPE)) {
+                return super.getImage(JavaCore.create(node.getElementHandle()));
             } 
-        } else if (object instanceof IMylarRelation) {
-        	ImageDescriptor descriptor = getIconForRelationship(((IMylarRelation)object).getRelationshipHandle());
-        	if (descriptor != null) {
-        		return MylarImages.getImage(descriptor);
-        	} else {
-        		return null;
-        	}
+        } else if (object instanceof IMylarContextEdge) {
+        	return MylarImages.getImage(getIconForRelationship(((IMylarContextEdge)object).getRelationshipHandle()));
         }
         return super.getImage(object);
 	}
 	
     private ImageDescriptor getIconForRelationship(String relationshipHandle) {
-    	if (relationshipHandle.equals(AbstractJavaRelationProvider.ID_GENERIC)) {
+    	if (relationshipHandle.equals(AbstractJavaRelationshipProvider.ID_GENERIC)) {
             return MylarImages.EDGE_REFERENCE; 
         } else if (relationshipHandle.equals(JavaReferencesProvider.ID)) {
             return MylarImages.EDGE_REFERENCE; 
@@ -120,8 +96,8 @@ public class JavaContextLabelProvider extends AppearanceAwareLabelProvider {
     }
     
     private String getNameForRelationship(String relationshipHandle) {
-    	if (relationshipHandle.equals(AbstractJavaRelationProvider.ID_GENERIC)) {
-            return AbstractJavaRelationProvider.NAME; 
+    	if (relationshipHandle.equals(AbstractJavaRelationshipProvider.ID_GENERIC)) {
+            return AbstractJavaRelationshipProvider.NAME; 
         } else if (relationshipHandle.equals(JavaReferencesProvider.ID)) {
             return JavaReferencesProvider.NAME; 
         } else if (relationshipHandle.equals(JavaImplementorsProvider.ID)) {

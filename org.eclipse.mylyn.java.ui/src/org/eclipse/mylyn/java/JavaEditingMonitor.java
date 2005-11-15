@@ -11,18 +11,21 @@
 
 package org.eclipse.mylar.java;
 
+import org.eclipse.jdt.core.ElementChangedEvent;
+import org.eclipse.jdt.core.IElementChangedListener;
 import org.eclipse.jdt.core.IImportContainer;
 import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.actions.SelectionConverter;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.mylar.core.AbstractInteractionMonitor;
+import org.eclipse.mylar.core.AbstractSelectionMonitor;
 import org.eclipse.mylar.core.MylarPlugin;
 import org.eclipse.mylar.java.search.JavaImplementorsProvider;
 import org.eclipse.mylar.java.search.JavaReferencesProvider;
@@ -31,7 +34,7 @@ import org.eclipse.ui.IWorkbenchPart;
 /**
  * @author Mik Kersten
  */
-public class JavaEditingMonitor extends AbstractInteractionMonitor {
+public class JavaEditingMonitor extends AbstractSelectionMonitor {
     
     protected IJavaElement lastSelectedElement = null;
     protected IJavaElement lastResolvedElement = null;
@@ -40,6 +43,13 @@ public class JavaEditingMonitor extends AbstractInteractionMonitor {
   
     public JavaEditingMonitor() {
         super();
+    	JavaCore.addElementChangedListener(new IElementChangedListener() {
+            public void elementChanged(ElementChangedEvent event) {
+            	// TODO: implement interest move
+//                IJavaElementDelta delta = event.getDelta();
+//                super.handleElementEdit(part, selectedElement);
+            }
+        });
     }
     
     /**

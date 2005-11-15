@@ -39,8 +39,8 @@ import org.eclipse.jdt.internal.ui.search.JavaSearchQuery;
 import org.eclipse.jdt.internal.ui.search.JavaSearchResult;
 import org.eclipse.jdt.ui.search.ElementQuerySpecification;
 import org.eclipse.jdt.ui.search.QuerySpecification;
-import org.eclipse.mylar.core.AbstractRelationProvider;
-import org.eclipse.mylar.core.IMylarElement;
+import org.eclipse.mylar.core.AbstractRelationshipProvider;
+import org.eclipse.mylar.core.IMylarContextNode;
 import org.eclipse.mylar.core.IMylarStructureBridge;
 import org.eclipse.mylar.core.MylarPlugin;
 import org.eclipse.mylar.core.search.IActiveSearchListener;
@@ -49,10 +49,12 @@ import org.eclipse.mylar.java.JavaStructureBridge;
 import org.eclipse.search.ui.ISearchResult;
 import org.eclipse.search2.internal.ui.InternalSearchUI;
 
+
+
 /**
  * @author Mik Kersten
  */
-public abstract class AbstractJavaRelationProvider extends AbstractRelationProvider {
+public abstract class AbstractJavaRelationshipProvider extends AbstractRelationshipProvider {
 	
 	public static List<Job> runningJobs = new ArrayList<Job>();
     
@@ -64,15 +66,15 @@ public abstract class AbstractJavaRelationProvider extends AbstractRelationProvi
     	return ID_GENERIC;
     }
     
-	protected AbstractJavaRelationProvider(String structureKind, String id) {
+	protected AbstractJavaRelationshipProvider(String structureKind, String id) {
         super(structureKind, id);
     }
     
     @Override
-    protected void findRelated(final IMylarElement node, int degreeOfSeparation) {
+    protected void findRelated(final IMylarContextNode node, int degreeOfSeparation) {
     	if (node == null) return;
-        if (!node.getContentType().equals(JavaStructureBridge.CONTENT_TYPE)) return;
-        IJavaElement javaElement = JavaCore.create(node.getHandleIdentifier());
+        if (!node.getContentKind().equals(JavaStructureBridge.CONTENT_TYPE)) return;
+        IJavaElement javaElement = JavaCore.create(node.getElementHandle());
         if (!acceptElement(javaElement) || !javaElement.exists()) {
             return; 
         }
@@ -82,56 +84,49 @@ public abstract class AbstractJavaRelationProvider extends AbstractRelationProvi
     }
 
     private IJavaSearchScope createJavaSearchScope(IJavaElement element, int degreeOfSeparation) {
-        List<IMylarElement> landmarks = MylarPlugin.getContextManager().getActiveLandmarks();
-        List<IMylarElement> interestingElements = MylarPlugin.getContextManager().getActiveContext().getInteresting();
-
+        List<IMylarContextNode> landmarks = MylarPlugin.getContextManager().getActiveLandmarks();
+        List<IMylarContextNode> interestingElements = MylarPlugin.getContextManager().getActiveContext().getInteresting();
         Set<IJavaElement> searchElements = new HashSet<IJavaElement>();
         int includeMask = IJavaSearchScope.SOURCES;
         if (degreeOfSeparation == 1) {
-            for (IMylarElement landmark : landmarks) {
-            	IMylarStructureBridge bridge = MylarPlugin.getDefault().getStructureBridge(landmark.getContentType());
-            	if (includeNodeInScope(landmark, bridge)) {
-	            	Object o = bridge.getObjectForHandle(landmark.getHandleIdentifier());
-	            	if(o instanceof IJavaElement){
-	            		IJavaElement landmarkElement = (IJavaElement)o;
-	            		if(landmarkElement.exists()){
-			                if (landmarkElement instanceof IMember && !landmark.getInterest().isPropagated()) {
-			                    searchElements.add(((IMember)landmarkElement).getCompilationUnit());
-			                } else if (landmarkElement instanceof ICompilationUnit) {
-			                    searchElements.add(landmarkElement);
-			                }
-	            		}
-	            	}
+            for (IMylarContextNode landmark : landmarks) {
+            	IMylarStructureBridge sbridge = MylarPlugin.getDefault().getStructureBridge(landmark.getContentKind());
+            	Object o = sbridge.getObjectForHandle(landmark.getElementHandle());
+            	if(o instanceof IJavaElement){
+            		IJavaElement landmarkElement = (IJavaElement)o;
+            		if(landmarkElement.exists()){
+		                if (landmarkElement instanceof IMember && !landmark.getDegreeOfInterest().isPropagated()) {
+		                    searchElements.add(((IMember)landmarkElement).getCompilationUnit());
+		                } else if (landmarkElement instanceof ICompilationUnit) {
+		                    searchElements.add(landmarkElement);
+		                }
+            		}
             	}
             } 
         } else if (degreeOfSeparation == 2) {
-            for (IMylarElement interesting : interestingElements) {
-            	IMylarStructureBridge bridge = MylarPlugin.getDefault().getStructureBridge(interesting.getContentType());
-            	if (includeNodeInScope(interesting, bridge)) {
-	            	Object object = bridge.getObjectForHandle(interesting.getHandleIdentifier());
-	            	if (object instanceof IJavaElement){
-		                IJavaElement interestingElement = (IJavaElement)object;
-		                if(interestingElement.exists()){
-			                if (interestingElement instanceof IMember && !interesting.getInterest().isPropagated()) {
-			                    searchElements.add(((IMember)interestingElement).getCompilationUnit());
-			                } else if (interestingElement instanceof ICompilationUnit) {
-			                    searchElements.add(interestingElement);
-			                }
+            for (IMylarContextNode interesting : interestingElements) {
+            	IMylarStructureBridge sbridge = MylarPlugin.getDefault().getStructureBridge(interesting.getContentKind());
+            	Object o = sbridge.getObjectForHandle(interesting.getElementHandle());
+            	if(o instanceof IJavaElement){
+	                IJavaElement interestingElement = (IJavaElement)o;
+	                if(interestingElement.exists()){
+		                if (interestingElement instanceof IMember && !interesting.getDegreeOfInterest().isPropagated()) {
+		                    searchElements.add(((IMember)interestingElement).getCompilationUnit());
+		                } else if (interestingElement instanceof ICompilationUnit) {
+		                    searchElements.add(interestingElement);
 		                }
-	            	}
-	            }  
-            }
+	                }
+            	}
+            }  
         } else if (degreeOfSeparation == 3 || degreeOfSeparation == 4) {
-            for (IMylarElement interesting : interestingElements) {
-	            IMylarStructureBridge bridge = MylarPlugin.getDefault().getStructureBridge(interesting.getContentType());
-	            if (includeNodeInScope(interesting, bridge)) {
-	            	Object object = bridge.getObjectForHandle(interesting.getHandleIdentifier());
-	            	IProject project = bridge.getProjectForObject(object);// TODO what to do when the element is not a java element, how determine if a javaProject?
-	            	
-	            	if(project != null && JavaProject.hasJavaNature(project) && project.exists()){
-	            		IJavaProject javaProject = JavaCore.create(project);//((IJavaElement)o).getJavaProject();
-	            		if (javaProject != null && javaProject.exists()) searchElements.add(javaProject);
-	            	}
+            for (IMylarContextNode interesting : interestingElements) {
+            	IMylarStructureBridge sbridge = MylarPlugin.getDefault().getStructureBridge(interesting.getContentKind());
+            	Object o = sbridge.getObjectForHandle(interesting.getElementHandle());
+            	IProject project = sbridge.getProjectForObject(o);// TODO what to do when the element is not a java element, how determine if a javaProject?
+            	
+            	if(project != null && JavaProject.hasJavaNature(project) && project.exists()){
+            		IJavaProject javaProject = JavaCore.create(project);//((IJavaElement)o).getJavaProject();
+            		if (javaProject != null && javaProject.exists()) searchElements.add(javaProject);
             	}
             }   
             if (degreeOfSeparation == 4) {
@@ -153,18 +148,6 @@ public abstract class AbstractJavaRelationProvider extends AbstractRelationProvi
             return SearchEngine.createJavaSearchScope(elements, includeMask);
         }
     }
-
-    /**
-     * Only include Java elements and files. 
-     */
-	private boolean includeNodeInScope(IMylarElement interesting, IMylarStructureBridge bridge) {
-		if (interesting == null || bridge == null) {
-			return false;
-		} else {
-			return interesting.getContentType().equals(JavaStructureBridge.CONTENT_TYPE) 
-				|| bridge.isDocument(interesting.getHandleIdentifier());
-		}
-	}
     
     protected boolean acceptResultElement(IJavaElement element) {
         return !(element instanceof IImportDeclaration);
@@ -176,7 +159,7 @@ public abstract class AbstractJavaRelationProvider extends AbstractRelationProvi
     }
 
     private void runJob(
-            final IMylarElement node, 
+            final IMylarContextNode node, 
             final int degreeOfSeparation, 
             final String kind) {
     	
@@ -218,7 +201,7 @@ public abstract class AbstractJavaRelationProvider extends AbstractRelationProvi
                         incrementInterest(node, JavaStructureBridge.CONTENT_TYPE, element.getHandleIdentifier(), degreeOfSeparation);
                 } 
                 gathered = true;
-                AbstractJavaRelationProvider.this.searchCompleted(node);
+                AbstractJavaRelationshipProvider.this.searchCompleted(node);
             }
 
 		
@@ -226,13 +209,13 @@ public abstract class AbstractJavaRelationProvider extends AbstractRelationProvi
     	InternalSearchUI.getInstance();
         
         runningJobs.add(job);
-        job.setPriority(Job.DECORATE-10);
+        job.setPriority(Job.DECORATE);
         job.schedule();
     }
 
     @Override
-    public IMylarSearchOperation getSearchOperation(IMylarElement node, int limitTo, int degreeOfSeparation){
-    	IJavaElement javaElement = JavaCore.create(node.getHandleIdentifier());
+    public IMylarSearchOperation getSearchOperation(IMylarContextNode node, int limitTo, int degreeOfSeparation){
+    	IJavaElement javaElement = JavaCore.create(node.getElementHandle());
     	if(javaElement == null || !javaElement.exists())
     		return null;
     	

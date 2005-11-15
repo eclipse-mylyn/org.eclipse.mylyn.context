@@ -21,7 +21,7 @@ import org.eclipse.mylar.java.JavaStructureBridge;
 /**
  * @author Mik Kersten
  */
-public class JavaWriteAccessProvider extends AbstractJavaRelationProvider {
+public class JavaWriteAccessProvider extends AbstractJavaRelationshipProvider {
 
 	public static final String ID = ID_GENERIC + ".writeaccess";
     public static final String NAME = "written by";

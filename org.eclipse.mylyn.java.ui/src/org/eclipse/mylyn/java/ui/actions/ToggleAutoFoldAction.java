@@ -34,7 +34,6 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 public class ToggleAutoFoldAction extends Action implements IWorkbenchWindowActionDelegate, IActionDelegate2 {
 	
     private static final String DEFAULT_FOLDING_PROVIDER = "org.eclipse.jdt.ui.text.defaultFoldingProvider";
-    
     public static final String PREF_ID = "org.eclipse.mylar.ui.auto.fold.isChecked";
 
     private IPreferenceStore javaPrefs = JavaPlugin.getDefault().getPreferenceStore();
@@ -43,7 +42,7 @@ public class ToggleAutoFoldAction extends Action implements IWorkbenchWindowActi
 		super();
 		setText("Auto fold"); 
 		setImageDescriptor(MylarImages.INTEREST_FOLDING);	
-		setToolTipText("Auto Manage Editors and Folding"); 
+		setToolTipText("Auto manage editors and folding"); 
     }
 	
     public void run(IAction action) {

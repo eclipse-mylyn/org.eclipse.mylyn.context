@@ -25,10 +25,8 @@ import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
@@ -37,9 +35,9 @@ import org.eclipse.jdt.internal.core.JarEntryFile;
 import org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
 import org.eclipse.jdt.internal.ui.packageview.ClassPathContainer;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
-import org.eclipse.mylar.core.AbstractRelationProvider;
+import org.eclipse.mylar.core.AbstractRelationshipProvider;
 import org.eclipse.mylar.core.IDegreeOfSeparation;
-import org.eclipse.mylar.core.IMylarElement;
+import org.eclipse.mylar.core.IMylarContextNode;
 import org.eclipse.mylar.core.IMylarStructureBridge;
 import org.eclipse.mylar.core.MylarPlugin;
 import org.eclipse.mylar.core.internal.DegreeOfSeparation;
@@ -57,10 +55,10 @@ public class JavaStructureBridge implements IMylarStructureBridge {
 
     public final static String CONTENT_TYPE = "java";
     
-    public List<AbstractRelationProvider> providers;
+    public List<AbstractRelationshipProvider> providers;
     
     public JavaStructureBridge() {
-    	providers = new ArrayList<AbstractRelationProvider>();
+    	providers = new ArrayList<AbstractRelationshipProvider>();
     	providers.add(new JavaReferencesProvider());
     	providers.add(new JavaImplementorsProvider());
     	providers.add(new JavaReadAccessProvider());
@@ -68,7 +66,7 @@ public class JavaStructureBridge implements IMylarStructureBridge {
     	providers.add(new JUnitReferencesProvider());
     }
     
-    public String getContentType() {
+    public String getResourceExtension() {
         return CONTENT_TYPE;
     }
     
@@ -94,11 +92,8 @@ public class JavaStructureBridge implements IMylarStructureBridge {
      * Uses resource-compatible path for projects
      */
     public String getHandleIdentifier(Object object) {
-        if (object == null || !(object instanceof IJavaElement)) {
-        	return null;
-        } else {
-        	return ((IJavaElement)object).getHandleIdentifier();
-        }
+        if (object == null || !(object instanceof IJavaElement)) return null;
+        return ((IJavaElement)object).getHandleIdentifier();
     }
 
     public String getName(Object object) {
@@ -126,7 +121,6 @@ public class JavaStructureBridge implements IMylarStructureBridge {
             || object instanceof ClassPathContainer
             || object instanceof ClassPathContainer.RequiredProjectWrapper
             || object instanceof JarEntryFile
-            || object instanceof IPackageFragment
             || object instanceof IJavaProject; // TODO: redundant?
         return accepts;
     }
@@ -136,27 +130,6 @@ public class JavaStructureBridge implements IMylarStructureBridge {
      * i.e. they're not IJavaElement(s).
      */
     public boolean canFilter(Object object) {
-    	if (object instanceof IJavaElement) {
-    		try {
-	    		IJavaElement element = (IJavaElement)object;
-	            IResource resource = element.getCorrespondingResource();
-	            boolean hasError = false; 
-	            if (resource != null) {
-		            IMarker[] markers = resource.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, 2);
-		            for (int j = 0; j < markers.length; j++) {
-		                if (markers[j] != null
-		                	&& markers[j].getAttribute(IMarker.SEVERITY) != null
-		                	&& markers[j].getAttribute(IMarker.SEVERITY).equals(IMarker.SEVERITY_ERROR)) {
-		                    hasError = true;
-		                } 
-		            } 
-		            if (hasError) return false;
-	            }
-			} catch (CoreException e) {
-				// ignore
-			}
-    	}
-    	
         if (object instanceof ClassPathContainer.RequiredProjectWrapper) {
             return true;
         }
@@ -167,14 +140,16 @@ public class JavaStructureBridge implements IMylarStructureBridge {
             for (int i = 0; i < children.length; i++) {
                 if (children[i] instanceof JarPackageFragmentRoot) {
                     JarPackageFragmentRoot element = (JarPackageFragmentRoot)children[i];
-                    IMylarElement node = MylarPlugin.getContextManager().getElement(element.getHandleIdentifier());
-                    if (node != null && node.getInterest().isInteresting()) {
-                    	return false;
+                    IMylarContextNode node = MylarPlugin.getContextManager().getNode(element.getHandleIdentifier());
+                    if (node != null && node.getDegreeOfInterest().isInteresting()) {
+                        return false;
                     } 
                 } 
-            }
+            } 
+            return true; 
+        } else {
+            return true;
         }
-        return true;
     }
 
     public boolean isDocument(String handle) {
@@ -228,11 +203,11 @@ public class JavaStructureBridge implements IMylarStructureBridge {
 		return null;
 	}
 
-    public String getContentType(String elementHandle) {
-        return getContentType();
+    public String getResourceExtension(String elementHandle) {
+        return getResourceExtension();
     }
 
-	public List<AbstractRelationProvider> getRelationshipProviders() {
+	public List<AbstractRelationshipProvider> getRelationshipProviders() {
 		return providers;
 	}
 	
@@ -255,9 +230,9 @@ public class JavaStructureBridge implements IMylarStructureBridge {
 	 * Some copying from:
 	 * @see org.eclipse.jdt.ui.ProblemsLabelDecorator
 	 */
-	public boolean containsProblem(IMylarElement node) {
+	public boolean containsProblem(IMylarContextNode node) {
 		try {
-			IJavaElement element = (IJavaElement)getObjectForHandle(node.getHandleIdentifier());
+			IJavaElement element = (IJavaElement)getObjectForHandle(node.getElementHandle());
 			switch (element.getElementType()) {
 			case IJavaElement.JAVA_PROJECT:
 			case IJavaElement.PACKAGE_FRAGMENT_ROOT:
@@ -293,7 +268,9 @@ public class JavaStructureBridge implements IMylarStructureBridge {
 					int priority= curr.getAttribute(IMarker.SEVERITY, -1);
 					if (priority == IMarker.SEVERITY_ERROR) {
 						return true;
-					} 
+					} else {
+						System.err.println("!!!!!!!!!");
+					}
 				}
 			}			
 		}
