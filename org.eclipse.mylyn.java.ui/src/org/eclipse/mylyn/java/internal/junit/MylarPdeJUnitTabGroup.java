@@ -35,6 +35,7 @@ public class MylarPdeJUnitTabGroup extends JUnitTabGroup {
 		if (PDECore.getDefault().getModelManager().isOSGiRuntime()) {
 			tabs = new ILaunchConfigurationTab[]{
 //					new JUnitMainTab(),
+					new MylarJUnitMainTab(true),
 					new JUnitArgumentsTab(), 
 					new AdvancedLauncherTab(false),
 					 new ConfigurationTab(true), new TracingLauncherTab(),
@@ -43,6 +44,7 @@ public class MylarPdeJUnitTabGroup extends JUnitTabGroup {
 		} else {
 			tabs = new ILaunchConfigurationTab[]{
 //					new JUnitMainTab(),
+					new MylarJUnitMainTab(true),
 					new JUnitArgumentsTab(), 
 					new AdvancedLauncherTab(false),
 					new TracingLauncherTab(), new EnvironmentTab(),
