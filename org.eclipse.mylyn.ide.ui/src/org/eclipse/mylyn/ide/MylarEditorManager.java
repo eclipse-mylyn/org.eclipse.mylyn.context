@@ -11,18 +11,18 @@
 
 package org.eclipse.mylar.ide;
 
+import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.mylar.core.IMylarContext;
 import org.eclipse.mylar.core.IMylarContextListener;
 import org.eclipse.mylar.core.IMylarElement;
 import org.eclipse.mylar.core.MylarPlugin;
+import org.eclipse.mylar.tasklist.MylarTasklistPlugin;
+import org.eclipse.mylar.ui.IMylarUiBridge;
 import org.eclipse.mylar.ui.MylarUiPlugin;
 import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.Workbench;
 
 /**
@@ -30,38 +30,46 @@ import org.eclipse.ui.internal.Workbench;
  */
 public class MylarEditorManager implements IMylarContextListener {
 
+//	public static final int ACTIVATION_THRESHOLD = 8; 
+	
 	public void contextActivated(IMylarContext context) {
-    	if (MylarUiPlugin.getPrefs().getBoolean(MylarPlugin.TASKLIST_EDITORS_CLOSE)) {
-			List <IResource> resources = MylarIdePlugin.getDefault().getInterestingResources();
-			IWorkbenchPage activePage = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage();
-			for (IResource resource : resources) {
-				if (resource instanceof IFile) {
-					try {
-						IDE.openEditor(activePage, (IFile)resource, false);
-					} catch (PartInitException e) {
-						MylarPlugin.fail(e, "failed to open editor", false);
-					}
+		if (MylarTasklistPlugin.getPrefs().getBoolean(MylarTasklistPlugin.AUTO_MANAGE_EDITORS)) {
+	        Workbench workbench = (Workbench)PlatformUI.getWorkbench();
+			try {				
+				MylarPlugin.getContextManager().setContextCapturePaused(true);
+				for (IMylarUiBridge bridge : MylarUiPlugin.getDefault().getUiBridges()) {
+					bridge.setContextCapturePaused(true);
 				}
+		        workbench.largeUpdateStart();
+		        
+				List <IMylarElement> documents = MylarPlugin.getContextManager().getInterestingDocuments();
+				int opened = 0;
+				int threshold = MylarUiPlugin.getPrefs().getInt(MylarUiPlugin.MANAGE_EDITORS_AUTO_OPEN_NUM);
+				for (Iterator iter = documents.iterator(); iter.hasNext() && opened < threshold-1; opened++) {
+					IMylarElement document = (IMylarElement) iter.next();
+					IMylarUiBridge bridge = MylarUiPlugin.getDefault().getUiBridge(document.getContentType());
+					bridge.restoreEditor(document);
+					opened++;
+				}
+				IMylarElement activeNode = context.getActiveNode();
+				if (activeNode != null) {
+		            MylarUiPlugin.getDefault().getUiBridge(activeNode.getContentType()).open(activeNode);
+		        }
+			} catch (Exception e) {
+				MylarPlugin.fail(e, "failed to open editors on activation", false);
+			} finally {				
+				MylarPlugin.getContextManager().setContextCapturePaused(false);
+				for (IMylarUiBridge bridge : MylarUiPlugin.getDefault().getUiBridges()) {
+					bridge.setContextCapturePaused(false);
+				}
+				workbench.largeUpdateEnd();
 			}
-	        IMylarElement activeNode = context.getActiveNode();
-	        if (activeNode != null) {
-	            MylarUiPlugin.getDefault().getUiBridge(activeNode.getContentType()).open(activeNode);
-	        }
     	}
 	}
 
 	public void contextDeactivated(IMylarContext context) {
-    	if (MylarUiPlugin.getPrefs().getBoolean(MylarPlugin.TASKLIST_EDITORS_CLOSE)) {
+    	if (MylarTasklistPlugin.getPrefs().getBoolean(MylarTasklistPlugin.AUTO_MANAGE_EDITORS)) {
         	closeAllEditors();
-//    		if (!asyncExecMode) {
-//			closeAllEditors();
-//		}        	
-//        	IWorkbench workbench = PlatformUI.getWorkbench();
-//            workbench.getDisplay().asyncExec(new Runnable() {
-//                public void run() {
-//                	closeAllEditors();
-//                }
-//            });
       	} 
 	}
 
@@ -75,47 +83,35 @@ public class MylarEditorManager implements IMylarContextListener {
 	}
 	
 	public void presentationSettingsChanging(UpdateKind kind) {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
 
 	public void presentationSettingsChanged(UpdateKind kind) {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
 
 	public void interestChanged(IMylarElement node) {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
 
 	public void interestChanged(List<IMylarElement> nodes) {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
 
 	public void nodeDeleted(IMylarElement node) {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
 
 	public void landmarkAdded(IMylarElement node) {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
 
 	public void landmarkRemoved(IMylarElement node) {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
 
 	public void edgesChanged(IMylarElement node) {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
-
-//	public void setAsyncExecMode(boolean asyncExecMode) {
-//		this.asyncExecMode = asyncExecMode;
-//	}
 
 }

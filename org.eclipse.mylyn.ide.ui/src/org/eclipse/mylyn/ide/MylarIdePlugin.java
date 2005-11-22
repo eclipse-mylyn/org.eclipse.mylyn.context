@@ -12,7 +12,6 @@ package org.eclipse.mylar.ide;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
@@ -21,6 +20,7 @@ import org.eclipse.mylar.core.IMylarElement;
 import org.eclipse.mylar.core.IMylarStructureBridge;
 import org.eclipse.mylar.core.MylarPlugin;
 import org.eclipse.mylar.ide.internal.ActiveSearchViewTracker;
+import org.eclipse.mylar.ide.internal.InterestManipulatingEditorTracker;
 import org.eclipse.mylar.ide.ui.NavigatorRefreshListener;
 import org.eclipse.mylar.ide.ui.actions.ApplyMylarToNavigatorAction;
 import org.eclipse.mylar.ide.ui.actions.ApplyMylarToProblemsListAction;
@@ -46,6 +46,8 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 
 	private ActiveSearchViewTracker activeSearchViewTracker = new ActiveSearchViewTracker();
 
+	private InterestManipulatingEditorTracker interestEditorTracker = new InterestManipulatingEditorTracker();
+	
 	public MylarIdePlugin() {
 		plugin = this;
 	}
@@ -66,7 +68,7 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 					ApplyMylarToNavigatorAction.getDefault().update();
 				if (ApplyMylarToProblemsListAction.getDefault() != null)
 					ApplyMylarToProblemsListAction.getDefault().update();
-
+				
 				workbench.addWindowListener(activeSearchViewTracker);
 				IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
 				for (int i = 0; i < windows.length; i++) {
@@ -74,6 +76,15 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 					IWorkbenchPage[] pages = windows[i].getPages();
 					for (int j = 0; j < pages.length; j++) {
 						pages[j].addPartListener(activeSearchViewTracker);
+					}
+				}
+				
+				workbench.addWindowListener(interestEditorTracker);
+				for (int i = 0; i < windows.length; i++) {
+					windows[i].addPageListener(interestEditorTracker);
+					IWorkbenchPage[] pages= windows[i].getPages();
+					for (int j= 0; j < pages.length; j++) {
+						pages[j].addPartListener(interestEditorTracker);
 					}
 				}
 			}
@@ -105,12 +116,11 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 
 	public List<IResource> getInterestingResources() {
 		List<IResource> interestingResources = new ArrayList<IResource>();
-		Set<IMylarElement> resourceElements = MylarPlugin.getContextManager().getInterestingDocuments();
+		List<IMylarElement> resourceElements = MylarPlugin.getContextManager().getInterestingDocuments();
 		for (IMylarElement element : resourceElements) {
 			IResource resource = getResourceForElement(element);
 			if (resource != null) interestingResources.add(resource); 
 		}
-		
 		return interestingResources;
 	}
 	
@@ -123,7 +133,10 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 			Object adapted = ((IAdaptable)object).getAdapter(IResource.class);
 			if (adapted instanceof IResource) {
 				return (IResource)adapted;
-			}
+			} 
+//			else { // recurse
+//				return getResourceForElement(MylarPlugin.getContextManager().getElement(bridge.getParentHandle(element.getHandleIdentifier())));
+//			}
 		}
 		return null;
 	}

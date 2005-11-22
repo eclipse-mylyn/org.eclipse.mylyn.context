@@ -14,6 +14,7 @@
 package org.eclipse.mylar.java;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -21,13 +22,14 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
@@ -42,11 +44,13 @@ import org.eclipse.mylar.core.IMylarElement;
 import org.eclipse.mylar.core.IMylarStructureBridge;
 import org.eclipse.mylar.core.MylarPlugin;
 import org.eclipse.mylar.core.internal.DegreeOfSeparation;
+import org.eclipse.mylar.ide.ResourceStructureBridge;
 import org.eclipse.mylar.java.search.JUnitReferencesProvider;
 import org.eclipse.mylar.java.search.JavaImplementorsProvider;
 import org.eclipse.mylar.java.search.JavaReadAccessProvider;
 import org.eclipse.mylar.java.search.JavaReferencesProvider;
 import org.eclipse.mylar.java.search.JavaWriteAccessProvider;
+import org.eclipse.ui.internal.WorkingSet;
 import org.eclipse.ui.views.markers.internal.ProblemMarker;
 
 /**
@@ -57,6 +61,8 @@ public class JavaStructureBridge implements IMylarStructureBridge {
     public final static String CONTENT_TYPE = "java";
     
     public List<AbstractRelationProvider> providers;
+    
+    private IMylarStructureBridge parentBridge;
     
     public JavaStructureBridge() {
     	providers = new ArrayList<AbstractRelationProvider>();
@@ -80,6 +86,36 @@ public class JavaStructureBridge implements IMylarStructureBridge {
         } 
     }
 
+	public List<String> getChildHandles(String handle) {
+		Object object = getObjectForHandle(handle);
+		if (object instanceof IJavaElement) {
+			IJavaElement element = (IJavaElement)object;
+			if (element instanceof IParent) {
+				IParent parent = (IParent)element;
+				IJavaElement[] children;
+				try {
+					children = parent.getChildren();
+					List<String> childHandles = new ArrayList<String>();
+					for (int i = 0; i < children.length; i++) {
+						String childHandle = getHandleIdentifier(children[i]);
+						if (childHandle != null) childHandles.add(childHandle);
+					}
+					if (parentBridge != null && parentBridge instanceof ResourceStructureBridge) {
+						if (element.getElementType() < IJavaElement.TYPE) {
+							List<String> resourceChildren = parentBridge.getChildHandles(handle);
+							if (!resourceChildren.isEmpty()) childHandles.addAll(resourceChildren);
+						}
+					}
+					
+					return childHandles;
+				} catch (Exception e) {
+					MylarPlugin.fail(e, "could not get child", false);
+				}
+			}
+		} 
+		return Collections.emptyList();
+	}
+    
     public Object getObjectForHandle(String handle) {
     	try {
     		return JavaCore.create(handle);
@@ -126,7 +162,8 @@ public class JavaStructureBridge implements IMylarStructureBridge {
             || object instanceof ClassPathContainer.RequiredProjectWrapper
             || object instanceof JarEntryFile
             || object instanceof IPackageFragment
-            || object instanceof IJavaProject; // TODO: redundant?
+//            || object instanceof IJavaProject // TODO: redundant?
+            || object instanceof WorkingSet; // TODO: move to IDE?
         return accepts;
     }
 
@@ -135,27 +172,6 @@ public class JavaStructureBridge implements IMylarStructureBridge {
      * i.e. they're not IJavaElement(s).
      */
     public boolean canFilter(Object object) {
-//    	if (object instanceof IJavaElement) {
-//    		try {
-//	    		IJavaElement element = (IJavaElement)object;
-//	            IResource resource = element.getCorrespondingResource();
-//	            boolean hasError = false; 
-//	            if (resource != null) {
-//		            IMarker[] markers = resource.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, 2);
-//		            for (int j = 0; j < markers.length; j++) {
-//		                if (markers[j] != null
-//		                	&& markers[j].getAttribute(IMarker.SEVERITY) != null
-//		                	&& markers[j].getAttribute(IMarker.SEVERITY).equals(IMarker.SEVERITY_ERROR)) {
-//		                    hasError = true;
-//		                } 
-//		            } 
-//		            if (hasError) return false;
-//	            }
-//			} catch (CoreException e) {
-//				// ignore
-//			}
-//    	}  
-    	
         if (object instanceof ClassPathContainer.RequiredProjectWrapper) {
             return true;
         }
@@ -172,6 +188,18 @@ public class JavaStructureBridge implements IMylarStructureBridge {
                     } 
                 } 
             }
+        } else if (object instanceof WorkingSet) { 
+        	try {
+	        	WorkingSet workingSet = (WorkingSet)object;
+	        	IAdaptable[] elements = workingSet.getElements();
+	        	for (int i = 0; i < elements.length; i++) {
+					IAdaptable adaptable = elements[i];
+					IMylarElement element = MylarPlugin.getContextManager().getElement(getHandleIdentifier(adaptable));
+					if (element.getInterest().isInteresting()) return false;
+				}
+        	} catch (Exception e) {
+        		return false;
+        	}
         }
         return true;
     }
@@ -247,7 +275,7 @@ public class JavaStructureBridge implements IMylarStructureBridge {
 	}
 
 	public void setParentBridge(IMylarStructureBridge bridge) {
-		// TODO Auto-generated method stub
+		parentBridge = bridge;
 	}
 
 	/**
@@ -299,3 +327,24 @@ public class JavaStructureBridge implements IMylarStructureBridge {
 		return false;
 	}
 }
+
+//if (object instanceof IJavaElement) {
+//try {
+//	IJavaElement element = (IJavaElement)object;
+//    IResource resource = element.getCorrespondingResource();
+//    boolean hasError = false; 
+//    if (resource != null) {
+//        IMarker[] markers = resource.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, 2);
+//        for (int j = 0; j < markers.length; j++) {
+//            if (markers[j] != null
+//            	&& markers[j].getAttribute(IMarker.SEVERITY) != null
+//            	&& markers[j].getAttribute(IMarker.SEVERITY).equals(IMarker.SEVERITY_ERROR)) {
+//                hasError = true;
+//            } 
+//        } 
+//        if (hasError) return false;
+//    }
+//} catch (CoreException e) {
+//	// ignore
+//}
+//}  

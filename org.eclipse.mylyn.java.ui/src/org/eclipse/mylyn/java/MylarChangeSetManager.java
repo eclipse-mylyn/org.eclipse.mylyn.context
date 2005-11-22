@@ -16,7 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.mylar.core.IMylarContext;
 import org.eclipse.mylar.core.IMylarContextListener;
 import org.eclipse.mylar.core.IMylarElement;
@@ -25,7 +27,6 @@ import org.eclipse.mylar.core.MylarPlugin;
 import org.eclipse.mylar.ide.MylarIdePlugin;
 import org.eclipse.mylar.tasklist.ITask;
 import org.eclipse.mylar.tasklist.MylarTasklistPlugin;
-import org.eclipse.team.core.TeamException;
 import org.eclipse.team.internal.ccvs.ui.CVSUIPlugin;
 import org.eclipse.team.internal.core.subscribers.SubscriberChangeSetCollector;
 
@@ -35,14 +36,14 @@ import org.eclipse.team.internal.core.subscribers.SubscriberChangeSetCollector;
 public class MylarChangeSetManager implements IMylarContextListener {
 
 	private SubscriberChangeSetCollector collector;
-	private Map<ITask, TaskContextChangeSet> changeSets = new HashMap<ITask, TaskContextChangeSet>();
+	private Map<String, MylarContextChangeSet> changeSets = new HashMap<String, MylarContextChangeSet>();
 	
 	public MylarChangeSetManager() {
 		this.collector = CVSUIPlugin.getPlugin().getChangeSetManager();
 	}
 
 	public IResource[] getResources(ITask task) {
-		TaskContextChangeSet changeSet = changeSets.get(task);
+		MylarContextChangeSet changeSet = changeSets.get(task);
 		if (changeSet != null) {
 			return changeSet.getResources();
 		} else {
@@ -55,10 +56,10 @@ public class MylarChangeSetManager implements IMylarContextListener {
 			ITask task = getTask(context); 
 			if (task == null) {
 				MylarPlugin.log("could not resolve task for context", this);
-			} else if (!changeSets.containsKey(task)) { 
-				TaskContextChangeSet changeSet = new TaskContextChangeSet(task, collector);
+			} else if (!changeSets.containsKey(task.getHandleIdentifier())) { 
+				MylarContextChangeSet changeSet = new MylarContextChangeSet(task, collector);
 				changeSet.add(changeSet.getResources());
-				changeSets.put(task, changeSet);
+				changeSets.put(task.getHandleIdentifier(), changeSet);
 				if (!collector.contains(changeSet)) collector.add(changeSet);
 			}
 		} catch (Exception e) {
@@ -68,14 +69,14 @@ public class MylarChangeSetManager implements IMylarContextListener {
 
 	public void contextDeactivated(IMylarContext context) {
 		// TODO: support multiple tasks
-		for (ITask task : changeSets.keySet()) {
-			collector.remove(changeSets.get(task));			
+		for (String taskHandle : changeSets.keySet()) {
+			collector.remove(changeSets.get(taskHandle));			
 		}
 		changeSets.clear();
 	}
 
-	public List<TaskContextChangeSet> getChangeSets() {
-		return new ArrayList<TaskContextChangeSet>(changeSets.values());
+	public List<MylarContextChangeSet> getChangeSets() {
+		return new ArrayList<MylarContextChangeSet>(changeSets.values());
 	}
 	
 	private ITask getTask(IMylarContext context) {
@@ -89,34 +90,37 @@ public class MylarChangeSetManager implements IMylarContextListener {
 		}
 	}
 	
-	public void presentationSettingsChanging(UpdateKind kind) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void presentationSettingsChanged(UpdateKind kind) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void interestChanged(IMylarElement element) {	
+	public void interestChanged(IMylarElement element) {
 		IMylarStructureBridge bridge = MylarPlugin.getDefault().getStructureBridge(element.getContentType());
+		
 		if (bridge.isDocument(element.getHandleIdentifier())) {
 			IResource resource = MylarIdePlugin.getDefault().getResourceForElement(element);
 			if (resource != null) {
-				for (TaskContextChangeSet changeSet: getChangeSets()) {
-					if (!changeSet.contains(resource)) {
-						try {
-							changeSet.add(new IResource[] { resource });
-						} catch (TeamException e) {
-							MylarPlugin.fail(e, "could not add resource to change set", false);
+				for (MylarContextChangeSet changeSet: getChangeSets()) {
+					try {
+						if (!changeSet.contains(resource)) {
+							if (element.getInterest().isInteresting()) {
+								changeSet.add(new IResource[] { resource });
+							} 
+						} else if (!element.getInterest().isInteresting()){
+							changeSet.remove(resource);
+							
+							// HACK: touching ensures file is added outside of set
+							if (resource instanceof IFile) {
+								((IFile)resource).touch(new NullProgressMonitor());
+							}
+							if (!collector.contains(changeSet)) {
+								collector.add(changeSet);
+							}
 						}
-					} 
+					} catch (Exception e) {
+						MylarPlugin.fail(e, "could not add resource to change set", false);
+					}
 				}
 			}
 		}
 	}
-
+	
 	public void interestChanged(List<IMylarElement> elements) {
 		for (IMylarElement element : elements) {
 			interestChanged(element);
@@ -124,23 +128,26 @@ public class MylarChangeSetManager implements IMylarContextListener {
 	}
 
 	public void nodeDeleted(IMylarElement node) {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
 
 	public void landmarkAdded(IMylarElement node) {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
 
 	public void landmarkRemoved(IMylarElement node) {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
 
 	public void edgesChanged(IMylarElement node) {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
 
+	public void presentationSettingsChanging(UpdateKind kind) {
+		// ignore
+	}
+
+	public void presentationSettingsChanged(UpdateKind kind) {
+		// ignore
+	}
 }
