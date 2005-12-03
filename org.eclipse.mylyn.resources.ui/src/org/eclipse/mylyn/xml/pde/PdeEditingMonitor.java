@@ -19,7 +19,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.mylar.core.AbstractInteractionMonitor;
+import org.eclipse.mylar.core.AbstractUserInteractionMonitor;
 import org.eclipse.mylar.core.MylarPlugin;
 import org.eclipse.mylar.xml.XmlNodeHelper;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
@@ -36,7 +36,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.FileEditorInput;
 
 
-public class PdeEditingMonitor extends AbstractInteractionMonitor {
+public class PdeEditingMonitor extends AbstractUserInteractionMonitor {
 
     public PdeEditingMonitor() {
         super();
@@ -123,6 +123,7 @@ public class PdeEditingMonitor extends AbstractInteractionMonitor {
     }
     
     public static String getStringOfNode(IDocumentNode node) {
+    	if (node == null) return null;
     	String s = node.getXMLTagName();
     	for(IDocumentAttribute a: node.getNodeAttributes()){
     		s += a.getAttributeName() + "=" + a.getAttributeValue();

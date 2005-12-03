@@ -41,7 +41,7 @@ public class ResourceStructureBridge implements IMylarStructureBridge {
     public ResourceStructureBridge() {
 //    	if (false) { 
 //    		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-//   	   		workspace.addResourceChangeListener(new ResourceMarkerListener());
+//   	   		workspace.addResourceChangeListener(new ResourceChangeMonitor());
 //    	}
     }
     
@@ -147,7 +147,6 @@ public class ResourceStructureBridge implements IMylarStructureBridge {
         if (resource == null || !(resource instanceof ProblemMarker)) return null;
     	ProblemMarker marker = (ProblemMarker)resource;
 		// we can only get a handle for a marker with the resource plugin.xml
-        if (marker == null) return null;
         try {
             IResource res= marker.getResource();
 

@@ -54,11 +54,12 @@ import org.eclipse.search2.internal.ui.InternalSearchUI;
  */
 public abstract class AbstractJavaRelationProvider extends AbstractRelationProvider {
 	
-	public static List<Job> runningJobs = new ArrayList<Job>();
-    
 	public static final String ID_GENERIC = "org.eclipse.mylar.java.relation";
     public static final String NAME = "Java relationships";	
-    public static final int DEFAULT_DEGREE = 2; 
+    
+    private static final int DEFAULT_DEGREE = 2; 
+    private static final List<Job> runningJobs = new ArrayList<Job>();
+    
     
     public String getGenericId(){
     	return ID_GENERIC;
@@ -71,6 +72,10 @@ public abstract class AbstractJavaRelationProvider extends AbstractRelationProvi
     @Override
     protected void findRelated(final IMylarElement node, int degreeOfSeparation) {
     	if (node == null) return;
+    	if (node.getContentType() == null) {
+    		MylarPlugin.log("null content type for: " + node, this);
+    		return;
+    	}
         if (!node.getContentType().equals(JavaStructureBridge.CONTENT_TYPE)) return;
         IJavaElement javaElement = JavaCore.create(node.getHandleIdentifier());
         if (!acceptElement(javaElement) || !javaElement.exists()) {
@@ -249,7 +254,7 @@ public abstract class AbstractJavaRelationProvider extends AbstractRelationProvi
     	return new JavaSearchOperation(specs);
     }
         
-    public class JavaSearchJob extends Job{
+    protected static class JavaSearchJob extends Job{
 
         private JavaSearchOperation op;
 
@@ -268,7 +273,7 @@ public abstract class AbstractJavaRelationProvider extends AbstractRelationProvi
         
     }
     
-    public class JavaSearchOperation extends JavaSearchQuery implements IMylarSearchOperation{
+    protected static class JavaSearchOperation extends JavaSearchQuery implements IMylarSearchOperation{
     	private ISearchResult result = null;
     	@Override
     	public ISearchResult getSearchResult() {
@@ -281,27 +286,29 @@ public abstract class AbstractJavaRelationProvider extends AbstractRelationProvi
         @Override
         public IStatus run(IProgressMonitor monitor) {
             try {
-                IStatus s = super.run(monitor);
+                IStatus runStatus = super.run(monitor);
                 ISearchResult result = getSearchResult();
                 if(result instanceof JavaSearchResult){
                     //TODO make better
                     Object[] objs = ((JavaSearchResult)result).getElements();
-                    if(objs == null)
+                    if(objs == null) {
                     	notifySearchCompleted(null);	
-                    List<Object> l = new ArrayList<Object>();
-                    for(int i = 0; i < objs.length; i++){
-                        l.add(objs[i]);
+                    } else {
+	                    List<Object> l = new ArrayList<Object>();
+	                    for(int i = 0; i < objs.length; i++){
+	                        l.add(objs[i]);
+	                    }
+	                    notifySearchCompleted(l);
                     }
-                    notifySearchCompleted(l);
                 }
-                return s;
+                return runStatus;
             } catch (ConcurrentModificationException cme) {
             	MylarPlugin.log(cme, "java search failed");
             } catch (Throwable t) {
             	MylarPlugin.log(t, "java search failed");
             } 
-//            	 search manager not initalized?
-        	IStatus status =new Status(IStatus.WARNING,
+            
+        	IStatus status = new Status(IStatus.WARNING,
                     MylarPlugin.IDENTIFIER,
                     IStatus.OK,
                     "could not run Java search",

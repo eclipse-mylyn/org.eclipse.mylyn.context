@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.mylar.core.IMylarElement;
@@ -48,72 +50,104 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 
 	private InterestManipulatingEditorTracker interestEditorTracker = new InterestManipulatingEditorTracker();
 	
+	private ResourceChangeMonitor resourceChangeMonitor = new ResourceChangeMonitor();
+	
+	private MylarChangeSetManager changeSetManager;
+	
+	private ResourceInterestUpdater interestUpdater = new ResourceInterestUpdater();
+	
 	public MylarIdePlugin() {
 		plugin = this;
 	}
 
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
-		MylarPlugin.getContextManager().addListener(navigatorRefreshListener);
-
 		final IWorkbench workbench = PlatformUI.getWorkbench();
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {
-				resourceSelectionMonitor = new ResourceSelectionMonitor();
-				MylarPlugin.getContextManager().addListener(editorManager);
-            	
-				MylarPlugin.getDefault().getSelectionMonitors().add(resourceSelectionMonitor);
+				try { 
+					changeSetManager = new MylarChangeSetManager();
+					MylarPlugin.getContextManager().addListener(navigatorRefreshListener);
+					MylarPlugin.getContextManager().addListener(changeSetManager);
 
-				if (ApplyMylarToNavigatorAction.getDefault() != null)
-					ApplyMylarToNavigatorAction.getDefault().update();
-				if (ApplyMylarToProblemsListAction.getDefault() != null)
-					ApplyMylarToProblemsListAction.getDefault().update();
-				
-				workbench.addWindowListener(activeSearchViewTracker);
-				IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
-				for (int i = 0; i < windows.length; i++) {
-					windows[i].addPageListener(activeSearchViewTracker);
-					IWorkbenchPage[] pages = windows[i].getPages();
-					for (int j = 0; j < pages.length; j++) {
-						pages[j].addPartListener(activeSearchViewTracker);
+					resourceSelectionMonitor = new ResourceSelectionMonitor();
+					MylarPlugin.getDefault().getSelectionMonitors().add(resourceSelectionMonitor);
+					MylarPlugin.getContextManager().addListener(editorManager);
+					
+					ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeMonitor, IResourceChangeEvent.POST_CHANGE);
+	            		
+					if (ApplyMylarToNavigatorAction.getDefault() != null)
+						ApplyMylarToNavigatorAction.getDefault().update();
+					if (ApplyMylarToProblemsListAction.getDefault() != null)
+						ApplyMylarToProblemsListAction.getDefault().update();
+					
+					workbench.addWindowListener(activeSearchViewTracker);
+					IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
+					for (int i = 0; i < windows.length; i++) {
+						windows[i].addPageListener(activeSearchViewTracker);
+						IWorkbenchPage[] pages = windows[i].getPages();
+						for (int j = 0; j < pages.length; j++) {
+							pages[j].addPartListener(activeSearchViewTracker);
+						}
 					}
-				}
-				
-				workbench.addWindowListener(interestEditorTracker);
-				for (int i = 0; i < windows.length; i++) {
-					windows[i].addPageListener(interestEditorTracker);
-					IWorkbenchPage[] pages= windows[i].getPages();
-					for (int j= 0; j < pages.length; j++) {
-						pages[j].addPartListener(interestEditorTracker);
+					
+					workbench.addWindowListener(interestEditorTracker);
+					for (int i = 0; i < windows.length; i++) {
+						windows[i].addPageListener(interestEditorTracker);
+						IWorkbenchPage[] pages= windows[i].getPages();
+						for (int j= 0; j < pages.length; j++) {
+							pages[j].addPartListener(interestEditorTracker);
+						}
 					}
+				} catch (Exception e) {
+					MylarPlugin.fail(e, "Mylar IDE initialization failed", false);
 				}
 			}
 		});
 	}
 
 	public void stop(BundleContext context) throws Exception {
-		super.stop(context);
-		plugin = null;
-		MylarPlugin.getContextManager().removeListener(editorManager);
-		MylarPlugin.getDefault().getSelectionMonitors().remove(resourceSelectionMonitor);
-		MylarPlugin.getContextManager().removeListener(navigatorRefreshListener);
-
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		workbench.removeWindowListener(activeSearchViewTracker);
-		IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
-		for (int i = 0; i < windows.length; i++) {
-			IWorkbenchPage[] pages = windows[i].getPages();
-			windows[i].removePageListener(activeSearchViewTracker);
-			for (int j = 0; j < pages.length; j++) {
-				pages[j].removePartListener(activeSearchViewTracker);
+		try {
+			super.stop(context);
+			plugin = null;
+			MylarPlugin.getContextManager().removeListener(editorManager);
+			MylarPlugin.getDefault().getSelectionMonitors().remove(resourceSelectionMonitor);
+			MylarPlugin.getContextManager().removeListener(navigatorRefreshListener);
+			MylarPlugin.getContextManager().removeListener(changeSetManager);
+	
+			ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceChangeMonitor);
+			IWorkbench workbench = PlatformUI.getWorkbench();
+			if (workbench != null) {
+				workbench.removeWindowListener(activeSearchViewTracker);
+				IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
+				for (int i = 0; i < windows.length; i++) {
+					IWorkbenchPage[] pages = windows[i].getPages();
+					windows[i].removePageListener(activeSearchViewTracker);
+					for (int j = 0; j < pages.length; j++) {
+						pages[j].removePartListener(activeSearchViewTracker);
+					}
+				}
 			}
+		} catch (Exception e) {
+			MylarPlugin.fail(e, "Mylar IDE stop failed", false);
 		}
 	}
 
+	/**
+	 * For testing.
+	 */
+	public void setResourceMonitoringEnabled(boolean enabled) {
+		resourceChangeMonitor.setEnabled(enabled);
+	}
+	
 	public static MylarIdePlugin getDefault() {
 		return plugin;
 	}
 
+	public MylarChangeSetManager getChangeSetManager() {
+		return changeSetManager;
+	}
+	
 	public List<IResource> getInterestingResources() {
 		List<IResource> interestingResources = new ArrayList<IResource>();
 		List<IMylarElement> resourceElements = MylarPlugin.getContextManager().getInterestingDocuments();
@@ -155,5 +189,9 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 	 */
 	public static ImageDescriptor getImageDescriptor(String path) {
 		return AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.mylar.ide", path);
+	}
+
+	public ResourceInterestUpdater getInterestUpdater() {
+		return interestUpdater;
 	}
 }

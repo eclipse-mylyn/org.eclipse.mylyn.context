@@ -38,9 +38,9 @@ import org.eclipse.ui.views.markers.internal.TableViewLabelProvider;
  */
 public class ApplyMylarToProblemsListAction extends AbstractApplyMylarAction {
 
-	public static ApplyMylarToProblemsListAction INSTANCE;
-    public StructuredViewer cachedProblemsTableViewer = null;
-    private MarkerFilter defaultFilter = null;
+	private static ApplyMylarToProblemsListAction INSTANCE;
+    private StructuredViewer cachedProblemsTableViewer = null;
+	private MarkerFilter defaultFilter = null;
     private ProblemsListDoiSorter interestSorter = new ProblemsListDoiSorter();
     
 	public ApplyMylarToProblemsListAction() {
@@ -142,11 +142,12 @@ public class ApplyMylarToProblemsListAction extends AbstractApplyMylarAction {
 	}
 
 	@Override
-	protected void installInterestFilter(final StructuredViewer viewer) {
+	protected boolean installInterestFilter(final StructuredViewer viewer) {
 //		defaultSorter = viewer.getSorter();
 //		viewer.setSorter(interestSorter);
 		super.installInterestFilter(viewer);
 		toggleMarkerFilter(false); 
+		return true;
 //		if (viewer instanceof TreeViewer) {
 //			IWorkbench workbench = PlatformUI.getWorkbench();
 //			workbench.getDisplay().asyncExec(new Runnable() {

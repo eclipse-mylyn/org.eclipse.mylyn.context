@@ -130,6 +130,12 @@ public class JavaStructureBridge implements IMylarStructureBridge {
      */
     public String getHandleIdentifier(Object object) {
         if (object == null || !(object instanceof IJavaElement)) {
+        	if (object instanceof IResource) {
+    			Object adapter = ((IResource)object).getAdapter(IJavaElement.class);
+    			if(adapter instanceof IJavaElement) {
+    				return ((IJavaElement)adapter).getHandleIdentifier();
+    			}
+        	}
         	return null;
         } else {
         	return ((IJavaElement)object).getHandleIdentifier();
@@ -157,12 +163,16 @@ public class JavaStructureBridge implements IMylarStructureBridge {
      * TODO: figure out if the non IJavaElement stuff is needed
      */
     public boolean acceptsObject(Object object) {
+    	if (object instanceof IResource) {
+			Object adapter = ((IResource)object).getAdapter(IJavaElement.class);
+			return adapter instanceof IJavaElement;
+    	}
+    	
         boolean accepts = object instanceof IJavaElement 
             || object instanceof ClassPathContainer
             || object instanceof ClassPathContainer.RequiredProjectWrapper
             || object instanceof JarEntryFile
             || object instanceof IPackageFragment
-//            || object instanceof IJavaProject // TODO: redundant?
             || object instanceof WorkingSet; // TODO: move to IDE?
         return accepts;
     }
@@ -174,8 +184,7 @@ public class JavaStructureBridge implements IMylarStructureBridge {
     public boolean canFilter(Object object) {
         if (object instanceof ClassPathContainer.RequiredProjectWrapper) {
             return true;
-        }
-        if (object instanceof ClassPathContainer) { // HACK: check if it has anything interesting
+        } else if (object instanceof ClassPathContainer) { // HACK: check if it has anything interesting
             ClassPathContainer container = (ClassPathContainer)object;
             
             Object[] children = container.getChildren(container);
