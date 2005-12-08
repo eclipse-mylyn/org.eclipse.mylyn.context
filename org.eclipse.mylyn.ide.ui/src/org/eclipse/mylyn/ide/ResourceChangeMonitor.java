@@ -17,6 +17,7 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.mylar.core.MylarPlugin;
+import org.eclipse.mylar.core.util.ErrorLogger;
 
 /**
  * @author Mik Kersten
@@ -37,9 +38,7 @@ public class ResourceChangeMonitor implements IResourceChangeListener {
 				IResourceDelta[] added = delta.getAffectedChildren(IResourceDelta.ADDED);
 				for (int i = 0; i < added.length; i++) {
 					IResource resource = added[i].getResource();
-					if (acceptResource(resource)) {
-						MylarIdePlugin.getDefault().getInterestUpdater().addResourceToContext(resource);
-					}
+					MylarIdePlugin.getDefault().getInterestUpdater().addResourceToContext(resource);
 				}
 				return true;
 			}
@@ -47,12 +46,8 @@ public class ResourceChangeMonitor implements IResourceChangeListener {
 		try {
 			rootDelta.accept(visitor);
 		} catch (CoreException e) {
-			MylarPlugin.log(e, "could not accet marker visitor");
+			ErrorLogger.log(e, "could not accet marker visitor");
 		}	
-	}
-
-	private boolean acceptResource(IResource resource) {
-		return resource.isAccessible() && !resource.isDerived() && !resource.isPhantom();
 	}
 
 	public boolean isEnabled() {

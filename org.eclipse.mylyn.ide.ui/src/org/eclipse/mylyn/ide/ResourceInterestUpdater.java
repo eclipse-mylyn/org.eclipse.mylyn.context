@@ -16,12 +16,11 @@ import org.eclipse.mylar.core.IMylarElement;
 import org.eclipse.mylar.core.IMylarStructureBridge;
 import org.eclipse.mylar.core.InteractionEvent;
 import org.eclipse.mylar.core.MylarPlugin;
+import org.eclipse.mylar.core.util.ErrorLogger;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * TODO: refactor into bridges?
- * 
  * @author Mik Kersten
  */
 public class ResourceInterestUpdater {
@@ -31,26 +30,31 @@ public class ResourceInterestUpdater {
 	private boolean syncExec = false;
 	
 	public void addResourceToContext(final IResource resource) {
-		if (syncExec) {
-			internalAddResourceToContext(resource);
-		} else {
-			final IWorkbench workbench = PlatformUI.getWorkbench();
-			workbench.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					internalAddResourceToContext(resource);
-				}
-			});
+		try {
+			if (syncExec) {
+				internalAddResourceToContext(resource);
+			} else {
+				final IWorkbench workbench = PlatformUI.getWorkbench();
+				workbench.getDisplay().asyncExec(new Runnable() {
+					public void run() {
+						internalAddResourceToContext(resource);
+					}
+				});
+			}
+		} catch (Throwable t) {
+			ErrorLogger.fail(t, "could not add resource to context: " + resource, false);
 		}
 	}
 
 	private void internalAddResourceToContext(IResource resource) {
+		if (!acceptResource(resource)) return;
+		
 		IMylarStructureBridge bridge = MylarPlugin.getDefault().getStructureBridge(resource);
 		String handle = bridge.getHandleIdentifier(resource);
 
 		if (handle != null) {
 			IMylarElement element = MylarPlugin.getContextManager().getElement(handle);
-			if (!element.getInterest().isInteresting()) {
-//				MylarPlugin.log("adding to context: " + resource, this);
+			if (element != null && !element.getInterest().isInteresting()) {
 				InteractionEvent interactionEvent = new InteractionEvent(
 						InteractionEvent.Kind.SELECTION,
 						bridge.getContentType(), 
@@ -59,6 +63,10 @@ public class ResourceInterestUpdater {
 				MylarPlugin.getContextManager().handleInteractionEvent(interactionEvent, true);
 			}
 		}
+	}
+	
+	private boolean acceptResource(IResource resource) {
+		return resource.isAccessible() && !resource.isDerived() && !resource.isPhantom();
 	}
 	
 	/**
