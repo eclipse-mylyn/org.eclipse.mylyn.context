@@ -78,7 +78,7 @@ public class ActiveSearchView extends ViewPart {
     /**
      * For testing.
      */
-	private boolean asyncRefreshMode = true;
+	private boolean syncExecForTesting = true;
     
     private final IMylarContextListener REFRESH_UPDATE_LISTENER = new IMylarContextListener() { 
         public void interestChanged(IMylarElement node) { 
@@ -164,10 +164,19 @@ public class ActiveSearchView extends ViewPart {
 	 * @param updateLabels
 	 */
     void refresh(final IMylarElement node, final boolean updateLabels) {
-        if (!asyncRefreshMode) { // for testing
-        	if (viewer != null && !viewer.getTree().isDisposed()) {
-        		internalRefresh(node, updateLabels);
-        	}
+        if (!syncExecForTesting) { // for testing
+//        	if (viewer != null && !viewer.getTree().isDisposed()) {
+//        		internalRefresh(node, updateLabels);
+//        	}
+	        Workbench.getInstance().getDisplay().syncExec(new Runnable() {
+	            public void run() { 
+	                try {  
+	                    internalRefresh(node, updateLabels);
+	                } catch (Throwable t) {
+	                	ErrorLogger.log(t, "active searchrefresh failed");
+	                }
+	            }
+	        });
         } else {
 	        Workbench.getInstance().getDisplay().asyncExec(new Runnable() {
 	            public void run() { 
@@ -332,8 +341,8 @@ public class ActiveSearchView extends ViewPart {
 	/**
 	 * Set to false for testing
 	 */
-	public void setAsyncRefreshMode(boolean asyncRefreshMode) {
-		this.asyncRefreshMode = asyncRefreshMode;
+	public void setSyncExecForTesting(boolean asyncRefreshMode) {
+		this.syncExecForTesting = asyncRefreshMode;
 	}
 
 	public void setQualifiedNameMode(boolean qualifiedNameMode) {
