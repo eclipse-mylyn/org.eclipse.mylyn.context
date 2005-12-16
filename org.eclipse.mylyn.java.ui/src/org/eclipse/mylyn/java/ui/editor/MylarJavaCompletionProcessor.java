@@ -101,7 +101,7 @@ public class MylarJavaCompletionProcessor extends JavaCompletionProcessor {
                 	ErrorLogger.log(e, "proposals problem");
                 } 
                 if (!added) {
-                	if (proposal instanceof JavaCompletionProposal) {
+                	if (!isUninteresting(proposal) && proposal instanceof JavaCompletionProposal) {
                 		unresolvedProposals++;
                 		interesting.put((float)unresolvedProposals - 100000, proposal); // HACK: should be parametrized
                 	} else {
@@ -143,6 +143,10 @@ public class MylarJavaCompletionProcessor extends JavaCompletionProcessor {
         	ErrorLogger.log(t, "completion proposal filter and sort failed");
         }
         return null;
-    } 
+    }
+
+	private boolean isUninteresting(ICompletionProposal proposal) {
+		return "this".equals(proposal.getDisplayString());
+	} 
 }
 
