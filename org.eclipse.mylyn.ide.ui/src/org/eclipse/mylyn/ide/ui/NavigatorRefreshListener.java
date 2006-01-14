@@ -15,12 +15,15 @@ package org.eclipse.mylar.ide.ui;
 
 import java.util.List;
 
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.mylar.core.IMylarContext;
 import org.eclipse.mylar.core.IMylarContextListener;
 import org.eclipse.mylar.core.IMylarElement;
 import org.eclipse.mylar.core.IMylarStructureBridge;
 import org.eclipse.mylar.core.MylarPlugin;
+import org.eclipse.mylar.core.util.MylarStatusHandler;
 import org.eclipse.mylar.ide.ResourceStructureBridge;
+import org.eclipse.mylar.ide.ui.actions.ApplyMylarToNavigatorAction;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.internal.Workbench;
@@ -47,13 +50,18 @@ public class NavigatorRefreshListener implements IMylarContextListener {
 
 	protected void refresh(IMylarElement node) {
 		ResourceNavigator navigator = getResourceNavigator();
-		if (navigator == null || navigator.getTreeViewer() == null)
+		if (navigator == null || navigator.getTreeViewer() == null
+				|| navigator.getTreeViewer().getControl().isDisposed()) {
 			return;
+		}
 
 		if (node != null) {
 			IMylarStructureBridge bridge = MylarPlugin.getDefault().getStructureBridge(ResourceStructureBridge.CONTENT_TYPE);
 			Object object = bridge.getObjectForHandle(node.getHandleIdentifier());
-			getResourceNavigator().getTreeViewer().refresh(object);
+			if (object != null) {
+				getResourceNavigator().getTreeViewer().update(object, null);
+//					new String[]{IBasicPropertyConstants.P_TEXT});
+			}
 		} else {
 			getResourceNavigator().getTreeViewer().refresh();
 		}
@@ -61,6 +69,19 @@ public class NavigatorRefreshListener implements IMylarContextListener {
 
 	public void contextActivated(IMylarContext taskscape) {
 		refresh(null);
+    	try {
+	    	if (MylarPlugin.getContextManager().hasActiveContext()
+	    		&& ApplyMylarToNavigatorAction.getDefault() != null
+	        	&& ApplyMylarToNavigatorAction.getDefault().isChecked()) {
+	    		
+				TreeViewer viewer = getResourceNavigator().getTreeViewer();
+				if (viewer != null) { 
+					viewer.expandAll();
+				}
+	    	}	
+    	} catch (Throwable t) {
+    		MylarStatusHandler.log(t, "Could not update package explorer");
+    	}
 	}
 
 	public void contextDeactivated(IMylarContext taskscape) {
@@ -97,6 +118,6 @@ public class NavigatorRefreshListener implements IMylarContextListener {
 	}
 
 	public void edgesChanged(IMylarElement node) {
-		refresh(null);
+//		refresh(null);
 	}
 }

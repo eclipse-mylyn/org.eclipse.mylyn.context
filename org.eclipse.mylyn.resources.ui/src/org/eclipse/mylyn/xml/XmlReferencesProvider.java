@@ -41,7 +41,7 @@ import org.eclipse.mylar.core.IMylarStructureBridge;
 import org.eclipse.mylar.core.MylarPlugin;
 import org.eclipse.mylar.core.search.IActiveSearchListener;
 import org.eclipse.mylar.core.search.IMylarSearchOperation;
-import org.eclipse.mylar.core.util.ErrorLogger;
+import org.eclipse.mylar.core.util.MylarStatusHandler;
 import org.eclipse.mylar.xml.pde.PdeStructureBridge;
 import org.eclipse.search.internal.core.SearchScope;
 import org.eclipse.search.internal.ui.text.FileSearchQuery;
@@ -105,7 +105,7 @@ public class XmlReferencesProvider extends AbstractRelationProvider {
                             IPath path = new Path(filename);
                             element = ((Workspace)ResourcesPlugin.getWorkspace()).newResource(path, IResource.FILE);
                         }catch(Exception e){
-                        	ErrorLogger.log(e, "scope creation failed");
+                        	MylarStatusHandler.log(e, "scope creation failed");
                         }
                         l.add(element);
                     }
@@ -218,7 +218,7 @@ public class XmlReferencesProvider extends AbstractRelationProvider {
 	                                       }
                                        }
                                    } catch(Exception e){
-                                	   ErrorLogger.log(e, "search failed - unable to create match");
+                                	   MylarStatusHandler.log(e, "search failed - unable to create match");
                                    }
                                }
                            }
@@ -303,7 +303,7 @@ public class XmlReferencesProvider extends AbstractRelationProvider {
 				}
 	    		return fResult;
     		 } catch (Exception e) {
-                 ErrorLogger.log(e.getMessage(), this);
+    			 MylarStatusHandler.log(e.getMessage(), this);
              }
     		 return super.getSearchResult();
     	}

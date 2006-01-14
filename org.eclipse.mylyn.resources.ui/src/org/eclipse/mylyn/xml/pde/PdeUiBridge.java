@@ -31,7 +31,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.mylar.core.IMylarElement;
-import org.eclipse.mylar.core.util.ErrorLogger;
+import org.eclipse.mylar.core.util.MylarStatusHandler;
 import org.eclipse.mylar.ui.IMylarUiBridge;
 import org.eclipse.mylar.xml.MylarXmlPlugin;
 import org.eclipse.pde.internal.ui.editor.FormOutlinePage;
@@ -88,7 +88,7 @@ public class PdeUiBridge implements IMylarUiBridge {
          
             // if the editor is null, we had a problem and should return
             if(editor == null){
-                ErrorLogger.log("Unable to open editor for file: " + filename, this);
+                MylarStatusHandler.log("Unable to open editor for file: " + filename, this);
                 return;
             }
             
@@ -192,7 +192,7 @@ public class PdeUiBridge implements IMylarUiBridge {
                             }
                         }
                     }catch (Exception e) {
-                    	ErrorLogger.log(e, "failed to get tree viewers");
+                    	MylarStatusHandler.log(e, "failed to get tree viewers");
                         return null;
                     }
         		}
@@ -212,7 +212,12 @@ public class PdeUiBridge implements IMylarUiBridge {
                 if (f != null && f instanceof FormOutlinePage) {
                     // get the tree viewer for the outline
                     Class clazz2 = FormOutlinePage.class;
-                    Field field2 = clazz2.getDeclaredField("treeViewer");
+                    Field field2 = null;
+                    try {
+                    	field2 = clazz2.getDeclaredField("treeViewer");
+                    } catch (NoSuchFieldException e) {
+                    	field2 = clazz2.getDeclaredField("fTreeViewer");
+                    }
                     field2.setAccessible(true);
                     Object f2 = field2.get(f);
                     if (f2 != null && f2 instanceof TreeViewer) {
@@ -221,8 +226,8 @@ public class PdeUiBridge implements IMylarUiBridge {
                     }
                 }
             } catch (Exception e) {
-                ErrorLogger.log(e.getMessage(), this);
-                return null;
+            	MylarStatusHandler.fail(e, "could not get PDE outline", false);
+                return Collections.emptyList();
             }
             
             // add a listener so that when the selection changes, the view is 

@@ -31,7 +31,7 @@ import org.eclipse.mylar.core.IMylarElement;
 import org.eclipse.mylar.core.MylarPlugin;
 import org.eclipse.mylar.core.internal.MylarContextManager;
 import org.eclipse.mylar.core.internal.dt.MylarWebRef;
-import org.eclipse.mylar.core.util.ErrorLogger;
+import org.eclipse.mylar.core.util.MylarStatusHandler;
 import org.eclipse.mylar.ui.MylarImages;
 import org.eclipse.ui.IEditorPart;
 
@@ -52,9 +52,9 @@ public class MylarJavaCompletionProcessor extends JavaCompletionProcessor {
 			resolveMemberMethod = MemberProposalInfo.class.getDeclaredMethod("resolveMember", new Class[] { } );
 	        resolveMemberMethod.setAccessible(true);
         } catch (SecurityException e) {
-			ErrorLogger.fail(e, "could not install content assist, reflection denied", false);
+        	MylarStatusHandler.fail(e, "could not install content assist, reflection denied", false);
 		} catch (NoSuchMethodException e) {
-	    	ErrorLogger.fail(e, "could not install content assist, wrong Eclipse version", false);
+			MylarStatusHandler.fail(e, "could not install content assist, wrong Eclipse version", false);
 		}
     }
     
@@ -98,7 +98,7 @@ public class MylarJavaCompletionProcessor extends JavaCompletionProcessor {
                         added = true;
                     }
                 } catch (Exception e) {
-                	ErrorLogger.log(e, "proposals problem");
+                	MylarStatusHandler.log(e, "proposals problem");
                 } 
                 if (!added) {
                 	if (!isUninteresting(proposal) && proposal instanceof JavaCompletionProposal) {
@@ -125,7 +125,7 @@ public class MylarJavaCompletionProcessor extends JavaCompletionProcessor {
                     } else if (sorted[i-1] instanceof LazyJavaCompletionProposal) {
                         replacementOffset = ((LazyJavaCompletionProposal)sorted[i-1]).getReplacementOffset();
                     } else {
-                        ErrorLogger.log("Could not create proposal separator for class: " + sorted[i-1].getClass(), this);
+                    	MylarStatusHandler.log("Could not create proposal separator for class: " + sorted[i-1].getClass(), this);
                     }
                     sorted[i] = new JavaCompletionProposal(
                     		"", replacementOffset, 0, 
@@ -140,7 +140,7 @@ public class MylarJavaCompletionProcessor extends JavaCompletionProcessor {
                 return sorted;
             }
         } catch (Throwable t) {
-        	ErrorLogger.log(t, "completion proposal filter and sort failed");
+        	MylarStatusHandler.log(t, "completion proposal filter and sort failed");
         }
         return null;
     }

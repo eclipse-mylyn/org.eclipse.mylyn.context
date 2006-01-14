@@ -27,7 +27,7 @@ import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.mylar.core.IMylarContext;
 import org.eclipse.mylar.core.IMylarContextListener;
 import org.eclipse.mylar.core.IMylarElement;
-import org.eclipse.mylar.core.util.ErrorLogger;
+import org.eclipse.mylar.core.util.MylarStatusHandler;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPartReference;
@@ -58,7 +58,7 @@ public class ActiveFoldingListener implements IMylarContextListener {
     			fProjectionModelUpdater.initialize();
     		} 
         } catch (Exception e) {
-        	ErrorLogger.fail(e, "couldn't get reset folding", true);
+        	MylarStatusHandler.fail(e, "couldn't get reset folding", true);
         }
 	}
     

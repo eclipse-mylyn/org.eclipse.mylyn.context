@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Mylar Java Plug-in
 Bundle-SymbolicName: org.eclipse.mylar.java; singleton:=true
-Bundle-Version: 0.4.6.1
+Bundle-Version: 0.4.7
 Bundle-Activator: org.eclipse.mylar.java.MylarJavaPlugin
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui,
@@ -45,3 +45,4 @@ Export-Package: org.eclipse.mylar.java,
  org.eclipse.mylar.java.ui.views,
  org.eclipse.mylar.java.ui.wizards
 Bundle-ClassPath: mylar-java.jar
+Bundle-RequiredExecutionEnvironment: J2SE-1.5

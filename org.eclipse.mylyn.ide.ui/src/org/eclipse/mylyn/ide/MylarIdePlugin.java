@@ -21,7 +21,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.mylar.core.IMylarElement;
 import org.eclipse.mylar.core.IMylarStructureBridge;
 import org.eclipse.mylar.core.MylarPlugin;
-import org.eclipse.mylar.core.util.ErrorLogger;
+import org.eclipse.mylar.core.util.MylarStatusHandler;
 import org.eclipse.mylar.ide.internal.ActiveSearchViewTracker;
 import org.eclipse.mylar.ide.internal.InterestManipulatingEditorTracker;
 import org.eclipse.mylar.ide.team.MylarChangeSetManager;
@@ -76,7 +76,7 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		initPreferenceDefaults();
-
+		
 		final IWorkbench workbench = PlatformUI.getWorkbench();
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {
@@ -118,7 +118,7 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 						}
 					}
 				} catch (Exception e) {
-					ErrorLogger.fail(e, "Mylar IDE initialization failed", false);
+					MylarStatusHandler.fail(e, "Mylar IDE initialization failed", false);
 				}
 			}
 		});
@@ -166,7 +166,7 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 				}
 			}
 		} catch (Exception e) {
-			ErrorLogger.fail(e, "Mylar IDE stop failed", false);
+			MylarStatusHandler.fail(e, "Mylar IDE stop failed", false);
 		}
 	}
 
