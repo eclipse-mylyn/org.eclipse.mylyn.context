@@ -211,7 +211,7 @@
             id="org.eclipse.mylar.java.actionSet"
             label="Mylar Java"
             visible="true"> 
-            
+             
   		<action
           class="org.eclipse.mylar.internal.java.ui.actions.ToggleActiveFoldingAction"
           definitionId="org.eclipse.mylar.java.ui.editor.folding.auto"

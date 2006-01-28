@@ -74,6 +74,7 @@ public class ActiveFoldingListener implements IMylarContextListener {
     public ActiveFoldingListener(JavaEditor editor) {
     	this.editor = editor;
         this.controller = new ActiveFoldingController(editor);
+		MylarPlugin.getContextManager().addListener(this);
         JavaPlugin.getDefault().getPluginPreferences().addPropertyChangeListener(PREFERENCE_LISTENER);
     }
 
