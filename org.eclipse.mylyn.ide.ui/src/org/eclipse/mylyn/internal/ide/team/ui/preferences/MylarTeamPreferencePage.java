@@ -8,10 +8,10 @@
  * Contributors:
  *     University Of British Columbia - initial API and implementation
  *******************************************************************************/
-package org.eclipse.mylar.ide.team.ui.preferences;
+package org.eclipse.mylar.internal.ide.team.ui.preferences;
 
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.mylar.ide.MylarIdePlugin;
+import org.eclipse.mylar.internal.ide.MylarIdePlugin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;

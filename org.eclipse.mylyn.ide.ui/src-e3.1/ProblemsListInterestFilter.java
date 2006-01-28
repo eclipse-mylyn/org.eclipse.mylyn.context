@@ -11,7 +11,7 @@
 /*
  * Created on May 6, 2005
   */
-package org.eclipse.mylar.ide.ui;
+package org.eclipse.mylar.internal.ide.ui;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.viewers.Viewer;
