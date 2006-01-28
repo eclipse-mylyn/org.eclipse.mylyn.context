@@ -15,7 +15,7 @@ import java.util.Map;
 
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.mylar.core.MylarPlugin;
-import org.eclipse.mylar.ide.AbstractEditorTracker;
+import org.eclipse.mylar.internal.ide.AbstractEditorTracker;
 import org.eclipse.mylar.java.ui.editor.ActiveFoldingListener;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.internal.Workbench;

@@ -11,7 +11,7 @@
 /*
  * Created on Feb 7, 2005
  */
-package org.eclipse.mylar.xml;
+package org.eclipse.mylar.internal.xml;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -39,10 +39,10 @@ import org.eclipse.mylar.core.AbstractRelationProvider;
 import org.eclipse.mylar.core.IMylarElement;
 import org.eclipse.mylar.core.IMylarStructureBridge;
 import org.eclipse.mylar.core.MylarPlugin;
-import org.eclipse.mylar.core.search.IActiveSearchListener;
-import org.eclipse.mylar.core.search.IMylarSearchOperation;
-import org.eclipse.mylar.core.util.MylarStatusHandler;
-import org.eclipse.mylar.xml.pde.PdeStructureBridge;
+import org.eclipse.mylar.internal.core.search.IActiveSearchListener;
+import org.eclipse.mylar.internal.core.search.IMylarSearchOperation;
+import org.eclipse.mylar.internal.core.util.MylarStatusHandler;
+import org.eclipse.mylar.internal.xml.pde.PdeStructureBridge;
 import org.eclipse.search.internal.core.SearchScope;
 import org.eclipse.search.internal.ui.text.FileSearchQuery;
 import org.eclipse.search.internal.ui.text.FileSearchResult;
