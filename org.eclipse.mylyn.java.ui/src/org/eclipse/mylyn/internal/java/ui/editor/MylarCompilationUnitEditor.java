@@ -27,8 +27,6 @@ public class MylarCompilationUnitEditor extends CompilationUnitEditor {
 	@Override
 	protected void initializeEditor() {
 		super.initializeEditor();
-		setSourceViewerConfiguration(new MylarJavaSourceViewerConfiguration(JavaPlugin.getDefault().getJavaTextTools()
-				.getColorManager(), getPreferenceStore(), this, IJavaPartitions.JAVA_PARTITIONING));
 	}
 
 	public IJavaElement getInputJavaElement() {
@@ -37,7 +35,8 @@ public class MylarCompilationUnitEditor extends CompilationUnitEditor {
 
 	@Override
 	public void createPartControl(Composite parent) {
-		initializeEditor();
+		setSourceViewerConfiguration(new MylarJavaSourceViewerConfiguration(JavaPlugin.getDefault().getJavaTextTools()
+				.getColorManager(), getPreferenceStore(), this, IJavaPartitions.JAVA_PARTITIONING));
 		super.createPartControl(parent);
 	}
 }
