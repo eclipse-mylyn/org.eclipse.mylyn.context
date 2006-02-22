@@ -143,10 +143,13 @@
                <view id="org.eclipse.mylar.ui.views.active.hierarchy"
                     relative="org.eclipse.ui.views.ContentOutline"
                     relationship="stack"/>
+                <!--
                <viewShortcut id="org.eclipse.mylar.ui.views.active.search"/>
+               -->
+               <!--
                <view id="org.eclipse.mylar.ui.views.active.search"
                     relative="org.eclipse.ui.views.ContentOutline"
-                    relationship="stack"/>
+                    relationship="stack"/>-->
           </perspectiveExtension>
    </extension>
 
@@ -211,7 +214,7 @@
             id="org.eclipse.mylar.java.actionSet"
             label="Mylar Java"
             visible="true"> 
-             
+            
   		<action
           class="org.eclipse.mylar.internal.java.ui.actions.ToggleActiveFoldingAction"
           definitionId="org.eclipse.mylar.java.ui.editor.folding.auto"
@@ -375,8 +378,51 @@
       </key>
    </extension> 
    
+</plugin>
+
+     
+  <!-- ** CUSTOM EDITOR ****************************************** 
+
+  <extension
+         id="editors"
+         point="org.eclipse.ui.editors">
+      <editor 
+            name="Mylar Java Editor"
+            icon="icons/eview16/editor-mylar-java.gif"
+            extensions="java"
+            contributorClass="org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditorActionContributor"
+            class="org.eclipse.mylar.internal.java.ui.editor.MylarCompilationUnitEditor"
+            id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor">
+      		<contentTypeBinding contentTypeId="org.eclipse.jdt.core.javaSource" /> 
+      </editor>  
+   </extension> 
    
-   <!-- COPIED from org.eclipse.jdt.ui and jdt.debug.ui -->
+     <extension point="org.eclipse.ui.actionSetPartAssociations">
+  	<actionSetPartAssociation targetID="org.eclipse.jdt.ui.A_OpenActionSet">
+		<part id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor" /> 
+    </actionSetPartAssociation>
+  	<actionSetPartAssociation targetID="org.eclipse.jdt.ui.CodingActionSet">
+		<part id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor" /> 
+    </actionSetPartAssociation>
+    <actionSetPartAssociation targetID="org.eclipse.jdt.ui.SearchActionSet">
+  		<part id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor" /> 
+  		<part id="org.eclipse.mylar.java.ui.editor.MylarClassFileEditor" /> 
+  	</actionSetPartAssociation>
+    <actionSetPartAssociation targetID="org.eclipse.ui.edit.text.actionSet.annotationNavigation">
+		<part id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor" /> 
+  		<part id="org.eclipse.mylar.java.ui.editor.MylarClassFileEditor" /> 
+   </actionSetPartAssociation>
+   <actionSetPartAssociation targetID="org.eclipse.ui.edit.text.actionSet.presentation">
+		<part id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor" /> 
+  		<part id="org.eclipse.mylar.java.ui.editor.MylarClassFileEditor" /> 
+   </actionSetPartAssociation>
+   <actionSetPartAssociation targetID="org.eclipse.jdt.ui.text.java.actionSet.presentation">
+		<part id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor" /> 
+  		<part id="org.eclipse.mylar.java.ui.editor.MylarClassFileEditor" /> 
+   </actionSetPartAssociation>
+  </extension>
+  
+     COPIED from org.eclipse.jdt.ui and jdt.debug.ui 
       <extension
          point="org.eclipse.ui.actionSetPartAssociations">
       <actionSetPartAssociation
@@ -424,9 +470,18 @@
          </action>
       </editorContribution>
    </extension>
-   <!-- end from -->
-   
-</plugin>
+
+  -->
+  
+  <!--
+  <extension point="org.eclipse.jdt.ui.foldingStructureProviders">
+  	<provider 
+  		preferencesClass="org.eclipse.mylar.java.ui.editor.AutoFoldPreferenceBlock" 
+  		class="org.eclipse.mylar.java.ui.editor.AutoFoldingStructureProvider" 
+  		name="Mylar Auto Folding" 
+  		id="org.eclipse.mylar.java.ui.editor.foldingprovider" /> 
+    </extension> 
+  --> 
 
 
 	<!--
