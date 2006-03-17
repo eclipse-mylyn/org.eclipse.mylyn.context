@@ -125,19 +125,18 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 
 	private void initPreferenceDefaults() {
 		getPreferenceStore().setDefault(CHANGE_SET_MANAGE, true);
-
 		getPreferenceStore().setDefault(COMMIT_PREFIX_COMPLETED, DEFAULT_PREFIX_COMPLETED);
 		getPreferenceStore().setDefault(COMMIT_PREFIX_PROGRESS, DEFAULT_PREFIX_PROGRESS);
 
 		// restore old preference values if set
 		if (MylarTaskListPlugin.getDefault() != null) {
-			if (MylarTaskListPlugin.getPrefs().contains(COMMIT_PREFIX_COMPLETED)) {
+			if (MylarTaskListPlugin.getMylarCorePrefs().contains(COMMIT_PREFIX_COMPLETED)) {
 				getPreferenceStore().setValue(COMMIT_PREFIX_COMPLETED,
-						MylarTaskListPlugin.getPrefs().getString(COMMIT_PREFIX_COMPLETED));
+						MylarTaskListPlugin.getMylarCorePrefs().getString(COMMIT_PREFIX_COMPLETED));
 			}
-			if (MylarTaskListPlugin.getPrefs().contains(COMMIT_PREFIX_PROGRESS)) {
+			if (MylarTaskListPlugin.getMylarCorePrefs().contains(COMMIT_PREFIX_PROGRESS)) {
 				getPreferenceStore().setValue(COMMIT_PREFIX_PROGRESS,
-						MylarTaskListPlugin.getPrefs().getString(COMMIT_PREFIX_PROGRESS));
+						MylarTaskListPlugin.getMylarCorePrefs().getString(COMMIT_PREFIX_PROGRESS));
 			}
 		}
 	}

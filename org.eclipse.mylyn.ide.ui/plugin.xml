@@ -86,9 +86,9 @@
               enablesFor="*"
               icon="icons/elcl16/cvs_persp.gif"
               id="org.eclipse.mylar.ide.ui.team.context.commit"
-              label="Commit Task Context..."
+              label="Commit Context..."
               menubarPath="context"
-              tooltip="Commit Task Context...">
+              tooltip="Commit Context...">
            <enablement>
               <or> 
                  <objectClass name="org.eclipse.mylar.provisional.tasklist.ITask"/>
@@ -118,4 +118,21 @@
 	  		enablesFor="*"/>
 	 </objectContribution>
    </extension>
+   
+   <!--
+   <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            adaptable="true"
+            class="org.eclipse.mylar.internal.ide.ui.MylarChangeSetDecorator"
+            id="org.eclipse.mylar.ide.decorator"
+            label="Mylar Change Set Decorator"
+            lightweight="true"
+            state="true">
+         <enablement>
+            <objectClass name="org.eclipse.team.internal.ui.synchronize.ChangeSetDiffNode"/>
+         </enablement>
+      </decorator>
+   </extension>
+   -->
 </plugin>
