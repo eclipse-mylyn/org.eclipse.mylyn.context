@@ -108,12 +108,9 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 					MylarPlugin.getDefault().getSelectionMonitors().add(javaEditingMonitor);
 					installEditorTracker(workbench);
 
+					// TODO: race conditions prevents this from running?
 					if (ApplyMylarToPackageExplorerAction.getDefault() != null) {
 						ApplyMylarToPackageExplorerAction.getDefault().update();
-						getPreferenceStore().addPropertyChangeListener(ApplyMylarToPackageExplorerAction.getDefault());
-					}
-					if (ApplyMylarToBrowsingPerspectiveAction.getDefault() != null) {
-						ApplyMylarToBrowsingPerspectiveAction.getDefault().update();
 					}
 					if (ApplyMylarToBrowsingPerspectiveAction.getDefault() != null) {
 						ApplyMylarToBrowsingPerspectiveAction.getDefault().update();
@@ -122,7 +119,7 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 //					if (!getPreferenceStore().contains(MylarPreferenceWizard.MYLAR_FIRST_RUN)) {
 //						JavaUiUtil.installContentAssist(JavaPlugin.getDefault().getPreferenceStore(), true);
 //					}
-					
+
 					if (!MylarPlugin.getDefault().suppressWizardsOnStartup()
 							&& !getPreferenceStore().contains(MylarPreferenceWizard.MYLAR_FIRST_RUN)) {
 						MylarPreferenceWizard wizard = new MylarPreferenceWizard(FIRST_USE);
@@ -166,8 +163,8 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 				getPreferenceStore().removePropertyChangeListener(ApplyMylarToPackageExplorerAction.getDefault());
 			}
 
-			if (PlatformUI.getWorkbench() != null && PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null
-					&& !PlatformUI.getWorkbench().isClosing()) {
+			if (PlatformUI.getWorkbench() != null && !PlatformUI.getWorkbench().isClosing()
+					&& PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null) {
 				ISelectionService service = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
 				service.removePostSelectionListener(packageExplorerExpansionManager);
 			}
@@ -175,22 +172,22 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 			// CVSUIPlugin.getPlugin().getChangeSetManager().remove(changeSetManager);
 			// TODO: uninstall editor tracker
 		} catch (Exception e) {
-			MylarStatusHandler.fail(e, "Mylar Java stop failed", false);
+			MylarStatusHandler.fail(e, "Mylar Java stop terminated abnormally", false);
 		}
 	}
 
 	private void installEditorTracker(IWorkbench workbench) {
 		editorTracker = new ActiveFoldingEditorTracker();
 		editorTracker.install(workbench);
-//		workbench.addWindowListener(editorTracker);
-//		IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
-//		for (int i = 0; i < windows.length; i++) {
-//			windows[i].addPageListener(editorTracker);
-//			IWorkbenchPage[] pages = windows[i].getPages();
-//			for (int j = 0; j < pages.length; j++) {
-//				pages[j].addPartListener(editorTracker);
-//			}
-//		}
+		// workbench.addWindowListener(editorTracker);
+		// IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
+		// for (int i = 0; i < windows.length; i++) {
+		// windows[i].addPageListener(editorTracker);
+		// IWorkbenchPage[] pages = windows[i].getPages();
+		// for (int j = 0; j < pages.length; j++) {
+		// pages[j].addPartListener(editorTracker);
+		// }
+		// }
 
 		// update editors that are already opened
 		if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null) {
@@ -254,7 +251,7 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 		return AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
 
-	public static boolean isMylarEditorDefault() {
+	 public static boolean isMylarEditorDefault() {
 		IEditorRegistry editorRegistry = WorkbenchPlugin.getDefault().getEditorRegistry();
 		IEditorDescriptor desc = editorRegistry.getDefaultEditor("*.java");
 

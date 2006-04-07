@@ -22,7 +22,6 @@ import org.eclipse.mylar.provisional.tasklist.AbstractRepositoryTask;
 import org.eclipse.mylar.provisional.tasklist.ITask;
 import org.eclipse.mylar.provisional.tasklist.MylarTaskListPlugin;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.team.core.history.IFileRevision;
 import org.eclipse.team.internal.ccvs.core.client.listeners.LogEntry;
 import org.eclipse.team.internal.ui.synchronize.ChangeSetDiffNode;
 import org.eclipse.ui.IViewActionDelegate;
@@ -50,8 +49,8 @@ public class OpenCorrespondingTaskAction implements IViewActionDelegate {
 					comment = ((ChangeSetDiffNode) firstElement).getName();
 				} else if (firstElement instanceof LogEntry) {
 					comment = ((LogEntry) firstElement).getComment();
-				} else if (firstElement instanceof IFileRevision) {
-					comment = ((IFileRevision)firstElement).getComment();
+//				} else if (firstElement instanceof IFileRevision) {
+//					comment = ((IFileRevision)firstElement).getComment();
 				}
 				if (comment != null) {
 					String fullUrl = MylarContextChangeSet.getUrlFromComment(comment);

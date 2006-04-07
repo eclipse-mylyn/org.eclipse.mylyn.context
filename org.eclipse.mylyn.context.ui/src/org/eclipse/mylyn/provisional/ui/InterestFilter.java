@@ -18,7 +18,6 @@ import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.StructuredViewer;
-import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.mylar.internal.core.MylarContextManager;
@@ -102,10 +101,10 @@ public class InterestFilter extends ViewerFilter implements IPropertyChangeListe
 	}
 
 	private boolean isTemporarilyUnfiltered(Object parent) {
-		if (parent instanceof TreePath) {
-			TreePath treePath = (TreePath)parent;
-			parent = treePath.getLastSegment();
-		}
+//		if (parent instanceof TreePath) {
+//			TreePath treePath = (TreePath)parent;
+//			parent = treePath.getLastSegment();
+//		}
 		return temporarilyUnfiltered != null && temporarilyUnfiltered.equals(parent);
 	}
 

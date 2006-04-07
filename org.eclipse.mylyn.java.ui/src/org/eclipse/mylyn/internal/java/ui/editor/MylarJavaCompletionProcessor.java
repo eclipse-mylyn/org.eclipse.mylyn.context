@@ -28,7 +28,6 @@ import org.eclipse.jdt.internal.ui.text.java.ProposalInfo;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.mylar.internal.core.MylarContextManager;
-import org.eclipse.mylar.internal.core.dt.MylarWebRef;
 import org.eclipse.mylar.internal.core.util.MylarStatusHandler;
 import org.eclipse.mylar.internal.ui.MylarImages;
 import org.eclipse.mylar.provisional.core.IMylarElement;
@@ -58,7 +57,6 @@ public class MylarJavaCompletionProcessor extends JavaCompletionProcessor {
 		}
     }
     
-    @MylarWebRef(name="Reflection documentation", url="http://www.onjava.com/pub/a/onjava/2003/11/12/reflection.html?page=last")
     @Override
     public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {    
         ICompletionProposal[] proposals = super.computeCompletionProposals(viewer, offset);

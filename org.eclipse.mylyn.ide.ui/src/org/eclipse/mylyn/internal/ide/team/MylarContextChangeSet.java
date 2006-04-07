@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.mylar.internal.ide.MylarIdePlugin;
+import org.eclipse.mylar.provisional.core.InteractionEvent;
 import org.eclipse.mylar.provisional.tasklist.ITask;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.core.synchronize.SyncInfo;
@@ -105,9 +106,9 @@ public class MylarContextChangeSet extends ActiveChangeSet {
 	public void add(SyncInfo info) {
 		super.add(info);
 		if (!suppressInterestContribution) {
-			List<IResource> resources = new ArrayList<IResource>();
+			Set<IResource> resources = new HashSet<IResource>();
 			resources.add(info.getLocal());
-			MylarIdePlugin.getDefault().getInterestUpdater().addResourceToContext(resources);
+			MylarIdePlugin.getDefault().getInterestUpdater().addResourceToContext(resources, InteractionEvent.Kind.SELECTION);
 		}
 	}
 
@@ -180,7 +181,7 @@ public class MylarContextChangeSet extends ActiveChangeSet {
 		return prefix;
 	}
 
-	public static String getTaskIdFromComment(String comment) {
+	public static String getTaskIdFromCommentOrLabel(String comment) {
 		int firstDelimIndex = comment.indexOf(PREFIX_DELIM);
 		if (firstDelimIndex != -1) {
 			int idStart = firstDelimIndex + PREFIX_DELIM.length();
@@ -189,6 +190,9 @@ public class MylarContextChangeSet extends ActiveChangeSet {
 				String id = comment.substring(idStart, idEnd);
 				if (id != null)
 					return id.trim();
+			} else {
+				// change set label
+				return comment.substring(0, firstDelimIndex);
 			}
 		}
 		return null;

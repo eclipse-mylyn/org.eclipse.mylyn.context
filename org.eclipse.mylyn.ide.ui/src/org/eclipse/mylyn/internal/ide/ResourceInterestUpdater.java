@@ -13,6 +13,7 @@ package org.eclipse.mylar.internal.ide;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.mylar.internal.core.util.MylarStatusHandler;
@@ -32,17 +33,17 @@ public class ResourceInterestUpdater {
 
 	private boolean syncExec = false;
 
-	public void addResourceToContext(final List<IResource> resources) {
+	public void addResourceToContext(final Set<IResource> resources, final InteractionEvent.Kind interactionKind) {
 		try {
 			if (!resources.isEmpty()) {
 				if (syncExec) {
-					internalAddResourceToContext(resources);
+					internalAddResourceToContext(resources, interactionKind);
 				} else {
 					final IWorkbench workbench = PlatformUI.getWorkbench();
 					if (!workbench.isClosing() && !workbench.getDisplay().isDisposed()) {
 						workbench.getDisplay().asyncExec(new Runnable() {
 							public void run() {
-								internalAddResourceToContext(resources);
+								internalAddResourceToContext(resources, interactionKind);
 							}
 						});
 					}
@@ -53,13 +54,13 @@ public class ResourceInterestUpdater {
 		}
 	}
 
-	private void internalAddResourceToContext(List<IResource> resources) {
+	private void internalAddResourceToContext(Set<IResource> resources, InteractionEvent.Kind interactionKind) {
 		List<IResource> toAdd = new ArrayList<IResource>();
 		for (IResource resource : resources) {
 			if (acceptResource(resource)) {
 				toAdd.add(resource);
 			}
-		}
+		} 
 
 		List<InteractionEvent> interactionEvents = new ArrayList<InteractionEvent>();
 		for (IResource resource : toAdd) {
@@ -68,13 +69,17 @@ public class ResourceInterestUpdater {
 			if (handle != null) {
 				IMylarElement element = MylarPlugin.getContextManager().getElement(handle);
 				if (element != null && !element.getInterest().isInteresting()) {
-					InteractionEvent interactionEvent = new InteractionEvent(InteractionEvent.Kind.SELECTION, bridge
+					InteractionEvent interactionEvent = new InteractionEvent(interactionKind, bridge
 							.getContentType(), handle, SOURCE_ID);
 					interactionEvents.add(interactionEvent);
 				}
-			}
-		} 
-		MylarPlugin.getContextManager().handleInteractionEvents(interactionEvents, true);
+			}  
+		}  
+		if (InteractionEvent.Kind.SELECTION.equals(interactionKind)) {
+			MylarPlugin.getContextManager().handleInteractionEvents(interactionEvents, true);
+		} else {
+			MylarPlugin.getContextManager().handleInteractionEvents(interactionEvents, false);
+		}
 	}
 
 	private boolean acceptResource(IResource resource) {

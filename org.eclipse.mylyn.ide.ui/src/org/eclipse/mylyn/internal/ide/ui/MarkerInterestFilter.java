@@ -18,7 +18,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.mylar.provisional.core.MylarPlugin;
 import org.eclipse.mylar.provisional.ui.InterestFilter;
 import org.eclipse.ui.views.markers.internal.ConcreteMarker;
-import org.eclipse.ui.views.markers.internal.MarkerNode;
 import org.eclipse.ui.views.markers.internal.ProblemMarker;
 
 /**
@@ -26,26 +25,8 @@ import org.eclipse.ui.views.markers.internal.ProblemMarker;
  */
 public class MarkerInterestFilter extends InterestFilter {
 
-	@Override
 	public boolean select(Viewer viewer, Object parent, Object element) {
-		if (!(element instanceof ConcreteMarker)) {
-			if (element instanceof MarkerNode) {
-				MarkerNode markerNode = (MarkerNode) element;
-				MarkerNode[] children = markerNode.getChildren();
-				for (int i = 0; i < children.length; i++) {
-					MarkerNode node = children[i];
-					if (node instanceof ConcreteMarker) {
-						return isInteresting((ConcreteMarker) node, viewer, parent);
-					} else {
-						return true;
-					}
-				}
-			} 
-		} else {
-//			ConcreteMarker marker = (ConcreteMarker) element;
 			return isInteresting((ConcreteMarker)element, viewer, parent);
-		}
-		return false;
 	}
 
 	private boolean isImplicitlyInteresting(ConcreteMarker marker) {
@@ -67,6 +48,5 @@ public class MarkerInterestFilter extends InterestFilter {
 				return super.select(viewer, parent, MylarPlugin.getContextManager().getElement(handle));
 			}
 		}
-
 	}
 }
