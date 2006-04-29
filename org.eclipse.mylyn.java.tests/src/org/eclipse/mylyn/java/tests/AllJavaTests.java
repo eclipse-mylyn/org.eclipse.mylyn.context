@@ -14,7 +14,6 @@ package org.eclipse.mylar.java.tests;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-import org.eclipse.mylar.ide.tests.ChangeSetManagerTest;
 import org.eclipse.mylar.ide.tests.CommitMessageTest;
 import org.eclipse.mylar.internal.ide.MylarIdePlugin;
 import org.eclipse.mylar.java.tests.search.JUnitReferencesSearchPluginTest;
@@ -34,8 +33,8 @@ public class AllJavaTests {
 		// $JUnit-BEGIN$
 		suite.addTestSuite(CommitMessageTest.class);
 		suite.addTestSuite(InterestManipulationTest.class);
-		suite.addTestSuite(ChangeSetManagerTest.class);
-		suite.addTestSuite(EditorManagementTest.class);
+//		suite.addTestSuite(ChangeSetManagerTest.class);
+		suite.addTestSuite(EditorManagerTest.class);
 		suite.addTestSuite(RefactoringTest.class);
 		suite.addTestSuite(ContentOutlineRefreshTest.class);
 		suite.addTestSuite(TypeHistoryManagerTest.class);

@@ -11,7 +11,6 @@
 
 package org.eclipse.mylar.internal.java;
 
-import org.eclipse.jface.resource.ImageDescriptor;
 
 /**
  * @author Mik Kersten
@@ -19,7 +18,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 public class MylarJavaPrefConstants {
 
 	public static final String MYLAR_JAVA_EDITOR_ID = "org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor";
-
+	
 	public static final String AUTO_FOLDING_ENABLED = "org.eclipse.mylar.java.ui.editor.folding.auto.enabled";
 
 	public static final String PACKAGE_EXPLORER_AUTO_FILTER_ENABLE = "org.eclipse.mylar.java.ui.explorer.filter.auto.enable";
@@ -27,8 +26,5 @@ public class MylarJavaPrefConstants {
 	public static final String PREDICTED_INTEREST_ERRORS = "org.eclipse.mylar.java.interest.predicted.errors";
 
 	public static final String PACKAGE_EXPLORER_AUTO_EXPAND = "org.eclipse.mylar.java.explorer.auto.exapand";
-
-	public static final ImageDescriptor EDGE_REF_JUNIT = MylarJavaPlugin
-			.getImageDescriptor("icons/elcl16/edge-ref-junit.gif");
 
 }

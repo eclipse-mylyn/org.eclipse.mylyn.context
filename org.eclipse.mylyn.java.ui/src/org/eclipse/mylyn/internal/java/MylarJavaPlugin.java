@@ -54,7 +54,7 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 
 	private ActiveFoldingEditorTracker editorTracker;
 
-	private PackageExplorerExpansionManager packageExplorerExpansionManager = new PackageExplorerExpansionManager();
+	private PackageExplorerManager packageExplorerManager = new PackageExplorerManager();
 
 	private TypeHistoryManager typeHistoryManager = new TypeHistoryManager();
 
@@ -91,7 +91,7 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 					setPreferenceDefaults();
 					savePluginPreferences();
 
-					MylarPlugin.getContextManager().addListener(packageExplorerExpansionManager);
+					MylarPlugin.getContextManager().addListener(packageExplorerManager);
 					MylarPlugin.getContextManager().addListener(typeHistoryManager);
 					MylarPlugin.getContextManager().addListener(landmarkMarkerManager);
 
@@ -102,7 +102,7 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 
 					ISelectionService service = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
 							.getSelectionService();
-					service.addPostSelectionListener(packageExplorerExpansionManager);
+					service.addPostSelectionListener(packageExplorerManager);
 
 					javaEditingMonitor = new JavaEditingMonitor();
 					MylarPlugin.getDefault().getSelectionMonitors().add(javaEditingMonitor);
@@ -142,7 +142,7 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 
 	private void setPreferenceDefaults() {
 		getPreferenceStore().setDefault(MylarJavaPrefConstants.PACKAGE_EXPLORER_AUTO_FILTER_ENABLE, true);
-		getPreferenceStore().setDefault(MylarJavaPrefConstants.PACKAGE_EXPLORER_AUTO_EXPAND, true);
+//		getPreferenceStore().setDefault(MylarJavaPrefConstants.PACKAGE_EXPLORER_AUTO_EXPAND, true);
 		getPreferenceStore().setDefault(MylarJavaPrefConstants.PREDICTED_INTEREST_ERRORS, false);
 	}
 
@@ -153,7 +153,7 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 			plugin = null;
 			resourceBundle = null;
 
-			MylarPlugin.getContextManager().removeListener(packageExplorerExpansionManager);
+			MylarPlugin.getContextManager().removeListener(packageExplorerManager);
 			MylarPlugin.getContextManager().removeListener(typeHistoryManager);
 			MylarPlugin.getContextManager().removeListener(landmarkMarkerManager);
 
@@ -166,7 +166,7 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 			if (PlatformUI.getWorkbench() != null && !PlatformUI.getWorkbench().isClosing()
 					&& PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null) {
 				ISelectionService service = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
-				service.removePostSelectionListener(packageExplorerExpansionManager);
+				service.removePostSelectionListener(packageExplorerManager);
 			}
 			JavaCore.removeElementChangedListener(javaElementChangeListener);
 			// CVSUIPlugin.getPlugin().getChangeSetManager().remove(changeSetManager);

@@ -31,6 +31,7 @@ import org.eclipse.mylar.internal.core.util.MylarStatusHandler;
 import org.eclipse.mylar.internal.xml.MylarXmlPlugin;
 import org.eclipse.mylar.provisional.core.IMylarElement;
 import org.eclipse.mylar.provisional.ui.IMylarUiBridge;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
@@ -184,7 +185,11 @@ public class AntUiBridge implements IMylarUiBridge {
 		// TODO Auto-generated method stub
 
 	}
-
+	
+	public IMylarElement getElement(IEditorInput input) {
+		return null;
+	}
+	
 	// public void refreshOutline(Object element, boolean updateLabels, boolean
 	// setSelection) {
 	// IEditorPart editorPart =

@@ -46,6 +46,7 @@ import org.eclipse.mylar.provisional.tasklist.ITask;
 import org.eclipse.mylar.provisional.tasklist.MylarTaskListPlugin;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -152,8 +153,11 @@ public class MylarUiPlugin extends AbstractUIPlugin {
 		}
 
 		public void setContextCapturePaused(boolean paused) {
-			// TODO Auto-generated method stub
-
+			// ignore
+		}
+		
+		public IMylarElement getElement(IEditorInput input) {
+			return null;
 		}
 	};
 
@@ -182,6 +186,8 @@ public class MylarUiPlugin extends AbstractUIPlugin {
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				try {
+					// TODO: move to MylarPlugin?
+					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell().addShellListener(MylarPlugin.getContextManager().getShellLifecycleListener());
 					MylarPlugin.getContextManager().addListener(viewerManager);
 
 					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(
@@ -211,6 +217,9 @@ public class MylarUiPlugin extends AbstractUIPlugin {
 			viewerManager.dispose();
 			colorMap.dispose(); 
 			highlighters.dispose();
+			if (PlatformUI.getWorkbench() != null && !PlatformUI.getWorkbench().isClosing()) {
+				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell().removeShellListener(MylarPlugin.getContextManager().getShellLifecycleListener());
+			}
 		} catch (Exception e) { 
 			MylarStatusHandler.fail(e, "Mylar UI stop failed", false);
 		}

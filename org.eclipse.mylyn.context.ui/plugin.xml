@@ -54,28 +54,13 @@
                  <objectClass name="org.eclipse.mylar.provisional.tasklist.AbstractQueryHit"/>
               </or>
            </enablement>
-        </action> 
-        <!--
-        <action
-              class="org.eclipse.mylar.internal.ui.actions.ContextAttachAction"
-              enablesFor="1"
-              icon="icons/etool16/context-attach.gif"
-              id="org.eclipse.mylar.ui.context.repository.attach"
-              label="Attach Context"
-              menubarPath="context">
-           <enablement>
-              <or>
-                 <objectClass name="org.eclipse.mylar.provisional.tasklist.AbstractRepositoryTask"/>
-                 <objectClass name="org.eclipse.mylar.provisional.tasklist.AbstractQueryHit"/>
-              </or>
-           </enablement>
         </action>
         <action
               class="org.eclipse.mylar.internal.ui.actions.ContextRetrieveAction"
               enablesFor="1"
               icon="icons/etool16/context-retrieve.gif"
               id="org.eclipse.mylar.ui.context.repository.retrieve"
-              label="Retrieve Context"
+              label="Retrieve Context (Experimental)"
               menubarPath="context">
            <enablement>
               <or>
@@ -83,8 +68,21 @@
                  <objectClass name="org.eclipse.mylar.provisional.tasklist.AbstractRepositoryTask"/>
               </or>
            </enablement>
+        </action> 
+        <action
+              class="org.eclipse.mylar.internal.ui.actions.ContextAttachAction"
+              enablesFor="1"
+              icon="icons/etool16/context-attach.gif"
+              id="org.eclipse.mylar.ui.context.repository.attach"
+              label="Attach Context (Experimental)"
+              menubarPath="context">
+           <enablement>
+              <or>
+                 <objectClass name="org.eclipse.mylar.provisional.tasklist.AbstractRepositoryTask"/>
+                 <objectClass name="org.eclipse.mylar.provisional.tasklist.AbstractQueryHit"/>
+              </or>
+           </enablement>
         </action>
-        -->
         
         <!--
         <action
@@ -214,12 +212,14 @@
             id="org.eclipse.mylar.ui.interest.decrement"
             categoryId="org.eclipse.mylar.ui">
       </command>
+      <!--
       <command
             name="Show Filtered Children"
             description="Show Filtered Children"
             id="org.eclipse.mylar.ui.show.filtered"
             categoryId="org.eclipse.mylar.ui">
       </command>
+      -->
    </extension>
      
    <extension point="org.eclipse.ui.bindings">     
@@ -236,17 +236,19 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
       </key>
       <key
-            sequence="M1+M2+M3+ARROW_RIGHT"
-            contextId="org.eclipse.ui.globalScope"
-            commandId="org.eclipse.mylar.ui.show.filtered"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
-      </key> 
-      <key
             sequence="M1+M2+M3+ARROW_LEFT"
             contextId="org.eclipse.ui.globalScope"
             commandId="org.eclipse.mylar.ui.related.show"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
       </key> 
+	  <!--
+      <key
+            sequence="M1+M2+M3+ARROW_RIGHT"
+            contextId="org.eclipse.ui.globalScope"
+            commandId="org.eclipse.mylar.ui.show.filtered"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </key> 
+      -->
    </extension>     
 
    <extension point="org.eclipse.ui.decorators">
@@ -266,8 +268,7 @@
    </extension>
 
  <extension point="org.eclipse.ui.viewActions"> 
- 	<!--
- 	  	<viewContribution 
+ 	<viewContribution 
 		id="org.eclipse.mylar.ui.tasklist.apply" 
    		targetID="org.eclipse.mylar.tasks.ui.views.TaskListView">
     	<action
@@ -275,14 +276,13 @@
            enablesFor="*"
            icon="icons/eview16/mylar-apply-activity.gif"
            id="org.eclipse.mylar.ui.actions.ApplyMylarToOutlineAction"
-           label="Apply Mylar"
+           label="Apply Mylar (Experimental)"
            style="toggle"
            toolbarPath="context"
            tooltip="Apply Mylar (Experimental)"> 
   		</action> 
   	</viewContribution>
-  	-->
-	  <viewContribution 
+	<viewContribution 
 		id="org.eclipse.mylar.outline.contribution.filter" 
    		targetID="org.eclipse.ui.views.ContentOutline">
     	<action
