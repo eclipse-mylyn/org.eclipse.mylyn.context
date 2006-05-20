@@ -43,7 +43,7 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 
 	private MylarEditorManager editorManager = new MylarEditorManager();
 
-	private ResourceSelectionMonitor resourceSelectionMonitor;
+	private ResourceInteractionMonitor resourceInteractionMonitor;
 
 	private static MylarIdePlugin plugin;
 
@@ -85,8 +85,10 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 					}
 					MylarPlugin.getContextManager().addListener(navigatorRefreshListener);
 
-					resourceSelectionMonitor = new ResourceSelectionMonitor();
-					MylarPlugin.getDefault().getSelectionMonitors().add(resourceSelectionMonitor);
+					resourceInteractionMonitor = new ResourceInteractionMonitor();
+//					Display.getDefault().addFilter(SWT.Selection, resourceInteractionMonitor);
+					
+					MylarPlugin.getDefault().getSelectionMonitors().add(resourceInteractionMonitor);
 					MylarPlugin.getContextManager().addListener(editorManager);
 
 					ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeMonitor,
@@ -108,14 +110,14 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 					}
 
 					interestEditorTracker.install(workbench);
-//					workbench.addWindowListener(interestEditorTracker);
-//					for (int i = 0; i < windows.length; i++) {
-//						windows[i].addPageListener(interestEditorTracker);
-//						IWorkbenchPage[] pages = windows[i].getPages();
-//						for (int j = 0; j < pages.length; j++) {
-//							pages[j].addPartListener(interestEditorTracker);
-//						}
-//					}
+					// workbench.addWindowListener(interestEditorTracker);
+					// for (int i = 0; i < windows.length; i++) {
+					// windows[i].addPageListener(interestEditorTracker);
+					// IWorkbenchPage[] pages = windows[i].getPages();
+					// for (int j = 0; j < pages.length; j++) {
+					// pages[j].addPartListener(interestEditorTracker);
+					// }
+					// }
 				} catch (Exception e) {
 					MylarStatusHandler.fail(e, "Mylar IDE initialization failed", false);
 				}
@@ -146,7 +148,7 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 			super.stop(context);
 			plugin = null;
 			MylarPlugin.getContextManager().removeListener(editorManager);
-			MylarPlugin.getDefault().getSelectionMonitors().remove(resourceSelectionMonitor);
+			MylarPlugin.getDefault().getSelectionMonitors().remove(resourceInteractionMonitor);
 			MylarPlugin.getContextManager().removeListener(navigatorRefreshListener);
 			changeSetManager.disable();
 
@@ -164,7 +166,9 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 				}
 			}
 		} catch (Exception e) {
-			MylarStatusHandler.fail(e, "Mylar IDE stop failed, Mylar may not have started properly (ensure correct Eclipse version)", false);
+			MylarStatusHandler.fail(e,
+					"Mylar IDE stop failed, Mylar may not have started properly (ensure correct Eclipse version)",
+					false);
 		}
 	}
 
@@ -187,14 +191,15 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 		List<IResource> interestingResources = new ArrayList<IResource>();
 		List<IMylarElement> resourceElements = MylarPlugin.getContextManager().getInterestingDocuments();
 		for (IMylarElement element : resourceElements) {
-			IResource resource = getResourceForElement(element);
+			IResource resource = getResourceForElement(element, false);
 			if (resource != null)
 				interestingResources.add(resource);
 		}
 		return interestingResources;
 	}
 
-	public IResource getResourceForElement(IMylarElement element) {
+	public IResource getResourceForElement(IMylarElement element, boolean findContainingResource) {
+		if (element == null) return null;
 		IMylarStructureBridge bridge = MylarPlugin.getDefault().getStructureBridge(element.getContentType());
 		Object object = bridge.getObjectForHandle(element.getHandleIdentifier());
 		if (object instanceof IResource) {
@@ -204,12 +209,13 @@ public class MylarIdePlugin extends AbstractUIPlugin {
 			if (adapted instanceof IResource) {
 				return (IResource) adapted;
 			}
-			// else { // recurse
-			// return
-			// getResourceForElement(MylarPlugin.getContextManager().getElement(bridge.getParentHandle(element.getHandleIdentifier())));
-			// }
 		}
-		return null;
+		if (findContainingResource) { // recurse if not found
+			String parentHandle = bridge.getParentHandle(element.getHandleIdentifier());
+			return getResourceForElement(MylarPlugin.getContextManager().getElement(parentHandle), true);
+		} else {
+			return null;
+		}
 	}
 
 	public MylarEditorManager getEditorManager() {

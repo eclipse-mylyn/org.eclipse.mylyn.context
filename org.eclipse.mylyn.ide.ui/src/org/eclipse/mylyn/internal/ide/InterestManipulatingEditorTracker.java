@@ -20,6 +20,7 @@ import org.eclipse.mylar.provisional.core.MylarPlugin;
 import org.eclipse.mylar.provisional.ui.IMylarUiBridge;
 import org.eclipse.mylar.provisional.ui.MylarUiPlugin;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.IPreferenceConstants;
@@ -32,22 +33,32 @@ public class InterestManipulatingEditorTracker extends AbstractEditorTracker {
 
 	public static final String SOURCE_ID = "org.eclipse.mylar.ide.editor.tracker.interest";
 
-	@SuppressWarnings("deprecation")
 	@Override
-	public void editorOpened(IEditorPart part) {
+	public void editorOpened(IEditorPart editorPartOpened) {
 		IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-		IEditorPart[] editors = page.getEditors();
-		for (int i = 0; i < editors.length; i++) {
+		IEditorReference[] editorReferences = page.getEditorReferences();
+		for (int i = 0; i < editorReferences.length; i++) {
 			IMylarElement element = null;
-			Object adapter = editors[i].getEditorInput().getAdapter(IResource.class);
-			if (adapter instanceof IFile) {
-				String handle = MylarPlugin.getDefault().getStructureBridge(adapter).getHandleIdentifier(adapter);
-				element = MylarPlugin.getContextManager().getElement(handle);
+			Object adapter;
+			IEditorPart editorToClose = editorReferences[i].getEditor(false);
+			if (editorToClose != null) {
+				adapter = editorToClose.getEditorInput().getAdapter(IResource.class);
+				if (adapter instanceof IFile) {
+					String handle = MylarPlugin.getDefault().getStructureBridge(adapter).getHandleIdentifier(adapter);
+					element = MylarPlugin.getContextManager().getElement(handle);
+				}
+				if (element != null && !element.getInterest().isInteresting() && !isSameEditor(editorPartOpened, editorToClose)) {
+					page.closeEditor(editorToClose, true);
+				}
 			}
-			if (element != null && !element.getInterest().isInteresting() 
-					&& !part.equals(editors[i]) && !editors[i].getEditorInput().equals(part.getEditorInput())) {
-				page.closeEditor(editors[i], true);
-			}
+		}
+	}
+
+	private boolean isSameEditor(IEditorPart editorPart1, IEditorPart editorPart2) {
+		if (editorPart1 == null || editorPart2 == null) {
+			return false;
+		} else {
+			return editorPart1.equals(editorPart2) && editorPart1.getEditorInput().equals(editorPart2.getEditorInput());
 		}
 	}
 

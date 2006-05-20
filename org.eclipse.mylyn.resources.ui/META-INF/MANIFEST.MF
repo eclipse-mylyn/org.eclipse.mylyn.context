@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Mylar XML Plugin
 Bundle-SymbolicName: org.eclipse.mylar.xml; singleton:=true
-Bundle-Version: 0.5.1
+Bundle-Version: 0.5.1.v20060519-1700
 Bundle-Activator: org.eclipse.mylar.internal.xml.MylarXmlPlugin
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui,
@@ -11,7 +11,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jface.text,
  org.eclipse.ui.ide,
  org.eclipse.search,
- org.eclipse.jdt.core,
  org.eclipse.ant.ui,
  org.eclipse.pde.ui,
  org.eclipse.ui.forms,
@@ -21,7 +20,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.mylar.core,
  org.eclipse.mylar.ui,
  org.eclipse.mylar.ide,
- org.eclipse.ui.editors
+ org.eclipse.ui.editors,
+ org.eclipse.jdt.core
 Eclipse-AutoStart: true
 Bundle-Vendor: Eclipse.org
 Export-Package: org.eclipse.mylar.internal.xml,

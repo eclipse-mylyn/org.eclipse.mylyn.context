@@ -267,7 +267,7 @@ public class MylarChangeSetManager implements IMylarContextListener {
 		IMylarStructureBridge bridge = MylarPlugin.getDefault().getStructureBridge(element.getContentType());
 		try {
 			if (bridge.isDocument(element.getHandleIdentifier())) {
-				IResource resource = MylarIdePlugin.getDefault().getResourceForElement(element);
+				IResource resource = MylarIdePlugin.getDefault().getResourceForElement(element, false);
 				if (resource != null && resource.exists()) {
 					for (MylarContextChangeSet activeContextChangeSet : getActiveChangeSets()) {
 						if (!activeContextChangeSet.contains(resource)) {

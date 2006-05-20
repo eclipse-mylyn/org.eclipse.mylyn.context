@@ -185,31 +185,9 @@ public class AntUiBridge implements IMylarUiBridge {
 		// TODO Auto-generated method stub
 
 	}
+
 	
 	public IMylarElement getElement(IEditorInput input) {
 		return null;
 	}
-	
-	// public void refreshOutline(Object element, boolean updateLabels, boolean
-	// setSelection) {
-	// IEditorPart editorPart =
-	// PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-	// TreeViewer treeViewer = getOutlineTreeViewer(editorPart);
-	// if (treeViewer != null) {
-	// if (element == null || element instanceof IFile) {
-	// treeViewer.getControl().setRedraw(false);
-	// treeViewer.refresh(true);
-	// treeViewer.getControl().setRedraw(true);
-	// } else if (element instanceof AntElementNode) {
-	// treeViewer.getControl().setRedraw(false);
-	// treeViewer.refresh(element, updateLabels);
-	// treeViewer.getControl().setRedraw(true);
-	// if (setSelection) {
-	// if(((StructuredSelection)treeViewer.getSelection()).getFirstElement() !=
-	// element)
-	// treeViewer.setSelection(new StructuredSelection(element));
-	// }
-	// }
-	// }
-	// }
 }

@@ -16,8 +16,10 @@ package org.eclipse.mylar.internal.xml;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.internal.resources.File;
 import org.eclipse.core.internal.resources.Workspace;
@@ -38,6 +40,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.mylar.internal.core.search.IActiveSearchListener;
 import org.eclipse.mylar.internal.core.search.IMylarSearchOperation;
 import org.eclipse.mylar.internal.core.util.MylarStatusHandler;
+import org.eclipse.mylar.internal.ide.MylarIdePlugin;
 import org.eclipse.mylar.internal.xml.pde.PdeStructureBridge;
 import org.eclipse.mylar.provisional.core.AbstractRelationProvider;
 import org.eclipse.mylar.provisional.core.IMylarElement;
@@ -84,77 +87,84 @@ public class XmlReferencesProvider extends AbstractRelationProvider {
         if (scope != null) runJob(node, javaElement, degreeOfSeparation, getId());
     }
         
-    protected SearchScope createTextSearchScope(int degreeOfSeparation){    
-        List<IMylarElement> landmarks = MylarPlugin.getContextManager().getActiveLandmarks();
-        
-        switch(degreeOfSeparation){
-            case 1:
-                // create a search scope for the projects of landmarks
-                List<IResource> l = new ArrayList<IResource>();
-                for (IMylarElement landmark : landmarks) {
-                    if (landmark.getContentType().equals(PdeStructureBridge.CONTENT_TYPE)) { 
-                    	// || landmark.getContentType().equals(AntStructureBridge.CONTENT_TYPE)) {
-                        String handle = landmark.getHandleIdentifier();
-                        IResource element = null;
-                        int first = handle.indexOf(";");
-                        String filename = handle;
-                        if(first != -1)
-                        	filename = handle.substring(0, first);
-                        try{
-                            // change the file into a document
-                            IPath path = new Path(filename);
-                            element = ((Workspace)ResourcesPlugin.getWorkspace()).newResource(path, IResource.FILE);
-                        }catch(Exception e){
-                        	MylarStatusHandler.log(e, "scope creation failed");
-                        }
-                        l.add(element);
-                    }
-                }  
-                
-                IResource[] res = new IResource[l.size()];
-                res = l.toArray(res);
-                SearchScope doiScope = SearchScope.newSearchScope("landmark pde and ant xml files", res);
-                return l.isEmpty() ? null : doiScope;
-            case 2:
-                // create a search scope for the projects of landmarks
-                List<IProject> proj = new ArrayList<IProject>();
-                for (IMylarElement landmark : landmarks) {
-                	IMylarStructureBridge sbridge = MylarPlugin.getDefault().getStructureBridge(landmark.getContentType());
-                	if(sbridge != null){
-                		Object object = sbridge.getObjectForHandle(landmark.getHandleIdentifier());
-                		IProject project = sbridge.getProjectForObject(object);
-                		if(project != null){
-                			proj.add(project);
-                		}
-                	}
-                }                  
-                
-                res = new IProject[proj.size()];
-                res = proj.toArray(res);
-                SearchScope projScope = SearchScope.newSearchScope("Projects of landmarks", res);
-                
-                addFilenamePatterns(projScope);
-                return proj.isEmpty()?null:projScope;
-            case 3:
-        
-                // create a search scope for the workspace
-                SearchScope workspaceScope = SearchScope.newWorkspaceScope();
-                
-                // add the xml extension to the search scope
-                addFilenamePatterns(workspaceScope);
-                return workspaceScope;
-            case 4:
-                // create a search scope for the workspace
-                SearchScope workspaceScope2 = SearchScope.newWorkspaceScope();
-                
-                // add the xml extension to the search scope
-                addFilenamePatterns(workspaceScope2);
-                return workspaceScope2;
-            default:
-                return null;
-        }
-        
-    }
+	protected SearchScope createTextSearchScope(int degreeOfSeparation) {
+		List<IMylarElement> landmarks = MylarPlugin.getContextManager().getActiveLandmarks();
+
+		switch (degreeOfSeparation) {
+		case 1:
+			// create a search scope for the projects of landmarks
+			Set<IResource> l = new HashSet<IResource>();
+			for (IMylarElement landmark : landmarks) {
+				if (landmark.getContentType().equals(PdeStructureBridge.CONTENT_TYPE)) {
+					// ||
+					// landmark.getContentType().equals(AntStructureBridge.CONTENT_TYPE))
+					// {
+					String handle = landmark.getHandleIdentifier();
+					IResource element = null;
+					int first = handle.indexOf(";");
+					String filename = handle;
+					if (first != -1)
+						filename = handle.substring(0, first);
+					try {
+						// change the file into a document
+						IPath path = new Path(filename);
+						element = ((Workspace) ResourcesPlugin.getWorkspace()).newResource(path, IResource.FILE);
+					} catch (Exception e) {
+						MylarStatusHandler.log(e, "scope creation failed");
+					}
+					l.add(element);
+				}
+			}
+
+			IResource[] res = new IResource[l.size()];
+			res = l.toArray(res);
+			SearchScope doiScope = SearchScope.newSearchScope("landmark pde and ant xml files", res);
+			return l.isEmpty() ? null : doiScope;
+		case 2:
+			// create a search scope for the projects of landmarks
+			Set<IProject> projectsToSearch = new HashSet<IProject>();
+			for (IMylarElement landmark : landmarks) {
+				IMylarStructureBridge bridge = MylarPlugin.getDefault().getStructureBridge(landmark.getContentType());
+				IResource resource = MylarIdePlugin.getDefault().getResourceForElement(landmark, true);
+				IProject project = null;
+				if (resource != null) {
+					project = resource.getProject();
+				} else { 
+					Object object = bridge.getObjectForHandle(landmark.getHandleIdentifier());
+					if (object instanceof IJavaElement) {
+						project = ((IJavaElement)object).getJavaProject().getProject();
+					}
+				}
+				if (project != null) {
+					projectsToSearch.add(project);
+				}
+			}
+            res = new IProject[projectsToSearch.size()];
+            res = projectsToSearch.toArray(res);
+            SearchScope projScope = SearchScope.newSearchScope("Projects of landmarks", res);
+            
+            addFilenamePatterns(projScope);
+            return projectsToSearch.isEmpty()?null:projScope;
+        case 3:
+            
+            // create a search scope for the workspace
+            SearchScope workspaceScope = SearchScope.newWorkspaceScope();
+            
+            // add the xml extension to the search scope
+            addFilenamePatterns(workspaceScope);
+            return workspaceScope;
+        case 4:
+            // create a search scope for the workspace
+            SearchScope workspaceScope2 = SearchScope.newWorkspaceScope();
+            
+            // add the xml extension to the search scope
+            addFilenamePatterns(workspaceScope2);
+            return workspaceScope2;
+        default:
+            return null;
+		}
+
+	}
     
     private void addFilenamePatterns(SearchScope scope){
     	scope.addFileNamePattern(PdeStructureBridge.CONTENT_TYPE);
