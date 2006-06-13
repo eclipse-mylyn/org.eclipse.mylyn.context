@@ -21,9 +21,9 @@ import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.mylar.internal.core.util.MylarStatusHandler;
+import org.eclipse.mylar.internal.ide.ui.MarkerInterestFilter;
 import org.eclipse.mylar.internal.ide.ui.MarkerViewLabelProvider;
 import org.eclipse.mylar.internal.ide.ui.ProblemsListDoiSorter;
-import org.eclipse.mylar.internal.ide.ui.MarkerInterestFilter;
 import org.eclipse.mylar.internal.ui.actions.AbstractApplyMylarAction;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.views.markers.internal.TableView;
@@ -35,17 +35,12 @@ import org.eclipse.ui.views.markers.internal.TaskView;
  */
 public class ApplyMylarToMarkerTasksAction extends AbstractApplyMylarAction {
 
-	private static ApplyMylarToMarkerTasksAction INSTANCE;
-	
-	private static final String TARGET_ID = "org.eclipse.ui.views.TaskList";
-
 	private StructuredViewer cachedTasksViewer = null;
 
 	private ProblemsListDoiSorter interestSorter = new ProblemsListDoiSorter();
 
 	public ApplyMylarToMarkerTasksAction() {
 		super(new MarkerInterestFilter());
-		INSTANCE = this;
 	}
 
 	/**
@@ -56,7 +51,7 @@ public class ApplyMylarToMarkerTasksAction extends AbstractApplyMylarAction {
 		List<StructuredViewer> viewers = new ArrayList<StructuredViewer>();
 		if (cachedTasksViewer == null) {
 			try {
-				IViewPart viewPart = getView(TARGET_ID);
+				IViewPart viewPart = super.getPartForAction();
 				if (viewPart instanceof TaskView) {
 					Class infoClass = TableView.class;
 					Method method = infoClass.getDeclaredMethod("getViewer", new Class[] {});
@@ -75,13 +70,9 @@ public class ApplyMylarToMarkerTasksAction extends AbstractApplyMylarAction {
 
 	protected void updateMarkerViewLabelProvider(StructuredViewer viewer) {
 		IBaseLabelProvider currentProvider = viewer.getLabelProvider();
-		if (!(currentProvider instanceof MarkerViewLabelProvider)) {
+		if (currentProvider instanceof TableViewLabelProvider && !(currentProvider instanceof MarkerViewLabelProvider)) {
 			viewer.setLabelProvider(new MarkerViewLabelProvider((TableViewLabelProvider) currentProvider));
 		}
-	}
-
-	public static ApplyMylarToMarkerTasksAction getDefault() {
-		return INSTANCE;
 	}
 
 	@Override

@@ -72,7 +72,7 @@ public class OpenCorrespondingTaskAction implements IViewActionDelegate {
 					resolved = TaskUiUtil.openRepositoryTask(repositoryUrl, id, fullUrl);
 					
 					if (!resolved) {
-						TaskUiUtil.openUrl("Browser", "Browser", fullUrl);
+						TaskUiUtil.openUrl(fullUrl);
 						resolved = true;
 					}
 				}
