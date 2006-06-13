@@ -26,6 +26,11 @@ public class ActiveFoldingEditorTracker extends AbstractEditorTracker {
 	protected Map<JavaEditor, ActiveFoldingListener> editorListenerMap = new HashMap<JavaEditor, ActiveFoldingListener>();
 
 	@Override
+	protected void editorBroughtToTop(IEditorPart part) {
+		// ignore	
+	}
+	
+	@Override
 	public void editorOpened(IEditorPart part) {
 		if (part instanceof JavaEditor)
 			registerEditor((JavaEditor) part);
@@ -58,5 +63,4 @@ public class ActiveFoldingEditorTracker extends AbstractEditorTracker {
 	public Map<JavaEditor, ActiveFoldingListener> getEditorListenerMap() {
 		return editorListenerMap;
 	}
-
 }

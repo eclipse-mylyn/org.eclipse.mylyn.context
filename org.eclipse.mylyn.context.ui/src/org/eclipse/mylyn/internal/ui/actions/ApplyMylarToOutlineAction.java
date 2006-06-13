@@ -16,6 +16,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.runtime.Preferences.PropertyChangeEvent;
+import org.eclipse.jface.viewers.DecoratingLabelProvider;
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.mylar.provisional.core.MylarPlugin;
@@ -23,6 +25,9 @@ import org.eclipse.mylar.provisional.ui.IMylarUiBridge;
 import org.eclipse.mylar.provisional.ui.InterestFilter;
 import org.eclipse.mylar.provisional.ui.MylarUiPlugin;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -31,24 +36,42 @@ import org.eclipse.ui.PlatformUI;
  */
 public class ApplyMylarToOutlineAction extends AbstractApplyMylarAction {
 
-	private static ApplyMylarToOutlineAction INSTANCE;
+	// TODO: move or delete?
+	public static final String ID_CONTENT_OUTLINE = "org.eclipse.ui.views.ContentOutline";
 
 	public ApplyMylarToOutlineAction() {
 		super(new InterestFilter());
-		INSTANCE = this;
 	}
 
 	/**
 	 * TODO: refactor this optimization?
 	 */
 	public void update(IEditorPart editorPart) {
-		boolean on = MylarPlugin.getDefault().getPreferenceStore().getBoolean(getPrefId());
+		if (!super.isChecked()) {
+			return;
+		}
+		boolean on = MylarPlugin.getDefault().getPreferenceStore().getBoolean(getGlobalPrefId()) ;
 
 		IMylarUiBridge bridge = MylarUiPlugin.getDefault().getUiBridgeForEditor(editorPart);
 		List<TreeViewer> outlineViewers = bridge.getContentOutlineViewers(editorPart);
 		for (TreeViewer viewer : outlineViewers) {
-			MylarUiPlugin.getDefault().getViewerManager().addManagedViewer(viewer, viewPart);
-			installInterestFilter(on, viewer);
+			if (viewPart != null) {
+				MylarUiPlugin.getDefault().getViewerManager().addManagedViewer(viewer, viewPart);
+			}
+			updateInterestFilter(on, viewer);
+			configureDecorator(viewer);
+		}
+	}
+
+	/**
+	 * TODO: remove once all outlines have platform decorator
+	 */
+	private void configureDecorator(TreeViewer viewer) {
+		if (viewer != null) {
+			if (!(viewer.getLabelProvider() instanceof DecoratingLabelProvider)) {
+				viewer.setLabelProvider(new DecoratingLabelProvider((ILabelProvider) viewer.getLabelProvider(),
+						PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator()));
+			}
 		}
 	}
 
@@ -56,9 +79,13 @@ public class ApplyMylarToOutlineAction extends AbstractApplyMylarAction {
 	@Override
 	public List<StructuredViewer> getViewers() {
 		List<StructuredViewer> viewers = new ArrayList<StructuredViewer>();
-		if (!PlatformUI.getWorkbench().isClosing() && PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
-			try { 
-				IEditorPart[] parts = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditors();
+		if (PlatformUI.getWorkbench().isClosing()) {
+			return viewers;
+		}
+		for (IWorkbenchWindow w : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+			IWorkbenchPage page = w.getActivePage();
+			if (page != null) {
+				IEditorPart[] parts = page.getEditors();
 				for (int i = 0; i < parts.length; i++) {
 					IMylarUiBridge bridge = MylarUiPlugin.getDefault().getUiBridgeForEditor(parts[i]);
 					List<TreeViewer> outlineViewers = bridge.getContentOutlineViewers(parts[i]);
@@ -67,23 +94,26 @@ public class ApplyMylarToOutlineAction extends AbstractApplyMylarAction {
 							viewers.add(viewer);
 					}
 				}
-			} catch (NullPointerException e) {
-				// ignore since this can be called on shutdown
 			}
 		}
 		return viewers;
 	}
 
-	public static ApplyMylarToOutlineAction getDefault() {
-		return INSTANCE;
-	}
-
 	public void propertyChange(PropertyChangeEvent event) {
 		// ignore
 	}
-	
+
 	@Override
 	public List<Class> getPreservedFilters() {
 		return Collections.emptyList();
+	}
+
+	public static ApplyMylarToOutlineAction getOutlineActionForEditor(IEditorPart part) {
+		IViewPart outlineView = part.getSite().getPage().findView(ID_CONTENT_OUTLINE);
+		if (outlineView != null) {
+			return (ApplyMylarToOutlineAction) AbstractApplyMylarAction.getActionForPart(outlineView);
+		} else {
+			return null;
+		}
 	}
 }

@@ -42,7 +42,7 @@ public class ContentOutlineRefreshTest extends AbstractJavaContextTest {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		view = openView("org.eclipse.ui.views.ContentOutline");
+		view = openView(ApplyMylarToOutlineAction.ID_CONTENT_OUTLINE);
 		assertNotNull(view);
 		assertNotNull(MylarUiPlugin.getDefault());
 		assertNotNull(MylarJavaPlugin.getDefault());
@@ -53,7 +53,7 @@ public class ContentOutlineRefreshTest extends AbstractJavaContextTest {
 	protected void tearDown() throws Exception {
 		super.tearDown();
 	}
-
+	
 	@SuppressWarnings("deprecation")
 	public void testContents() throws JavaModelException, PartInitException {
 		IMethod m1 = type1.createMethod("void m1() { }", null, true, null);
@@ -77,7 +77,7 @@ public class ContentOutlineRefreshTest extends AbstractJavaContextTest {
 		TreeViewer viewer = (TreeViewer) viewers.get(0);
 		assertEquals(3, UiTestUtil.countItemsInTree(viewer.getTree()));
 
-		action.installInterestFilter(true, viewer);
+		action.updateInterestFilter(true, viewer);
 		assertEquals(0, UiTestUtil.countItemsInTree(viewer.getTree()));
 
 		StructuredSelection sm1 = new StructuredSelection(m1);

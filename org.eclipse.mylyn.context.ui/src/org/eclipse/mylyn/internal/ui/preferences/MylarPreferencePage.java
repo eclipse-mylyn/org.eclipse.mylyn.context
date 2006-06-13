@@ -16,7 +16,6 @@ package org.eclipse.mylar.internal.ui.preferences;
 
 import java.util.Arrays;
 
-import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.viewers.CellEditor;
@@ -63,18 +62,12 @@ import org.eclipse.ui.internal.WorkbenchMessages;
 import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 
 /**
- * Preference page for mylar. Allows for adding / removing highlighters and
- * gamma settings.
- * 
- * @author Ken Sueda
  * @author Mik Kersten
  */
 public class MylarPreferencePage extends PreferencePage implements IWorkbenchPreferencePage, SelectionListener,
 		ICellEditorListener {
 
 	private StringFieldEditor exclusionFieldEditor;
-
-	private IntegerFieldEditor autoOpenEditorsNum;
 
 	private Table table;
 
@@ -87,13 +80,7 @@ public class MylarPreferencePage extends PreferencePage implements IWorkbenchPre
 	private HighlighterContentProvider contentProvider = null;
 
 	private Button manageEditorsButton = null;
-	
-	// Buttons for gamma setting
-	// private Button lightened;
-	// private Button darkened;
-	// private Button standard;
 
-	// Set the table column property names
 	private static final String LABEL_COLUMN = "Label";
 
 	private static final String COLOR_COLUMN = "Color";
@@ -102,7 +89,7 @@ public class MylarPreferencePage extends PreferencePage implements IWorkbenchPre
 
 	private static String[] columnNames = new String[] { LABEL_COLUMN, COLOR_COLUMN, TYPE_COLUMN, };
 
-	static final String[] TYPE_ARRAY = { "Gradient", "Solid" }; 
+	static final String[] TYPE_ARRAY = { "Gradient", "Solid" };
 
 	/**
 	 * Constructor - set preference store to MylarUiPlugin store since the
@@ -114,7 +101,6 @@ public class MylarPreferencePage extends PreferencePage implements IWorkbenchPre
 		super();
 		setPreferenceStore(MylarUiPlugin.getPrefs());
 		setTitle("Mylar");
-		// setDescription("Mylar UI Preferences");
 	}
 
 	@Override
@@ -126,7 +112,7 @@ public class MylarPreferencePage extends PreferencePage implements IWorkbenchPre
 
 		createEditorsSection(entryTable);
 		createExclusionFilterControl(entryTable);
-		
+
 		createTable(entryTable);
 		createTableViewer();
 		contentProvider = new HighlighterContentProvider();
@@ -134,24 +120,13 @@ public class MylarPreferencePage extends PreferencePage implements IWorkbenchPre
 		tableViewer.setLabelProvider(new HighlighterLabelProvider());
 		tableViewer.setInput(MylarUiPlugin.getDefault().getHighlighterList());
 
-		// createGammaSettingControl(entryTable);
-		// lightened.setEnabled(false);
-		// darkened.setEnabled(false);
-		// standard.setEnabled(false);
-
 		return entryTable;
 	}
+
 	public void init(IWorkbench workbench) {
 		// don't have anything to initialize
 	}
 
-	/***************************************************************************
-	 * SelectionListener Methods
-	 **************************************************************************/
-
-	/**
-	 * Handle selection of an item in the menu.
-	 */
 	public void widgetDefaultSelected(SelectionEvent se) {
 		widgetSelected(se);
 	}
@@ -163,46 +138,17 @@ public class MylarPreferencePage extends PreferencePage implements IWorkbenchPre
 		// don't care when the widget is selected
 	}
 
-	/***************************************************************************
-	 * PropertyPage Methods
-	 **************************************************************************/
-
-	/**
-	 * Handle Ok and Apply Store all data in the preference store
-	 */
 	@Override
 	public boolean performOk() {
 		getPreferenceStore().setValue(MylarUiPrefContstants.HIGHLIGHTER_PREFIX,
 				MylarUiPlugin.getDefault().getHighlighterList().externalizeToString());
 		getPreferenceStore().setValue(MylarUiPrefContstants.INTEREST_FILTER_EXCLUSION,
 				exclusionFieldEditor.getStringValue());
-		getPreferenceStore().setValue(MylarUiPrefContstants.AUTO_MANAGE_EDITORS, 
-				manageEditorsButton.getSelection());
-		
-		int value = autoOpenEditorsNum.getIntValue();
-		if (value > 0) {
-			getPreferenceStore().setValue(MylarUiPrefContstants.AUTO_MANAGE_EDITORS_OPEN_NUM, value);
-		}
-
-		// ColorMap.GammaSetting gm = null;
-		// if (standard.getSelection()) {
-		// getPreferenceStore().setValue(MylarUiPlugin.GAMMA_SETTING_LIGHTENED,false);
-		// getPreferenceStore().setValue(MylarUiPlugin.GAMMA_SETTING_STANDARD,true);
-		// getPreferenceStore().setValue(MylarUiPlugin.GAMMA_SETTING_DARKENED,false);
-		// gm = ColorMap.GammaSetting.STANDARD;
-		// } else if (lightened.getSelection()) {
-		// getPreferenceStore().setValue(MylarUiPlugin.GAMMA_SETTING_LIGHTENED,true);
-		// getPreferenceStore().setValue(MylarUiPlugin.GAMMA_SETTING_STANDARD,false);
-		// getPreferenceStore().setValue(MylarUiPlugin.GAMMA_SETTING_DARKENED,false);
-		// gm = ColorMap.GammaSetting.LIGHTEN;
-		// } else if (darkened.getSelection()) {
-		// getPreferenceStore().setValue(MylarUiPlugin.GAMMA_SETTING_LIGHTENED,false);
-		// getPreferenceStore().setValue(MylarUiPlugin.GAMMA_SETTING_STANDARD,false);
-		// getPreferenceStore().setValue(MylarUiPlugin.GAMMA_SETTING_DARKENED,true);
-		// gm = ColorMap.GammaSetting.DARKEN;
-		// }
-		// update gamma setting
-		// MylarUiPlugin.getDefault().updateGammaSetting(gm);
+		getPreferenceStore().setValue(MylarUiPrefContstants.AUTO_MANAGE_EDITORS, manageEditorsButton.getSelection());
+//		int value = autoOpenEditorsNum.getIntValue();
+//		if (value > 0) {
+//			getPreferenceStore().setValue(MylarUiPrefContstants.AUTO_MANAGE_EDITORS_OPEN_NUM, value);
+//		}
 
 		return true;
 	}
@@ -217,14 +163,6 @@ public class MylarPreferencePage extends PreferencePage implements IWorkbenchPre
 
 		contentProvider = new HighlighterContentProvider();
 		tableViewer.setContentProvider(contentProvider);
-
-		// lightened.setSelection(getPreferenceStore().getBoolean(
-		// MylarUiPlugin.GAMMA_SETTING_LIGHTENED));
-		// standard.setSelection(getPreferenceStore().getBoolean(
-		// MylarUiPlugin.GAMMA_SETTING_STANDARD));
-		// darkened.setSelection(getPreferenceStore().getBoolean(
-		// MylarUiPlugin.GAMMA_SETTING_DARKENED));
-
 		return true;
 	}
 
@@ -238,14 +176,6 @@ public class MylarPreferencePage extends PreferencePage implements IWorkbenchPre
 
 		contentProvider = new HighlighterContentProvider();
 		tableViewer.setContentProvider(contentProvider);
-
-		// standard.setSelection(getPreferenceStore().getDefaultBoolean(
-		// MylarUiPlugin.GAMMA_SETTING_STANDARD));
-		// lightened.setSelection(getPreferenceStore().getDefaultBoolean(
-		// MylarUiPlugin.GAMMA_SETTING_LIGHTENED));
-		// darkened.setSelection(getPreferenceStore().getDefaultBoolean(
-		// MylarUiPlugin.GAMMA_SETTING_DARKENED));
-		//		
 		MylarUiPlugin.getDefault().getHighlighterList().setToDefaultList();
 		return;
 	}
@@ -268,15 +198,11 @@ public class MylarPreferencePage extends PreferencePage implements IWorkbenchPre
 			RGB rgb = (RGB) obj;
 			Color c = new Color(Display.getCurrent(), rgb.red, rgb.green, rgb.blue);
 			if (selection != null) {
-				// selection is the highlighter that has been selected
-				// set the core color to new color.
-				// update Highlighter in contentProvider
 				selection.setCore(c);
 				contentProvider.updateHighlighter(selection);
 			}
 		} else {
 			// ignore
-			// MylarPlugin.log("Received Unknown change in Editor: ", this);
 		}
 	}
 
@@ -400,13 +326,13 @@ public class MylarPreferencePage extends PreferencePage implements IWorkbenchPre
 
 		public boolean canModify(Object element, String property) {
 			if (element instanceof Highlighter) {
-				if (!((Highlighter)element).getName().equals(HighlighterList.DEFAULT_HIGHLIGHTER.getName())) {
+				if (!((Highlighter) element).getName().equals(HighlighterList.DEFAULT_HIGHLIGHTER.getName())) {
 					return true;
 				}
 			}
 			return false;
 		}
- 
+
 		/**
 		 * getValue - returns content of the current selection
 		 */
@@ -699,15 +625,18 @@ public class MylarPreferencePage extends PreferencePage implements IWorkbenchPre
 
 	private void createExclusionFilterControl(Composite parent) {
 		Group exclusionControl = new Group(parent, SWT.SHADOW_ETCHED_IN);
-
 		exclusionControl.setLayout(new GridLayout(1, false));
 		exclusionControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		Composite composite = new Composite(exclusionControl, SWT.NULL);
+		composite.setLayout(new GridLayout(1, false));
+		composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		exclusionControl.setText("Interest Filter");
 
-		Label label = new Label(exclusionControl, SWT.LEFT);
+		Label label = new Label(composite, SWT.LEFT);
 		label.setText("Exclusion pattern, matches will always be shown (e.g. build*.xml):");
 
-		exclusionFieldEditor = new StringFieldEditor("", "", StringFieldEditor.UNLIMITED, exclusionControl);
+		exclusionFieldEditor = new StringFieldEditor("", "", StringFieldEditor.UNLIMITED, composite	);
 
 		String text = getPreferenceStore().getString(MylarUiPrefContstants.INTEREST_FILTER_EXCLUSION);
 		if (text != null)
@@ -721,46 +650,39 @@ public class MylarPreferencePage extends PreferencePage implements IWorkbenchPre
 		group.setLayout(new GridLayout(1, false));
 		group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		group.setText("Editor Management");
-		
-		Composite composite = new Composite(group, SWT.NULL);
-		composite.setLayout(new GridLayout(2, false));
-		manageEditorsButton = new Button(composite, SWT.CHECK);
-		manageEditorsButton.setText("Enable automatic editor opening/closing with context. ");
+
+		// Composite composite = new Composite(group, SWT.NULL);
+		// GridLayout gridLayout = new GridLayout(3, false);
+		// gridLayout.marginHeight = 0;
+		// gridLayout.marginWidth = 0;
+		// composite.setLayout(gridLayout);
+		manageEditorsButton = new Button(group, SWT.CHECK);
+		manageEditorsButton.setText("Manage open editors to match task context.");
 		manageEditorsButton.setSelection(getPreferenceStore().getBoolean(MylarUiPrefContstants.AUTO_MANAGE_EDITORS));
 
-		Composite numComposite = new Composite(composite, SWT.NULL);
-		autoOpenEditorsNum = new IntegerFieldEditor("", "Max to open: ", numComposite, 4);
-		autoOpenEditorsNum.setErrorMessage("Must be an integer");
-		int num = getPreferenceStore().getInt(MylarUiPrefContstants.AUTO_MANAGE_EDITORS_OPEN_NUM);
-		if (num > 0) {
-			autoOpenEditorsNum.setStringValue("" + num);
-			autoOpenEditorsNum.setEmptyStringAllowed(false);
-		}
-		
+		// Composite numComposite = new Composite(group, SWT.NULL);
+		// gridLayout = new GridLayout(1, false);
+		// gridLayout.marginHeight = 0;
+		// gridLayout.marginWidth = 0;
+		// numComposite.setLayout(gridLayout);
+		// autoOpenEditorsNum = new IntegerFieldEditor("", "Max to open: ",
+		// numComposite, 4);
+		// autoOpenEditorsNum.setErrorMessage("Must be an integer");
+		// int num =
+		// getPreferenceStore().getInt(MylarUiPrefContstants.AUTO_MANAGE_EDITORS_OPEN_NUM);
+		// if (num > 0) {
+		// autoOpenEditorsNum.setStringValue("" + num);
+		// autoOpenEditorsNum.setEmptyStringAllowed(false);
+		// }
+
 		String prefName = WorkbenchMessages.WorkbenchPreference_reuseEditors;
 		if (getContainer() instanceof IWorkbenchPreferenceContainer) {
-			String message =  "     \"" + prefName + "\" from <a>''{0}''</a> will be toggled with activation";
+			String message = "<a>''{0}''</a> \"" + prefName + "\" setting will toggle with task activation";
 			new PreferenceLinkArea(group, SWT.NONE,
-					"org.eclipse.ui.preferencePages.Editors", message,
-					(IWorkbenchPreferenceContainer) getContainer(), null);
+					"org.eclipse.ui.preferencePages.Editors", message, (IWorkbenchPreferenceContainer) getContainer(),
+					null);
 		}
+
 		return;
 	}
-
-	// private void createGammaSettingControl(Composite parent) {
-	// Group gammaSettingComposite= new Group(null, SWT.SHADOW_ETCHED_IN);
-	//		
-	// gammaSettingComposite.setLayout(new RowLayout());
-	// gammaSettingComposite.setText("Gamma Setting");
-	// lightened = new Button(gammaSettingComposite, SWT.RADIO);
-	// lightened.setText("Lightened");
-	// lightened.setSelection(getPreferenceStore().getBoolean(MylarUiPlugin.GAMMA_SETTING_LIGHTENED));
-	// standard = new Button(gammaSettingComposite, SWT.RADIO);
-	// standard.setText("Standard");
-	// standard.setSelection(getPreferenceStore().getBoolean(MylarUiPlugin.GAMMA_SETTING_STANDARD));
-	// darkened = new Button(gammaSettingComposite, SWT.RADIO);
-	// darkened.setText("Darkened");
-	// darkened.setSelection(getPreferenceStore().getBoolean(MylarUiPlugin.GAMMA_SETTING_DARKENED));
-	// return;
-	// }
 }

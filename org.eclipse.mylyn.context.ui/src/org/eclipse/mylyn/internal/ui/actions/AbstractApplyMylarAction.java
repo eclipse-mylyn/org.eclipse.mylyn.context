@@ -11,11 +11,11 @@
 
 package org.eclipse.mylar.internal.ui.actions;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
-import org.eclipse.core.runtime.Preferences.IPropertyChangeListener;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -31,7 +31,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IActionDelegate2;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -40,23 +40,39 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @author Mik Kersten
  */
-public abstract class AbstractApplyMylarAction extends Action implements IViewActionDelegate, IActionDelegate2,
-		IPropertyChangeListener {
+public abstract class AbstractApplyMylarAction extends Action implements IViewActionDelegate, IActionDelegate2 {
 
 	private static final String ACTION_LABEL = "Apply Mylar";
 
 	public static final String PREF_ID_PREFIX = "org.eclipse.mylar.ui.interest.filter.";
 
-	protected String prefId;
+	protected String globalPrefId;
 
 	protected IAction initAction = null;
 
 	protected final InterestFilter interestFilter;
-	
+
 	protected IViewPart viewPart;
 
-	protected List<ViewerFilter> previousFilters = new ArrayList<ViewerFilter>();
-	
+	protected Map<StructuredViewer, List<ViewerFilter>> previousFilters = new WeakHashMap<StructuredViewer, List<ViewerFilter>>();
+
+	private static Map<IViewPart, AbstractApplyMylarAction> partMap = new WeakHashMap<IViewPart, AbstractApplyMylarAction>();
+
+	public static AbstractApplyMylarAction getActionForPart(IViewPart part) {
+		return partMap.get(part);
+	}
+
+	public IViewPart getPartForAction() {
+		if (viewPart == null) {
+			if (this instanceof IWorkbenchWindowActionDelegate) {
+				throw new RuntimeException("not supported on IWorkbenchWindowActionDelegate");
+			} else {
+				throw new RuntimeException("error: viewPart is null");
+			}
+		}
+		return viewPart;
+	}
+
 	public AbstractApplyMylarAction(InterestFilter interestFilter) {
 		super();
 		this.interestFilter = interestFilter;
@@ -72,8 +88,9 @@ public abstract class AbstractApplyMylarAction extends Action implements IViewAc
 
 	public void init(IViewPart view) {
 		String id = view.getSite().getId();
-		prefId = PREF_ID_PREFIX + id;
+		globalPrefId = PREF_ID_PREFIX + id;
 		viewPart = view;
+		partMap.put(view, this);
 	}
 
 	public void run(IAction action) {
@@ -85,8 +102,8 @@ public abstract class AbstractApplyMylarAction extends Action implements IViewAc
 	 * Don't update if the preference has not been initialized.
 	 */
 	public void update() {
-		if (prefId != null) {
-			update(MylarPlugin.getDefault().getPreferenceStore().getBoolean(prefId));
+		if (globalPrefId != null) {
+			update(MylarPlugin.getDefault().getPreferenceStore().getBoolean(globalPrefId));
 		}
 	}
 
@@ -98,39 +115,46 @@ public abstract class AbstractApplyMylarAction extends Action implements IViewAc
 	}
 
 	protected void valueChanged(IAction action, final boolean on, boolean store) {
+		if (PlatformUI.getWorkbench().isClosing()) {
+			return;
+		}
+		boolean wasPaused = MylarPlugin.getContextManager().isContextCapturePaused();
 		try {
-			MylarPlugin.getContextManager().setContextCapturePaused(true);
+			if (!wasPaused) {
+				MylarPlugin.getContextManager().setContextCapturePaused(true);
+			}
 			setChecked(on);
 			action.setChecked(on);
-			if (store && MylarPlugin.getDefault() != null)
-				MylarPlugin.getDefault().getPreferenceStore().setValue(prefId, on);
+			if (store && MylarPlugin.getDefault() != null) {
+				MylarPlugin.getDefault().getPreferenceStore().setValue(globalPrefId, on);
+			}
 
 			for (StructuredViewer viewer : getViewers()) {
-				MylarUiPlugin.getDefault().getViewerManager().addManagedViewer(viewer, viewPart);
-				installInterestFilter(on, viewer);
+				if (viewPart != null && !viewer.getControl().isDisposed()) {
+					MylarUiPlugin.getDefault().getViewerManager().addManagedViewer(viewer, viewPart);
+				}
+				updateInterestFilter(on, viewer);
 			}
 		} catch (Throwable t) {
-			MylarStatusHandler.fail(t, "Could not install viewer manager on: " + prefId, false);
+			MylarStatusHandler.fail(t, "Could not install viewer manager on: " + globalPrefId, false);
 		} finally {
-			MylarPlugin.getContextManager().setContextCapturePaused(false);
+			if (!wasPaused) {
+				MylarPlugin.getContextManager().setContextCapturePaused(false);
+			}
 		}
 	}
 
 	/**
 	 * Public for testing
 	 */
-	public void installInterestFilter(final boolean on, StructuredViewer viewer) {
+	public void updateInterestFilter(final boolean on, StructuredViewer viewer) {
 		if (viewer != null) {
-			boolean installed = false;
 			if (on) {
-				installed = installInterestFilter(viewer);
+				installInterestFilter(viewer);
 				MylarUiPlugin.getDefault().getViewerManager().addFilteredViewer(viewer);
 			} else {
 				MylarUiPlugin.getDefault().getViewerManager().removeFilteredViewer(viewer);
 				uninstallInterestFilter(viewer);
-			}
-			if (installed && on && viewer instanceof TreeViewer) {
-				((TreeViewer)viewer).expandAll();
 			}
 		}
 	}
@@ -141,21 +165,26 @@ public abstract class AbstractApplyMylarAction extends Action implements IViewAc
 	public abstract List<StructuredViewer> getViewers();
 
 	/**
-	 * @return	filters that should not be removed when the interest filter is installed
+	 * @return filters that should not be removed when the interest filter is
+	 *         installed
 	 */
 	public abstract List<Class> getPreservedFilters();
-	
+
 	protected boolean installInterestFilter(StructuredViewer viewer) {
 		if (viewer == null) {
 			MylarStatusHandler.log("The viewer to install InterestFilter is null", this);
 			return false;
+		} else if (viewer.getControl().isDisposed()) {
+			// TODO: do this with part listener, not lazily?
+			MylarUiPlugin.getDefault().getViewerManager().removeManagedViewer(viewer, viewPart);
+			return false;
 		}
-		
+
 		try {
 			viewer.getControl().setRedraw(false);
-			previousFilters.addAll(Arrays.asList(viewer.getFilters()));
+			previousFilters.put(viewer, Arrays.asList(viewer.getFilters()));
 			List<Class> excludedFilters = getPreservedFilters();
-			for (ViewerFilter filter : previousFilters) {
+			for (ViewerFilter filter : previousFilters.get(viewer)) {
 				if (!excludedFilters.contains(filter.getClass())) {
 					try {
 						viewer.removeFilter(filter);
@@ -165,43 +194,60 @@ public abstract class AbstractApplyMylarAction extends Action implements IViewAc
 				}
 			}
 			viewer.addFilter(interestFilter);
+			if (viewer instanceof TreeViewer) {
+				((TreeViewer) viewer).expandAll();
+			}
 			viewer.getControl().setRedraw(true);
 			return true;
 		} catch (Throwable t) {
-			MylarStatusHandler.fail(t, "Could not install viewer filter on: " + prefId, false);
+			MylarStatusHandler.fail(t, "Could not install viewer filter on: " + globalPrefId, false);
 		}
 		return false;
 	}
 
 	protected void uninstallInterestFilter(StructuredViewer viewer) {
 		if (viewer == null) {
-            MylarStatusHandler.log("Could not uninstall interest filter", this);
-            return;
-        }
+			MylarStatusHandler.log("Could not uninstall interest filter", this);
+			return;
+		} else if (viewer.getControl().isDisposed()) {
+			// TODO: do this with part listener, not lazily?
+			MylarUiPlugin.getDefault().getViewerManager().removeManagedViewer(viewer, viewPart);
+			return;
+		}
 
-        viewer.getControl().setRedraw(false);
-        List<Class> excludedFilters = getPreservedFilters();
-        for (ViewerFilter filter : previousFilters) {
-        	if (!excludedFilters.contains(filter.getClass())) {
-        		try {
-        			viewer.addFilter(filter);
-				} catch (Throwable t) {
-					MylarStatusHandler.fail(t, "Failed to remove filter: " + filter, false);
+		viewer.getControl().setRedraw(false);
+		List<Class> excludedFilters = getPreservedFilters();
+		if (previousFilters.containsKey(viewer)) {
+			for (ViewerFilter filter : previousFilters.get(viewer)) {
+				if (!excludedFilters.contains(filter.getClass())) {
+					try {
+						viewer.addFilter(filter);
+					} catch (Throwable t) {
+						MylarStatusHandler.fail(t, "Failed to remove filter: " + filter, false);
+					}
 				}
-        	}
-        }
-		previousFilters.clear();
-        viewer.removeFilter(interestFilter);
+			}
+			previousFilters.remove(viewer);
+		}
+//		previousFilters.remove(key)();
+		for (ViewerFilter filter : Arrays.asList(viewer.getFilters())) {
+			if (filter instanceof InterestFilter) {
+				viewer.removeFilter(interestFilter);
+			}
+		}
 		viewer.getControl().setRedraw(true);
-    }
+	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
 		// ignore
 	}
 
 	public void dispose() {
-		for (StructuredViewer viewer : getViewers()) {
-			MylarUiPlugin.getDefault().getViewerManager().removeManagedViewer(viewer, viewPart);
+		partMap.remove(getPartForAction());
+		if (viewPart != null && !PlatformUI.getWorkbench().isClosing()) {
+			for (StructuredViewer viewer : getViewers()) {
+				MylarUiPlugin.getDefault().getViewerManager().removeManagedViewer(viewer, viewPart);
+			}
 		}
 	}
 
@@ -209,8 +255,8 @@ public abstract class AbstractApplyMylarAction extends Action implements IViewAc
 		run(action);
 	}
 
-	public String getPrefId() {
-		return prefId;
+	public String getGlobalPrefId() {
+		return globalPrefId;
 	}
 
 	/**
@@ -220,11 +266,4 @@ public abstract class AbstractApplyMylarAction extends Action implements IViewAc
 		return interestFilter;
 	}
 
-	protected IViewPart getView(String id) {
-		IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-		if (activePage == null)
-			return null;
-		IViewPart view = activePage.findView(id);
-		return view;
-	}
 }

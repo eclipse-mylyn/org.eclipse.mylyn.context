@@ -21,76 +21,109 @@ import org.eclipse.core.runtime.Preferences.PropertyChangeEvent;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.mylar.internal.tasklist.ui.AbstractTaskListFilter;
+import org.eclipse.mylar.internal.tasklist.ui.views.IFilteredTreeListener;
 import org.eclipse.mylar.internal.tasklist.ui.views.TaskListView;
 import org.eclipse.mylar.internal.ui.TaskListInterestFilter;
 import org.eclipse.mylar.internal.ui.TaskListInterestSorter;
 import org.eclipse.mylar.provisional.ui.InterestFilter;
+import org.eclipse.ui.IViewPart;
 
 /**
  * TODO: abuses contract from super class
  * 
  * @author Mik Kersten
  */
-public class ApplyMylarToTaskListAction extends AbstractApplyMylarAction {
+public class ApplyMylarToTaskListAction extends AbstractApplyMylarAction implements IFilteredTreeListener {
 
-	private static ApplyMylarToTaskListAction INSTANCE;
-	
 	private TaskListInterestFilter taskListInterestFilter = new TaskListInterestFilter();
-	
+
 	private TaskListInterestSorter taskListInterestSorter = new TaskListInterestSorter();
-	
+
 	private Set<AbstractTaskListFilter> previousFilters = new HashSet<AbstractTaskListFilter>();
-	
+
 	private ViewerSorter previousSorter;
-	
+
 	public ApplyMylarToTaskListAction() {
 		super(new InterestFilter());
-		INSTANCE = this;
 	}
-	
+
+	@Override
+	public void init(IViewPart view) {
+		super.init(view);
+//		IViewPart part = super.getPartForAction();
+//		if (part instanceof TaskListView) {
+//			((TaskListView) part).getFilteredTree().addListener(this);
+//		}
+	}
+
+	@Override
+	public void dispose() {
+		super.dispose();
+//		IViewPart part = super.getPartForAction();
+//		if (part instanceof TaskListView) {
+//			((TaskListView) part).getFilteredTree().removeListener(this);
+//		}
+	}
+
 	@Override
 	public List<StructuredViewer> getViewers() {
 		List<StructuredViewer> viewers = new ArrayList<StructuredViewer>();
-		if (TaskListView.getDefault() != null) {
-			viewers.add(TaskListView.getDefault().getViewer());
+		IViewPart part = super.getPartForAction();
+		if (part instanceof TaskListView) {
+			viewers.add(((TaskListView) part).getViewer());
 		}
 		return viewers;
 	}
 
 	@Override
 	protected boolean installInterestFilter(StructuredViewer viewer) {
-		previousSorter = TaskListView.getDefault().getViewer().getSorter();
-		TaskListView.getDefault().getViewer().setSorter(taskListInterestSorter);
-		previousFilters = new HashSet<AbstractTaskListFilter>(TaskListView.getDefault().getFilters());
-		TaskListView.getDefault().clearFilters(true);
-		TaskListView.getDefault().addFilter(taskListInterestFilter);
-		TaskListView.getDefault().setPriorityButtonEnabled(false);
-		TaskListView.getDefault().refreshAndFocus();
-		return true;
+		IViewPart part = super.getPartForAction();
+		if (part instanceof TaskListView) {
+			TaskListView taskListView = (TaskListView) part;
+			previousSorter = TaskListView.getFromActivePerspective().getViewer().getSorter();
+			taskListView.getViewer().setSorter(taskListInterestSorter);
+			previousFilters = new HashSet<AbstractTaskListFilter>(taskListView.getFilters());
+			taskListView.clearFilters(true);
+			taskListView.addFilter(taskListInterestFilter);
+			taskListView.setPriorityButtonEnabled(false);
+			taskListView.refreshAndFocus(true);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	@Override
 	protected void uninstallInterestFilter(StructuredViewer viewer) {
-		TaskListView.getDefault().getViewer().setSorter(previousSorter);
-		TaskListView.getDefault().removeFilter(taskListInterestFilter);
-		TaskListView.getDefault().setPriorityButtonEnabled(true);
-		for (AbstractTaskListFilter filter : previousFilters) {
-			TaskListView.getDefault().addFilter(filter);
+		IViewPart part = super.getPartForAction();
+		if (part instanceof TaskListView) {
+			TaskListView taskListView = (TaskListView) part;
+			taskListView.getViewer().setSorter(previousSorter);
+			taskListView.removeFilter(taskListInterestFilter);
+			taskListView.setPriorityButtonEnabled(true);
+			for (AbstractTaskListFilter filter : previousFilters) {
+				TaskListView.getFromActivePerspective().addFilter(filter);
+			}
+			taskListView.getViewer().collapseAll();
+			taskListView.refreshAndFocus(false);
 		}
-		TaskListView.getDefault().getViewer().collapseAll();
-		TaskListView.getDefault().refreshAndFocus();
 	}
 
 	public void propertyChange(PropertyChangeEvent event) {
 		// ignore
 	}
 
-	public static ApplyMylarToTaskListAction getDefault() {
-		return INSTANCE;
-	}
-	
 	@Override
 	public List<Class> getPreservedFilters() {
 		return Collections.emptyList();
+	}
+
+	public void filterTextChanged(final String text) {
+		if (isChecked() && (text == null || "".equals(text))) {
+			IViewPart part = ApplyMylarToTaskListAction.super.getPartForAction();
+			if (part instanceof TaskListView) {
+				((TaskListView) part).getViewer().expandAll();
+			}
+		}
 	}
 }

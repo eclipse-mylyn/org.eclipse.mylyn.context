@@ -27,22 +27,9 @@ import org.eclipse.mylar.provisional.tasklist.AbstractRepositoryTask.RepositoryT
  */
 public class TaskListInterestFilter extends AbstractTaskListFilter {
 
-	// private InterestFilter interestFilter = new InterestFilter();
-
 	@Override
 	public boolean select(Object object) {
 		try {
-			// if (element instanceof AbstractTaskContainer) {
-			// AbstractTaskContainer container = (AbstractTaskContainer)
-			// element;
-			// // TODO: get rid of this work-around to look down?
-			// for (ITask task : container.getChildren()) {
-			// if (select(viewer, this, task)) {
-			// return true;
-			// }
-			// }
-
-			// IMylarElement element = null;
 			if (object instanceof ITask || object instanceof AbstractQueryHit) {
 				ITask task = null;
 				if (object instanceof ITask) {
@@ -56,25 +43,10 @@ public class TaskListInterestFilter extends AbstractTaskListFilter {
 					} else if (isInteresting(task)) {
 						return true;
 					}
-					// IMylarStructureBridge bridge =
-					// MylarPlugin.getDefault().getStructureBridge(task);
-					// if (!bridge.canFilter(task)) {
-					// return true;
-					// }
-					// String handle =
-					// bridge.getHandleIdentifier(task.getHandleIdentifier());
-					// element =
-					// MylarPlugin.getContextManager().getActivityHistoryMetaContext().get(handle);
+				} else if (object instanceof AbstractQueryHit) {
+					return true;
 				}
 			}
-			// if (element != null) {
-			// if (element.getInterest().isPredicted()) {
-			// return false;
-			// } else {
-			// return element.getInterest().getValue() >
-			// MylarContextManager.getScalingFactors().getInteresting();
-			// }
-			// }
 		} catch (Throwable t) {
 			MylarStatusHandler.fail(t, "interest filter failed", false);
 		}
@@ -83,7 +55,9 @@ public class TaskListInterestFilter extends AbstractTaskListFilter {
 
 	protected boolean isUninteresting(ITask task) {
 		return !task.isActive()
-				&& ((task.isCompleted() && !MylarTaskListPlugin.getTaskListManager().isCompletedToday(task)) 
+				&& ((task.isCompleted() 
+						&& !MylarTaskListPlugin.getTaskListManager().isCompletedToday(task)
+						&& !hasChanges(task)) 
 					|| (MylarTaskListPlugin.getTaskListManager().isReminderAfterThisWeek(task)) && !hasChanges(task));
 	}
 
@@ -101,13 +75,13 @@ public class TaskListInterestFilter extends AbstractTaskListFilter {
 			|| NewLocalTaskAction.DESCRIPTION_DEFAULT.equals(task.getDescription());
 	}
 
-	private boolean isInterestingForThisWeek(ITask task) {
-		return MylarTaskListPlugin.getTaskListManager().isActiveThisWeek(task)
+	public static boolean isInterestingForThisWeek(ITask task) {
+		return MylarTaskListPlugin.getTaskListManager().isReminderThisWeek(task)
 			|| MylarTaskListPlugin.getTaskListManager().isReminderToday(task) 
 			|| task.isPastReminder();
 	}
 
-	private boolean hasChanges(ITask task) {
+	public static boolean hasChanges(ITask task) {
 		if (task instanceof AbstractRepositoryTask) {
 			AbstractRepositoryTask repositoryTask = (AbstractRepositoryTask) task;
 			if (repositoryTask.getSyncState() == RepositoryTaskSyncState.OUTGOING) {

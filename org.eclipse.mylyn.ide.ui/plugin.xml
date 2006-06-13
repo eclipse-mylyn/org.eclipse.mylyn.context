@@ -6,6 +6,7 @@
          point="org.eclipse.mylar.core.context">
       <structureBridge class="org.eclipse.mylar.internal.ide.ResourceStructureBridge"/> 
    </extension>
+   
    <extension
          point="org.eclipse.mylar.ui.context">
       <uiBridge
@@ -15,6 +16,7 @@
             class="org.eclipse.mylar.internal.ide.ui.ResourceContextLabelProvider"
             contentType="*"/>
    </extension>   
+   
    <extension point="org.eclipse.ui.views"> 
    	  <view
           allowMultiple="false"
@@ -30,6 +32,12 @@
          name="Team"
          class="org.eclipse.mylar.internal.ide.ui.preferences.MylarTeamPreferencePage"
          id="org.eclipse.mylar.team.ui.preferences"
+         category="org.eclipse.mylar.ui.preferences">
+      </page>  
+      <page 
+         name="Resources"
+         class="org.eclipse.mylar.internal.ide.ui.preferences.MylarResourcesPreferencePage"
+         id="org.eclipse.mylar.ide.preferences.resources"
          category="org.eclipse.mylar.ui.preferences">
       </page>  
    </extension>
@@ -100,7 +108,7 @@
         <action
               class="org.eclipse.mylar.internal.ide.ui.actions.CommitContextAction"
               enablesFor="*"
-              icon="icons/elcl16/cvs_persp.gif"
+              icon="icons/elcl16/context-commit.gif"
               id="org.eclipse.mylar.ide.ui.team.context.commit"
               label="Commit Context..."
               menubarPath="context"
@@ -137,33 +145,6 @@
    
    <extension point="org.eclipse.ui.popupMenus"> 
 		<objectContribution
-            objectClass="org.eclipse.team.ui.synchronize.ISynchronizeModelElement"
-            id="org.eclipse.mylar.ui.team.synchronize.open.report">
-         <action
-	           class="org.eclipse.mylar.internal.ide.ui.actions.OpenCorrespondingTaskAction"
-	           enablesFor="1" 
-	           icon="icons/elcl16/task-repository.gif"
-	           id="org.eclipse.mylar.ui.team.synchronize.contribution.open.report"
-	           label="Open Corresponding Task"
-	           menubarPath="mylar"
-	           tooltip="Open Corresponding Task"> 
-	  		</action> 
-	    </objectContribution>
-	   	<objectContribution
-            objectClass="org.eclipse.team.internal.ccvs.core.client.listeners.LogEntry"
-            id="org.eclipse.mylar.ui.team.history.open.report">
-         <action
-	           class="org.eclipse.mylar.internal.ide.ui.actions.OpenCorrespondingTaskAction"
-	           enablesFor="1" 
-	           icon="icons/elcl16/task-repository.gif"
-	           id="org.eclipse.mylar.ui.team.synchronize.contribution.open.report"
-	           label="Open Corresponding Task"
-	           menubarPath="mylar"
-	           tooltip="Open Corresponding Task"> 
-	  		</action> 
-	    </objectContribution>
-	    <!--
-		<objectContribution
             objectClass="org.eclipse.team.internal.ui.synchronize.ChangeSetDiffNode"
             id="org.eclipse.mylar.ui.team.synchronize.open.report">
          <action
@@ -176,7 +157,5 @@
 	           tooltip="Open Corresponding Task"> 
 	  		</action> 
 	    </objectContribution>
-	    -->
 	</extension>
-   -->
 </plugin>

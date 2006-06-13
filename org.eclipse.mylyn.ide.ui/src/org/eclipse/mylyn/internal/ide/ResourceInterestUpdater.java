@@ -55,25 +55,20 @@ public class ResourceInterestUpdater {
 	}
 
 	private void internalAddResourceToContext(Set<IResource> resources, InteractionEvent.Kind interactionKind) {
-		List<IResource> toAdd = new ArrayList<IResource>();
+		List<InteractionEvent> interactionEvents = new ArrayList<InteractionEvent>();
 		for (IResource resource : resources) {
 			if (acceptResource(resource)) {
-				toAdd.add(resource);
+				IMylarStructureBridge bridge = MylarPlugin.getDefault().getStructureBridge(resource);
+				String handle = bridge.getHandleIdentifier(resource);
+				if (handle != null) {
+					IMylarElement element = MylarPlugin.getContextManager().getElement(handle);
+					if (element != null && !element.getInterest().isInteresting()) {
+						InteractionEvent interactionEvent = new InteractionEvent(interactionKind, bridge
+								.getContentType(), handle, SOURCE_ID);
+						interactionEvents.add(interactionEvent);
+					}
+				}  
 			}
-		} 
-
-		List<InteractionEvent> interactionEvents = new ArrayList<InteractionEvent>();
-		for (IResource resource : toAdd) {
-			IMylarStructureBridge bridge = MylarPlugin.getDefault().getStructureBridge(resource);
-			String handle = bridge.getHandleIdentifier(resource);
-			if (handle != null) {
-				IMylarElement element = MylarPlugin.getContextManager().getElement(handle);
-				if (element != null && !element.getInterest().isInteresting()) {
-					InteractionEvent interactionEvent = new InteractionEvent(interactionKind, bridge
-							.getContentType(), handle, SOURCE_ID);
-					interactionEvents.add(interactionEvent);
-				}
-			}  
 		}  
 		if (InteractionEvent.Kind.SELECTION.equals(interactionKind)) {
 			MylarPlugin.getContextManager().handleInteractionEvents(interactionEvents, true);
@@ -83,7 +78,10 @@ public class ResourceInterestUpdater {
 	}
 
 	private boolean acceptResource(IResource resource) {
-		return resource.isAccessible() && !resource.isDerived() && !resource.isPhantom();
+		if (resource.isAccessible() && !resource.isDerived() && !resource.isPhantom()) {
+			return true;
+		}
+		return false;
 	}
 
 	/**

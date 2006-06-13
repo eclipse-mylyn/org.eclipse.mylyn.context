@@ -25,14 +25,11 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.actions.SelectionConverter;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
-import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.ui.JavaUI;
-import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.mylar.internal.core.util.MylarStatusHandler;
 import org.eclipse.mylar.internal.ide.MylarIdePlugin;
-import org.eclipse.mylar.internal.ui.actions.ApplyMylarToOutlineAction;
 import org.eclipse.mylar.provisional.core.IMylarElement;
 import org.eclipse.mylar.provisional.core.MylarPlugin;
 import org.eclipse.mylar.provisional.ui.IMylarUiBridge;
@@ -49,9 +46,6 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  * @author Mik Kersten
  */
 public class JavaUiBridge implements IMylarUiBridge {
-
-	private boolean explorerLinked = PreferenceConstants.getPreferenceStore().getBoolean(
-			PreferenceConstants.LINK_PACKAGES_TO_EDITOR);
 
 	private Field javaOutlineField = null;
 
@@ -77,28 +71,28 @@ public class JavaUiBridge implements IMylarUiBridge {
 		}
 	}
 
-	public void setContextCapturePaused(boolean paused) {
-		PackageExplorerPart explorer = PackageExplorerPart.getFromActivePerspective();
-		if (paused) {
-			explorerLinked = PreferenceConstants.getPreferenceStore().getBoolean(
-					PreferenceConstants.LINK_PACKAGES_TO_EDITOR);
-			if (explorerLinked) { // causes delayed selection
-				if (explorer != null)
-					explorer.setLinkingEnabled(false);
-			}
-		} else {
-			if (explorer != null)
-				explorer.setLinkingEnabled(true);
-			PreferenceConstants.getPreferenceStore().setValue(PreferenceConstants.LINK_PACKAGES_TO_EDITOR,
-					explorerLinked);
-			if (explorer != null) {
-				explorer.setLinkingEnabled(explorerLinked);
-			}
-			if (ApplyMylarToOutlineAction.getDefault() != null) {
-				ApplyMylarToOutlineAction.getDefault().update();
-			}
-		}
-	}
+//	private boolean explorerLinked = PreferenceConstants.getPreferenceStore().getBoolean(
+//	PreferenceConstants.LINK_PACKAGES_TO_EDITOR);
+	
+//	public void setContextCapturePaused(boolean paused) {
+//		PackageExplorerPart explorer = PackageExplorerPart.getFromActivePerspective();
+//		if (paused) {
+//			explorerLinked = PreferenceConstants.getPreferenceStore().getBoolean(
+//					PreferenceConstants.LINK_PACKAGES_TO_EDITOR);
+//			if (explorerLinked) { // causes delayed selection
+//				if (explorer != null)
+//					explorer.setLinkingEnabled(false);
+//			}
+//		} else {
+//			if (explorer != null)
+//				explorer.setLinkingEnabled(true);
+//			PreferenceConstants.getPreferenceStore().setValue(PreferenceConstants.LINK_PACKAGES_TO_EDITOR,
+//					explorerLinked);
+//			if (explorer != null) {
+//				explorer.setLinkingEnabled(explorerLinked);
+//			}
+//		}
+//	}
 
 	public void restoreEditor(IMylarElement document) {
 		IResource resource = MylarIdePlugin.getDefault().getResourceForElement(document, false);

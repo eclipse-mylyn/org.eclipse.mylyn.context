@@ -137,8 +137,9 @@ public class MylarViewerManager implements IMylarContextListener, IPropertyChang
 
 	public void contextActivated(IMylarContext context) {
 		if (context.getActiveNode() != null) {
-			for (AbstractApplyMylarAction action : managedActions)
+			for (AbstractApplyMylarAction action : managedActions) {
 				action.update(true);
+			}
 		}
 		refreshViewers();
 	}
@@ -173,10 +174,6 @@ public class MylarViewerManager implements IMylarContextListener, IPropertyChang
 		refreshViewers(nodes, false);
 	}
 
-	public void interestChanged(IMylarElement node) {
-		refreshViewers(node, false);
-	}
-
 	protected void refreshViewers(final List<IMylarElement> nodesToRefresh, final boolean updateLabels) {
 		if (syncRefreshMode) {
 			internalRefresh(nodesToRefresh, updateLabels);
@@ -204,7 +201,7 @@ public class MylarViewerManager implements IMylarContextListener, IPropertyChang
 			return;
 		} else if (viewer.getControl().isDisposed()) {
 			managedViewers.remove(viewer);
-		} else if (viewer.getControl().isVisible()) {
+		} else { //if (viewer.getControl().isVisible()) {
 			if (nodesToRefresh == null || nodesToRefresh.isEmpty()) {
 				if (!minor) {
 					viewer.refresh(false);

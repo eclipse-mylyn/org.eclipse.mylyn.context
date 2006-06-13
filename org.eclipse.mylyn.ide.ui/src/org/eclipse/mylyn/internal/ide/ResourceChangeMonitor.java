@@ -14,12 +14,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.mylar.internal.core.util.MylarStatusHandler;
 import org.eclipse.mylar.provisional.core.InteractionEvent;
 import org.eclipse.mylar.provisional.core.MylarPlugin;
@@ -32,8 +34,7 @@ public class ResourceChangeMonitor implements IResourceChangeListener {
 	private boolean enabled = true;
 
 	public void resourceChanged(IResourceChangeEvent event) { 
-		if (!enabled || !MylarPlugin.getContextManager().isContextActive()
-				|| MylarPlugin.getContextManager().isContextCapturePaused()) {
+		if (!enabled || !MylarPlugin.getContextManager().isContextActive()) {
 			return;
 		}
 		if (event.getType() != IResourceChangeEvent.POST_CHANGE) {
@@ -47,7 +48,7 @@ public class ResourceChangeMonitor implements IResourceChangeListener {
 				IResourceDelta[] added = delta.getAffectedChildren(IResourceDelta.ADDED);
 				for (int i = 0; i < added.length; i++) {
 					IResource resource = added[i].getResource();
-					if (resource instanceof IFile) {
+					if ((resource instanceof IFile || resource instanceof IFolder) && !isExcluded(resource.getProjectRelativePath())) {
 						addedResources.add(resource);
 					}
 				}
@@ -64,11 +65,24 @@ public class ResourceChangeMonitor implements IResourceChangeListener {
 		}; 
 		try {
 			rootDelta.accept(visitor);
-			MylarIdePlugin.getDefault().getInterestUpdater().addResourceToContext(addedResources, InteractionEvent.Kind.SELECTION);
 			MylarIdePlugin.getDefault().getInterestUpdater().addResourceToContext(changedResources, InteractionEvent.Kind.PREDICTION);
+			MylarIdePlugin.getDefault().getInterestUpdater().addResourceToContext(addedResources, InteractionEvent.Kind.SELECTION);	
 		} catch (CoreException e) {
 			MylarStatusHandler.log(e, "could not accept marker visitor");
 		}
+	}
+
+	private boolean isExcluded(IPath path) {
+		if (path == null) {
+			return false;
+		}
+		// NOTE: n^2 time complexity, but should not be a bottleneck
+		for (String pattern : MylarIdePlugin.getDefault().getExcludedResourcePatterns()) {
+			for (String segment : path.segments()) {
+				return segment.matches(pattern.replaceAll("\\.", "\\\\.").replaceAll("\\*", ".*"));		
+			}
+		}
+		return false;
 	}
 
 	public boolean isEnabled() {
@@ -78,55 +92,4 @@ public class ResourceChangeMonitor implements IResourceChangeListener {
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
-
 }
-
-// private void processMarkerDelata(IMarkerDelta[] markers) {
-// for(IMarkerDelta markerDelta: markers){
-// try{
-// final IMarker marker = markerDelta.getMarker();
-// if(marker == null || !marker.exists()){
-// final IMylarStructureBridge bridge =
-// MylarPlugin.getDefault().getStructureBridge(marker.getResource());
-// if(bridge != null){
-// if(!PlatformUI.getWorkbench().getDisplay().isDisposed()) {
-// PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
-// public void run() {
-// MylarPlugin.getContextManager().removeErrorPredictedInterest(bridge.getHandleIdentifier(marker.getResource()),
-// bridge.getContentType(), true);
-// }});
-// }
-// }
-// }
-//					
-// if(markerDelta.getMarker().isSubtypeOf(IMarker.PROBLEM)){
-// final IMylarStructureBridge bridge =
-// MylarPlugin.getDefault().getStructureBridge(marker.getResource());
-// if(bridge != null){
-// if(!PlatformUI.getWorkbench().getDisplay().isDisposed()) {
-// PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
-// public void run() {
-// MylarPlugin.getContextManager().addErrorPredictedInterest(bridge.getHandleIdentifier(marker.getResource()),
-// bridge.getContentType(), true);
-// }});
-// }
-// }
-// } else
-// {//if(!markerDelta.getMarker().getType().equals("org.eclipse.jdt.core.problem")){
-// final IMylarStructureBridge bridge =
-// MylarPlugin.getDefault().getStructureBridge(marker.getResource());
-// if(bridge != null){
-// if(!PlatformUI.getWorkbench().getDisplay().isDisposed()) {
-// PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
-// public void run() {
-// MylarPlugin.getContextManager().removeErrorPredictedInterest(bridge.getHandleIdentifier(marker.getResource()),
-// bridge.getContentType(), true);
-// }});
-// }
-// }
-// }
-// }catch (Exception e){
-// MylarPlugin.log(e, " could not update marker");
-// }
-// }
-// }
