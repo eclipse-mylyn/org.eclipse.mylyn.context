@@ -82,8 +82,8 @@ public class InterestManipulationTest extends AbstractJavaContextTest {
 		assertTrue(fileElement.getInterest().isInteresting());
 		assertTrue(method.getInterest().isInteresting());
 
-		assertTrue(MylarPlugin.getContextManager().manipulateInterestForNode(projectElement, false, false, "test"));
- 
+		MylarPlugin.getContextManager().manipulateInterestForNode(projectElement, false, false, "test");
+
 		assertFalse(fileElement.getInterest().isInteresting());
 		// TODO: re-enable, fails in AllTests
 		// assertFalse(method.getInterest().isInteresting());
@@ -102,8 +102,8 @@ public class InterestManipulationTest extends AbstractJavaContextTest {
 		assertTrue(clazz.getInterest().isInteresting());
 		assertTrue(cu.getInterest().isInteresting());
 
-		assertTrue(MylarPlugin.getContextManager().manipulateInterestForNode(packageNode, false, false, "test"));
-		assertFalse(packageNode.getInterest().isInteresting()); 
+		MylarPlugin.getContextManager().manipulateInterestForNode(packageNode, false, false, "test");
+		assertFalse(packageNode.getInterest().isInteresting());
 		assertFalse(cu.getInterest().isInteresting());
 		assertFalse(clazz.getInterest().isInteresting());
 		assertFalse(method.getInterest().isInteresting());
@@ -123,7 +123,7 @@ public class InterestManipulationTest extends AbstractJavaContextTest {
 		assertTrue(node.getInterest().isLandmark());
 		action.changeInterestForSelected(true);
 
-		assertEquals((2*scaling.getLandmark()) + scaling.get(InteractionEvent.Kind.SELECTION).getValue(), node
+		assertEquals(scaling.getLandmark() + scaling.get(InteractionEvent.Kind.SELECTION).getValue(), node
 				.getInterest().getValue());
 
 		action.changeInterestForSelected(false);
@@ -144,8 +144,8 @@ public class InterestManipulationTest extends AbstractJavaContextTest {
 		}
 
 		public void changeInterestForSelected(boolean increment) {
-			assertTrue(MylarPlugin.getContextManager().manipulateInterestForNode(
-					MylarPlugin.getContextManager().getActiveElement(), increment, false, ""));
+			MylarPlugin.getContextManager().manipulateInterestForNode(
+					MylarPlugin.getContextManager().getActiveElement(), increment, false, "");
 		}
 	}
 }

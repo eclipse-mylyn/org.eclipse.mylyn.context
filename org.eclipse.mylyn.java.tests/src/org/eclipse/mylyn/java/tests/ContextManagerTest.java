@@ -38,7 +38,6 @@ import org.eclipse.mylar.provisional.core.IMylarContext;
 import org.eclipse.mylar.provisional.core.IMylarContextListener;
 import org.eclipse.mylar.provisional.core.IMylarElement;
 import org.eclipse.mylar.provisional.core.IMylarStructureBridge;
-import org.eclipse.mylar.provisional.core.InteractionEvent;
 import org.eclipse.mylar.provisional.core.MylarPlugin;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPart;
@@ -135,15 +134,15 @@ public class ContextManagerTest extends AbstractJavaContextTest {
 
 	public void testActivityHistory() {
 		manager.resetActivityHistory();
-		MylarContext history = manager.getActivityHistoryMetaContext();
+		MylarContext history = manager.getActivityHistory();
 		assertNotNull(history);
-		assertEquals(0, manager.getActivityHistoryMetaContext().getInteractionHistory().size());
+		assertEquals(0, manager.getActivityHistory().getInteractionHistory().size());
 
 		manager.contextActivated(manager.loadContext("1"));
-		assertEquals(1, manager.getActivityHistoryMetaContext().getInteractionHistory().size());
+		assertEquals(1, manager.getActivityHistory().getInteractionHistory().size());
 
 		manager.contextDeactivated("2");
-		assertEquals(2, manager.getActivityHistoryMetaContext().getInteractionHistory().size());
+		assertEquals(2, manager.getActivityHistory().getInteractionHistory().size());
 	}
 
 	public void testChangeHandle() {
@@ -274,28 +273,6 @@ public class ContextManagerTest extends AbstractJavaContextTest {
 		assertTrue(MylarPlugin.getContextManager().getElement(m1.getHandleIdentifier()).getInterest().isInteresting());
 	}
 
-	public void testPropagation() throws JavaModelException, Exception {
-		IMethod m1 = type1.createMethod("void m1() { }", null, true, null);
-		IMylarElement node = MylarPlugin.getContextManager().getElement(m1.getHandleIdentifier());
-		assertFalse(node.getInterest().isInteresting());
-
-		InteractionEvent event = new InteractionEvent(InteractionEvent.Kind.MANIPULATION, new JavaStructureBridge().getContentType(), m1.getHandleIdentifier(), "source");
-		MylarPlugin.getContextManager().handleInteractionEvent(event, true);
-		
-		node = MylarPlugin.getContextManager().getElement(m1.getHandleIdentifier());
-		assertTrue(node.getInterest().isInteresting());
-
-		project.build();
-		IJavaElement parent = m1.getParent();
-		IMylarElement parentNode = MylarPlugin.getContextManager().getElement(parent.getHandleIdentifier());
-		assertFalse(parentNode.getInterest().isInteresting());
-		
-		InteractionEvent selectionEvent = new InteractionEvent(InteractionEvent.Kind.SELECTION, new JavaStructureBridge().getContentType(), m1.getHandleIdentifier(), "source");
-		MylarPlugin.getContextManager().handleInteractionEvent(selectionEvent, true);
-		parentNode = MylarPlugin.getContextManager().getElement(parent.getHandleIdentifier());
-		assertTrue(parentNode.getInterest().isInteresting()); 
-	}
-	
 	public void testIncremenOfParentDoi() throws JavaModelException, Exception {
 		IWorkbenchPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart();
 		IMethod m1 = type1.createMethod("void m1() { }", null, true, null);
@@ -319,6 +296,10 @@ public class ContextManagerTest extends AbstractJavaContextTest {
 			}
 			parent = parent.getParent();
 		} while (parent != null);
+	}
+
+	public void testExternalizationEquivalence() {
+
 	}
 
 	public void testLandmarks() throws CoreException, IOException {
