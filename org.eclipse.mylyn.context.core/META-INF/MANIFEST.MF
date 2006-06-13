@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Mylar Plug-in
+Bundle-SymbolicName: org.eclipse.mylar.core; singleton:=true
+Bundle-Version: 0.5.3
+Bundle-Activator: org.eclipse.mylar.provisional.core.MylarPlugin
+Bundle-Localization: plugin
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.ui,
+ org.eclipse.core.resources
+Eclipse-AutoStart: true
+Bundle-Vendor: Eclipse.org
+Bundle-ClassPath: mylar-core.jar
+Export-Package: org.eclipse.mylar.internal.core,
+ org.eclipse.mylar.internal.core.search,
+ org.eclipse.mylar.internal.core.util,
+ org.eclipse.mylar.provisional.core
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
