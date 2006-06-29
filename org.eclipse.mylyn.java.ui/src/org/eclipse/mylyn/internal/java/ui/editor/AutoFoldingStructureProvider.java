@@ -87,6 +87,7 @@ public class AutoFoldingStructureProvider implements IProjectionListener, IJavaF
             case IJavaElement.TYPE:
                 if (isInnerType((IType)element)) {
                     IMylarElement node = MylarPlugin.getContextManager().getElement(element.getHandleIdentifier());
+//                    if (!JavaPlugin.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.EDITOR_FOLDING_ENABLED)) {
                     if (!MylarUiPlugin.getDefault().isGlobalFoldingEnabled()) {
                         collapse = false;
                     } else if (node == null || node.getInterest().isInteresting()) {

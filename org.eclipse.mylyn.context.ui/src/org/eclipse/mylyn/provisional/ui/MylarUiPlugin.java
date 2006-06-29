@@ -79,9 +79,9 @@ public class MylarUiPlugin extends AbstractUIPlugin {
 	private MylarViewerManager viewerManager;
 
 	private MylarPerspectiveManager perspectiveManager = new MylarPerspectiveManager();
-	
+
 	private ContentOutlineManager contentOutlineManager = new ContentOutlineManager();
-	
+
 	private final ITaskHighlighter DEFAULT_HIGHLIGHTER = new ITaskHighlighter() {
 		public Color getHighlightColor(ITask task) {
 			Highlighter highlighter = getHighlighterForContextId("" + task.getHandleIdentifier());
@@ -176,7 +176,7 @@ public class MylarUiPlugin extends AbstractUIPlugin {
 		initializeDefaultPreferences(getPreferenceStore());
 		initializeHighlighters();
 		initializeActions();
-		
+
 		final IWorkbench workbench = PlatformUI.getWorkbench();
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {
@@ -184,7 +184,7 @@ public class MylarUiPlugin extends AbstractUIPlugin {
 					// TODO: move to MylarPlugin?
 					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell().addShellListener(
 							MylarPlugin.getContextManager().getShellLifecycleListener());
-					
+
 					viewerManager = new MylarViewerManager();
 					MylarPlugin.getContextManager().addListener(viewerManager);
 					MylarTaskListPlugin.getTaskListManager().addActivityListener(perspectiveManager);
@@ -207,7 +207,7 @@ public class MylarUiPlugin extends AbstractUIPlugin {
 			super.stop(context);
 			MylarPlugin.getContextManager().removeListener(viewerManager);
 			MylarPlugin.getDefault().removeWindowPartListener(contentOutlineManager);
-//			MylarPlugin.getDefault().removeWindowPageListener(contentOutlineManager);
+			// MylarPlugin.getDefault().removeWindowPageListener(contentOutlineManager);
 			viewerManager.dispose();
 			colorMap.dispose();
 			highlighters.dispose();
@@ -233,7 +233,8 @@ public class MylarUiPlugin extends AbstractUIPlugin {
 			// mylar. load default colors
 			highlighters = new HighlighterList();
 			highlighters.setToDefaultList();
-			getPreferenceStore().setValue(MylarUiPrefContstants.HIGHLIGHTER_PREFIX, this.highlighters.externalizeToString());
+			getPreferenceStore().setValue(MylarUiPrefContstants.HIGHLIGHTER_PREFIX,
+					this.highlighters.externalizeToString());
 		}
 	}
 
@@ -247,8 +248,7 @@ public class MylarUiPlugin extends AbstractUIPlugin {
 		store.setDefault(MylarUiPrefContstants.GAMMA_SETTING_STANDARD, true);
 		store.setDefault(MylarUiPrefContstants.GAMMA_SETTING_DARKENED, false);
 
-		if (!store.contains(MylarUiPrefContstants.GLOBAL_FILTERING))
-			store.setDefault(MylarUiPrefContstants.GLOBAL_FILTERING, true);
+		store.setDefault(MylarUiPrefContstants.GLOBAL_FILTERING, true);
 	}
 
 	public void setHighlighterMapping(String id, String name) {
@@ -423,8 +423,10 @@ public class MylarUiPlugin extends AbstractUIPlugin {
 		this.intersectionHighlighter = intersectionHighlighter;
 	}
 
+	// TODO: reomve
 	public boolean isGlobalFoldingEnabled() {
-		return getPrefs().getBoolean(MylarUiPrefContstants.GLOBAL_FILTERING);
+		return true;
+		// return getPrefs().getBoolean(MylarUiPrefContstants.GLOBAL_FILTERING);
 	}
 
 	public void setGlobalFilteringEnabled(boolean globalFilteringEnabled) {
@@ -514,13 +516,14 @@ public class MylarUiPlugin extends AbstractUIPlugin {
 
 		public static final String ELEMENT_UI_BRIDGE_CONTENT_TYPE = "contentType";
 	}
-	
 
 	public String getPerspectiveIdFor(ITask task) {
-		return getPreferenceStore().getString(MylarUiPrefContstants.PREFIX_TASK_TO_PERSPECTIVE + task.getHandleIdentifier());
+		return getPreferenceStore().getString(
+				MylarUiPrefContstants.PREFIX_TASK_TO_PERSPECTIVE + task.getHandleIdentifier());
 	}
 
 	public void setPerspectiveIdFor(ITask task, String perspectiveId) {
-		getPreferenceStore().setValue(MylarUiPrefContstants.PREFIX_TASK_TO_PERSPECTIVE + task.getHandleIdentifier(), perspectiveId);
+		getPreferenceStore().setValue(MylarUiPrefContstants.PREFIX_TASK_TO_PERSPECTIVE + task.getHandleIdentifier(),
+				perspectiveId);
 	}
 }
