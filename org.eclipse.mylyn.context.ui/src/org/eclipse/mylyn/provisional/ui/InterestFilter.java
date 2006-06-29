@@ -15,6 +15,8 @@ package org.eclipse.mylar.provisional.ui;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.StructuredViewer;
@@ -42,7 +44,7 @@ public class InterestFilter extends ViewerFilter implements IPropertyChangeListe
 	private String excludedMatches = null;
 
 	public InterestFilter() {
-		MylarUiPlugin.getPrefs().addPropertyChangeListener(this);
+		MylarUiPlugin.getDefault().getPreferenceStore().addPropertyChangeListener(this);
 	}
 
 	@Override
@@ -66,6 +68,19 @@ public class InterestFilter extends ViewerFilter implements IPropertyChangeListe
 				element = (IMylarElement) object;
 			} else {
 				IMylarStructureBridge bridge = MylarPlugin.getDefault().getStructureBridge(object);
+				if (bridge.getContentType() == null) {
+					// try to resolve the resource
+					if (object instanceof IAdaptable) {
+						Object adapted = ((IAdaptable)object).getAdapter(IResource.class);
+						if (adapted instanceof IResource) {
+							object = adapted;
+						}
+						bridge = MylarPlugin.getDefault().getStructureBridge(object);
+					} else {
+//						System.err.println(">>" + object.getClass());
+						return false;
+					}
+				}
 				if (!bridge.canFilter(object)) {
 					return true;
 				}
@@ -159,39 +174,3 @@ public class InterestFilter extends ViewerFilter implements IPropertyChangeListe
 		}
 	}
 }
-
-
-//boolean testselect(Viewer viewer, Object parent, Object element) {
-//	try {
-//		if (!(viewer instanceof StructuredViewer))
-//			return true;
-//		if (!containsMylarInterestFilter((StructuredViewer) viewer))
-//			return true;
-//		if (isTemporarilyUnfiltered(parent))
-//			return true;
-//
-//		IMylarElement node = null;
-//		if (element instanceof IMylarElement) {
-//			node = (IMylarElement) element;
-//		} else {
-//			IMylarStructureBridge bridge = MylarPlugin.getDefault().getStructureBridge(element);
-//			if (!bridge.canFilter(element))
-//				return true;
-//			if (isImplicitlyInteresting(element, bridge))
-//				return true;
-//
-//			String handle = bridge.getHandleIdentifier(element);
-//			node = MylarPlugin.getContextManager().getElement(handle);
-//		}
-//		if (node != null) {
-//			if (node.getInterest().isPredicted()) {
-//				return false;
-//			} else {
-//				return node.getInterest().getValue() > MylarContextManager.getScalingFactors().getInteresting();
-//			}
-//		}
-//	} catch (Throwable t) {
-//		MylarStatusHandler.log(t, "interest filter failed on viewer: " + viewer.getClass());
-//	}
-//	return false;
-//}

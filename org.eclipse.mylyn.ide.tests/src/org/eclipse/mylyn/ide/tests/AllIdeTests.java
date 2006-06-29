@@ -23,7 +23,8 @@ public class AllIdeTests {
 		TestSuite suite = new TestSuite("Test for org.eclipse.mylar.ide.tests");
 
 		// $JUnit-BEGIN$
-		suite.addTestSuite(ResourcesContextTest.class);
+		suite.addTestSuite(IdePreferencesTest.class);
+		suite.addTestSuite(ResourceContextTest.class);
 //		suite.addTestSuite(ChangeSetManagerTest.class);
 //		suite.addTestSuite(CommitMessageTest.class);
 		// $JUnit-END$

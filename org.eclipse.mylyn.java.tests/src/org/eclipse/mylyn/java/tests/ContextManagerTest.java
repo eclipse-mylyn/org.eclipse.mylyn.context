@@ -26,6 +26,7 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaModel;
+import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -320,7 +321,10 @@ public class ContextManagerTest extends AbstractJavaContextTest {
 		do {
 			level++;
 			IMylarElement parentNode = MylarPlugin.getContextManager().getElement(parent.getHandleIdentifier());
-			if (!(parent instanceof JavaModel)) {
+			if (parent instanceof JavaProject) {
+				// NOTE: 3.2 HEAD (or branch) has a more thorough test for this
+				assertTrue(parentNode.getInterest().isInteresting());
+			} else if (!(parent instanceof JavaModel)) {
 				assertEquals("failed on: " + parent.getClass(), node.getInterest().getValue(), parentNode.getInterest()
 						.getValue());
 			}

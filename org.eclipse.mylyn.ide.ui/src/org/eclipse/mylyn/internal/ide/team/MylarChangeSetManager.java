@@ -97,6 +97,10 @@ public class MylarChangeSetManager implements IMylarContextListener {
 		public void taskListRead() {
 			initContextChangeSets();
 		}
+
+		public void calendarChanged() {
+			// ignore	
+		}
 	};
 	
 	private ITaskListChangeListener TASK_CHANGE_LISTENER = new ITaskListChangeListener() {
