@@ -246,6 +246,9 @@ public class MylarUiPlugin extends AbstractUIPlugin {
 		store.setDefault(MylarUiPrefContstants.GAMMA_SETTING_LIGHTENED, false);
 		store.setDefault(MylarUiPrefContstants.GAMMA_SETTING_STANDARD, true);
 		store.setDefault(MylarUiPrefContstants.GAMMA_SETTING_DARKENED, false);
+
+		if (!store.contains(MylarUiPrefContstants.GLOBAL_FILTERING))
+			store.setDefault(MylarUiPrefContstants.GLOBAL_FILTERING, true);
 	}
 
 	public void setHighlighterMapping(String id, String name) {
