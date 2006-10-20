@@ -26,7 +26,31 @@
 	    <labelProvider
 	          class="org.eclipse.mylar.internal.java.ui.JavaContextLabelProvider"
 	          contentType="java"/>
-	</extension>
+        <preservedFilters
+            viewId="org.eclipse.jdt.ui.PackageExplorer">
+       	 	<filter
+               class="org.eclipse.jdt.internal.ui.filters.ImportDeclarationFilter">
+         	</filter>
+         	<filter
+               class="org.eclipse.jdt.internal.ui.filters.PackageDeclarationFilter">
+         	</filter>
+         	<filter
+               class="org.eclipse.mylar.internal.java.ui.JavaDeclarationsFilter">
+         	</filter>
+          <filter
+                class="org.eclipse.jdt.internal.ui.filters.ClosedProjectFilter">
+          </filter>
+      </preservedFilters>
+        <preservedFilters
+              viewId="org.eclipse.ui.navigator.ProjectExplorer">
+           <filter
+                 class="org.eclipse.jdt.internal.ui.filters.PackageDeclarationFilter">
+           </filter>
+           <filter
+                 class="org.eclipse.jdt.internal.ui.filters.ImportDeclarationFilter">
+           </filter>
+        </preservedFilters>
+   </extension>
 	
 	<extension
           point="org.eclipse.mylar.tasks.ui.editors">
@@ -50,6 +74,13 @@
 		<proposalCategory
 			icon="icons/elcl16/proposals-type.gif"/>
 	</extension>
+		<extension
+		point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+		id="templateProposalCategory"
+		name="Template Proposals (Mylar)">
+		<proposalCategory
+			icon="/icons/elcl16/templateprop_co.gif"/>
+	</extension>
 	<extension
 		point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
 		id="javaTypeCompletionProposalComputer">
@@ -68,6 +99,17 @@
 			categoryId="org.eclipse.mylar.java.javaNoTypeProposalCategory">
 			<partition type="__dftl_partition_content_type"/>
 			<partition type="__java_string"/>
+		</javaCompletionProposalComputer>
+	</extension>
+	<extension
+		point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+		id="TemplateProposalComputer">
+		<javaCompletionProposalComputer
+			class="org.eclipse.jdt.internal.ui.text.java.TemplateCompletionProposalComputer"
+			categoryId="org.eclipse.mylar.java.templateProposalCategory">
+			<partition type="__dftl_partition_content_type"/>
+			<partition type="__java_singleline_comment"/> <!-- to get NLS templates -->
+			<partition type="__java_javadoc"/>
 		</javaCompletionProposalComputer>
 	</extension>
 		<!-- javadoc completions -->   
@@ -275,16 +317,17 @@
 	
   <extension point="org.eclipse.ui.popupMenus"> 
      <objectContribution
-        id="org.eclipse.mylar.ui.interest"
-        objectClass="org.eclipse.jdt.core.IJavaElement">
-     	<action  
-  		  	label="Mylar: Mark Less Interesting" 
-	  		tooltip="Mark selected element as uninteresting"
-	  		menubarPath="mylar" 
-	  		id="org.eclipse.mylar.ui.actions.InterestDecrementAction" 
-	  		class="org.eclipse.mylar.internal.context.ui.actions.InterestDecrementAction"
-	  		icon="icons/elcl16/interest-decrease.gif"
-	  		enablesFor="*"/>
+           id="org.eclipse.mylar.java.ui.interest"
+           objectClass="org.eclipse.jdt.core.IJavaElement">
+     	<action
+            class="org.eclipse.mylar.internal.context.ui.actions.InterestDecrementAction"
+            enablesFor="*"
+            icon="icons/elcl16/interest-decrease.gif"
+            id="org.eclipse.mylar.java.ui.actions.interest.decrement"
+            label="Mylar: Mark Less Interesting"
+            menubarPath="mylar"
+            tooltip="Mark selected element as uninteresting">
+      </action>
 	    <action  
   		  	label="Mylar: Mark as Landmark" 
 	  		tooltip="Mark the selected element as a landmark"
@@ -294,6 +337,20 @@
 	  		icon="icons/elcl16/interest-increase.gif"
 	  		enablesFor="*"/>
 	 </objectContribution>
+     <objectContribution
+           adaptable="false"
+           id="org.eclipse.mylar.java.ui.interest.contribution.container"
+           objectClass="org.eclipse.jdt.internal.ui.packageview.ClassPathContainer">
+     	<action
+            class="org.eclipse.mylar.internal.context.ui.actions.InterestDecrementAction"
+            enablesFor="*"
+            icon="icons/elcl16/interest-decrease.gif"
+            id="org.eclipse.mylar.java.ui.actions.interest.decrement.container"
+            label="Mylar: Mark Less Interesting"
+            menubarPath="mylar"
+            tooltip="Mark selected element as uninteresting">
+      </action>
+     </objectContribution>
   </extension>   
 
   <extension point="org.eclipse.ui.actionSets">
