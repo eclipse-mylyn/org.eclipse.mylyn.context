@@ -154,7 +154,7 @@ public class JavaStructureBridge implements IMylarStructureBridge {
 	 * TODO: remove after WTP 1.5.1 is generally available
 	 */
 	private String getWtpElementHandle(Object object) {
-		Class objectClass = object.getClass();
+		Class<?> objectClass = object.getClass();
 		try {
 			Method getProjectMethod = objectClass.getMethod("getProject", new Class[0]);
 			Object javaProject = getProjectMethod.invoke(object, new Object[0]);
@@ -169,7 +169,7 @@ public class JavaStructureBridge implements IMylarStructureBridge {
 	}
 
 	private boolean isWtpClass(Object object) {
-		return object.getClass().getSimpleName().equals("CompressedJavaProject");
+		return object != null && object.getClass().getSimpleName().equals("CompressedJavaProject");
 	}
 
 	public String getName(Object object) {
