@@ -381,3 +381,4 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 		return false;
 	}
 }
+
