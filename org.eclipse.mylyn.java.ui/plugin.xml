@@ -324,12 +324,12 @@
             enablesFor="*"
             icon="icons/elcl16/interest-decrease.gif"
             id="org.eclipse.mylar.java.ui.actions.interest.decrement"
-            label="Mylar: Mark Less Interesting"
+            label="Mark Less Interesting"
             menubarPath="additions"
             tooltip="Mark selected element as uninteresting">
       </action>
 	    <action  
-  		  	label="Mylar: Mark as Landmark" 
+  		  	label="Mark as Landmark" 
 	  		tooltip="Mark the selected element as a landmark"
 	  		menubarPath="additions" 
 	  		id="org.eclipse.mylar.ui.actions.InterestIncrementAction" 
@@ -346,7 +346,7 @@
             enablesFor="*"
             icon="icons/elcl16/interest-decrease.gif"
             id="org.eclipse.mylar.java.ui.actions.interest.decrement.container"
-            label="Mylar: Mark Less Interesting"
+            label="Mark Less Interesting"
             menubarPath="additions"
             tooltip="Mark selected element as uninteresting">
       </action>
@@ -364,10 +364,10 @@
           definitionId="org.eclipse.mylar.java.ui.editor.folding.auto"
           icon="icons/elcl16/interest-folding.gif"
           id="org.eclipse.mylar.java.ui.editor.folding.auto"
-          label="Mylar Active Editor Folding"
+          label="Focus Editor on Active Task"
           style="toggle"
           toolbarPath="org.eclipse.ui.edit.text.actionSet.presentation/Presentation"
-          tooltip="Mylar Active Folding"> 
+          tooltip="Focus Editor on Active Task"> 
       	</action> 
         <action
                definitionId="org.eclipse.mylar.java.ui.search.context"
