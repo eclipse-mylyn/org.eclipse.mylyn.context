@@ -106,7 +106,7 @@ public class TypeHistoryManager implements IMylarContextListener {
 		}
 	}
 
-	public void nodeDeleted(IMylarElement node) {
+	public void elementDeleted(IMylarElement node) {
 		updateTypeHistory(node, false);
 	}
 
@@ -126,7 +126,7 @@ public class TypeHistoryManager implements IMylarContextListener {
 		// ignore
 	}
 
-	public void edgesChanged(IMylarElement node) {
+	public void relationsChanged(IMylarElement node) {
 		// ignore
 	}
 
