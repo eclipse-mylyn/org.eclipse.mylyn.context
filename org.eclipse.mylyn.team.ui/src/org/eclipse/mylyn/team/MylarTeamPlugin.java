@@ -56,14 +56,15 @@ public class MylarTeamPlugin extends AbstractUIPlugin implements IStartup {
 		super.start(context);
 		initPreferenceDefaults();
 		commitTemplateManager = new CommitTemplateManager();
-		extensionPointReader = new MylarTeamExtensionPointReader();
-		extensionPointReader.readExtensions();
-		
-		LinkedTaskInfoAdapterFactory.registerAdapters();
 
 		PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				try {
+					extensionPointReader = new MylarTeamExtensionPointReader();
+					extensionPointReader.readExtensions();
+					
+					LinkedTaskInfoAdapterFactory.registerAdapters();
+					
 					if (getPreferenceStore().getBoolean(CHANGE_SET_MANAGE)) {
 						for (AbstractContextChangeSetManager changeSetManager : changeSetManagers) {
 							changeSetManager.enable();
