@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Mylar Java Plug-in
 Bundle-SymbolicName: org.eclipse.mylar.java; singleton:=true
-Bundle-Version: 1.0.1.v20070112-1800
+Bundle-Version: 1.0.1.v20070214-0830
 Bundle-Activator: org.eclipse.mylar.internal.java.MylarJavaPlugin
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui,
@@ -35,10 +35,12 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.team.cvs.core,
  org.eclipse.team.core,
  org.eclipse.ui.forms,
- org.eclipse.mylar.monitor,
+ org.eclipse.mylar.monitor.ui,
  org.eclipse.mylar.resources,
  org.eclipse.jdt.debug,
- org.eclipse.mylar.doc
+ org.eclipse.mylar.doc,
+ org.eclipse.mylar.monitor.core,
+ org.eclipse.mylar
 Eclipse-AutoStart: true
 Bundle-Vendor: Eclipse.org
 Export-Package: org.eclipse.mylar.internal.java,
