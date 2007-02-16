@@ -52,6 +52,20 @@
         </preservedFilters>
    </extension>
 
+  	<!-- ==================== Context Editing Common Navigator ==================== -->
+
+	<extension
+			point="org.eclipse.ui.navigator.viewer">
+		<viewerContentBinding 
+			viewerId="org.eclipse.mylar.context.ui.navigator.context">
+			<includes>
+				<contentExtension pattern="org.eclipse.jdt.java.ui.javaContent" />	
+			</includes>
+		</viewerContentBinding>
+	</extension>
+
+  	<!-- ==================== Editors ==================== -->
+
 	<extension
           point="org.eclipse.mylar.tasks.ui.editors">
        <hyperlinkDetector
@@ -59,7 +73,8 @@
              id="org.eclipse.mylar.java.hyperlink.detector.stack"/>
     </extension>
 	
-	<!-- Content Assist -->
+  	<!-- ==================== Content Assist ==================== -->
+
 	<extension
 		point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
 		id="javaNoTypeProposalCategory"
