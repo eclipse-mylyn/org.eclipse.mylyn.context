@@ -146,7 +146,7 @@ public class ContextEditorFormPage extends FormPage {
 		
 		form.setImage(TaskListImages.getImage(TaskListImages.TASK_ACTIVE_CENTERED));
 		form.setText(LABEL);
-		toolkit.decorateFormHeading(form.getForm());
+//		toolkit.decorateFormHeading(form.getForm());
 
 		form.getBody().setLayout(new GridLayout(2, false));
 		form.getBody().setLayoutData(new GridData(GridData.FILL_BOTH));
