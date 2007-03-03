@@ -38,14 +38,13 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JarEntryFile;
 import org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
 import org.eclipse.jdt.internal.ui.packageview.ClassPathContainer;
-import org.eclipse.jdt.internal.ui.packageview.PackageFragmentRootContainer;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
-import org.eclipse.mylar.context.core.AbstractContextStructureBridge;
 import org.eclipse.mylar.context.core.AbstractRelationProvider;
 import org.eclipse.mylar.context.core.ContextCorePlugin;
 import org.eclipse.mylar.context.core.IDegreeOfSeparation;
 import org.eclipse.mylar.context.core.IMylarElement;
-import org.eclipse.mylar.core.MylarStatusHandler;
+import org.eclipse.mylar.context.core.IMylarStructureBridge;
+import org.eclipse.mylar.context.core.MylarStatusHandler;
 import org.eclipse.mylar.internal.context.core.DegreeOfSeparation;
 import org.eclipse.mylar.internal.java.search.JUnitReferencesProvider;
 import org.eclipse.mylar.internal.java.search.JavaImplementorsProvider;
@@ -59,11 +58,13 @@ import org.eclipse.ui.views.markers.internal.ConcreteMarker;
 /**
  * @author Mik Kersten
  */
-public class JavaStructureBridge extends AbstractContextStructureBridge {
+public class JavaStructureBridge implements IMylarStructureBridge {
 
 	public final static String CONTENT_TYPE = "java";
 
 	public List<AbstractRelationProvider> providers;
+
+	private IMylarStructureBridge parentBridge;
 
 	public JavaStructureBridge() {
 		providers = new ArrayList<AbstractRelationProvider>();
@@ -74,21 +75,10 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 		providers.add(new JUnitReferencesProvider());
 	}
 
-	@Override
 	public String getContentType() {
 		return CONTENT_TYPE;
 	}
 
-	public Object getAdaptedParent(Object object) {
-		if (object instanceof IFile) {
-			IFile file = (IFile)object;
-			return JavaCore.create(file.getParent());
-		} else {
-			return super.getAdaptedParent(object);
-		}
-	}
-	
-	@Override
 	public String getParentHandle(String handle) {
 		IJavaElement javaElement = (IJavaElement) getObjectForHandle(handle);
 		if (javaElement != null && javaElement.getParent() != null) {
@@ -98,7 +88,6 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 		}
 	}
 
-	@Override
 	public List<String> getChildHandles(String handle) {
 		Object object = getObjectForHandle(handle);
 		if (object instanceof IJavaElement) {
@@ -114,7 +103,6 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 						if (childHandle != null)
 							childHandles.add(childHandle);
 					}
-					AbstractContextStructureBridge parentBridge = ContextCorePlugin.getDefault().getStructureBridge(parentContentType);
 					if (parentBridge != null && parentBridge instanceof ResourceStructureBridge) {
 						if (element.getElementType() < IJavaElement.TYPE) {
 							List<String> resourceChildren = parentBridge.getChildHandles(handle);
@@ -134,7 +122,6 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 		return Collections.emptyList();
 	}
 
-	@Override
 	public Object getObjectForHandle(String handle) {
 		try {
 			return JavaCore.create(handle);
@@ -147,11 +134,11 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 	/**
 	 * Uses resource-compatible path for projects
 	 */
-	@Override
 	public String getHandleIdentifier(Object object) {
-		if (object instanceof IJavaElement) {
-			return ((IJavaElement) object).getHandleIdentifier();
-		} else {
+		if (object == null) {
+			return null;
+		} else if (!(object instanceof IJavaElement)) {
+			
 			if (object instanceof IAdaptable) {
 				Object adapter = ((IAdaptable)object).getAdapter(IJavaElement.class);
 				if (adapter instanceof IJavaElement) {
@@ -159,16 +146,18 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 				}
 			} else if (isWtpClass(object)) {
 				return getWtpElementHandle(object);
-			} 
-		} 
-		return null;
+			}
+			return null;
+		} else {
+			return ((IJavaElement) object).getHandleIdentifier();
+		}
 	}
 
 	/**
 	 * TODO: remove after WTP 1.5.1 is generally available
 	 */
 	private String getWtpElementHandle(Object object) {
-		Class<?> objectClass = object.getClass();
+		Class objectClass = object.getClass();
 		try {
 			Method getProjectMethod = objectClass.getMethod("getProject", new Class[0]);
 			Object javaProject = getProjectMethod.invoke(object, new Object[0]);
@@ -183,10 +172,9 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 	}
 
 	private boolean isWtpClass(Object object) {
-		return object != null && object.getClass().getSimpleName().equals("CompressedJavaProject");
+		return object.getClass().getSimpleName().equals("CompressedJavaProject");
 	}
 
-	@Override
 	public String getName(Object object) {
 		if (object instanceof IJavaElement) {
 			return ((IJavaElement) object).getElementName();
@@ -195,7 +183,6 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 		}
 	}
 
-	@Override
 	public boolean canBeLandmark(String handle) {
 		IJavaElement element = (IJavaElement) getObjectForHandle(handle);
 		if ((element instanceof IMember || element instanceof IType) && element.exists()) {
@@ -208,14 +195,13 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 	/**
 	 * TODO: figure out if the non IJavaElement stuff is needed
 	 */
-	@Override
 	public boolean acceptsObject(Object object) {
 		if (object instanceof IResource) {
 			Object adapter = ((IResource) object).getAdapter(IJavaElement.class);
 			return adapter instanceof IJavaElement;
 		}
 
-		boolean accepts = object instanceof IJavaElement || object instanceof PackageFragmentRootContainer
+		boolean accepts = object instanceof IJavaElement || object instanceof ClassPathContainer
 				|| object instanceof ClassPathContainer.RequiredProjectWrapper || object instanceof JarEntryFile
 				|| object instanceof IPackageFragment || object instanceof WorkingSet 
 				|| isWtpClass(object);
@@ -227,15 +213,15 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 	 * Uses special rules for classpath containers since these do not have an
 	 * associated interest, i.e. they're not IJavaElement(s).
 	 */
-	@Override
 	public boolean canFilter(Object object) {
 		if (object instanceof ClassPathContainer.RequiredProjectWrapper) {
 			return true;
-		} else if (object instanceof PackageFragmentRootContainer) { 
-			// since not in model, check if it contains anything interesting
-			PackageFragmentRootContainer container = (PackageFragmentRootContainer) object;
+		} else if (object instanceof ClassPathContainer) { // HACK: check if it
+			// has anything
+			// interesting
+			ClassPathContainer container = (ClassPathContainer) object;
 
-			Object[] children = container.getChildren();
+			Object[] children = container.getChildren(container);
 			for (int i = 0; i < children.length; i++) {
 				if (children[i] instanceof JarPackageFragmentRoot) {
 					JarPackageFragmentRoot element = (JarPackageFragmentRoot) children[i];
@@ -262,13 +248,11 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 		return true;
 	}
 
-	@Override
 	public boolean isDocument(String handle) {
 		IJavaElement element = (IJavaElement) getObjectForHandle(handle);
 		return element instanceof ICompilationUnit || element instanceof IClassFile;
 	}
 
-	@Override
 	public String getHandleForOffsetInObject(Object resource, int offset) {
 		if (resource == null || !(resource instanceof ConcreteMarker))
 			return null;
@@ -307,17 +291,14 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 		}
 	}
 
-	@Override
 	public String getContentType(String elementHandle) {
 		return getContentType();
 	}
 
-	@Override
 	public List<AbstractRelationProvider> getRelationshipProviders() {
 		return providers;
 	}
 
-	@Override
 	public List<IDegreeOfSeparation> getDegreesOfSeparation() {
 		List<IDegreeOfSeparation> separations = new ArrayList<IDegreeOfSeparation>();
 		separations.add(new DegreeOfSeparation(DOS_0_LABEL, 0));
@@ -327,6 +308,10 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 		separations.add(new DegreeOfSeparation(DOS_4_LABEL, 4));
 		separations.add(new DegreeOfSeparation(DOS_5_LABEL, 5));
 		return separations;
+	}
+
+	public void setParentBridge(IMylarStructureBridge bridge) {
+		parentBridge = bridge;
 	}
 
 	/**
@@ -383,3 +368,25 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 	}
 }
 
+// if (object instanceof IJavaElement) {
+// try {
+// IJavaElement element = (IJavaElement)object;
+// IResource resource = element.getCorrespondingResource();
+// boolean hasError = false;
+// if (resource != null) {
+// IMarker[] markers =
+// resource.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, 2);
+// for (int j = 0; j < markers.length; j++) {
+// if (markers[j] != null
+// && markers[j].getAttribute(IMarker.SEVERITY) != null
+// && markers[j].getAttribute(IMarker.SEVERITY).equals(IMarker.SEVERITY_ERROR))
+// {
+// hasError = true;
+// }
+// }
+// if (hasError) return false;
+// }
+// } catch (CoreException e) {
+// // ignore
+// }
+// }

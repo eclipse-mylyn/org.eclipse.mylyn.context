@@ -43,7 +43,7 @@ import org.eclipse.mylar.context.core.ContextCorePlugin;
 import org.eclipse.mylar.context.core.IMylarContext;
 import org.eclipse.mylar.context.core.IMylarContextListener;
 import org.eclipse.mylar.context.core.IMylarElement;
-import org.eclipse.mylar.core.MylarStatusHandler;
+import org.eclipse.mylar.context.core.MylarStatusHandler;
 import org.eclipse.mylar.internal.context.ui.ActiveViewSelectionDragAdapter;
 import org.eclipse.mylar.internal.context.ui.views.ActiveViewDelegatingDragAdapter;
 import org.eclipse.mylar.internal.context.ui.views.ActiveViewDropAdapter;
@@ -96,7 +96,7 @@ public class ActiveHierarchyView extends ViewPart {
 			refreshHierarchy();
 		}
 
-		public void relationsChanged(IMylarElement node) {
+		public void edgesChanged(IMylarElement node) {
 		}
 
 		public void presentationSettingsChanging(UpdateKind kind) {
@@ -106,7 +106,7 @@ public class ActiveHierarchyView extends ViewPart {
 			refreshHierarchy();
 		}
 
-		public void elementDeleted(IMylarElement node) {
+		public void nodeDeleted(IMylarElement node) {
 			// ignore
 		}
 
@@ -362,9 +362,9 @@ class TreeParent implements IAdaptable {
 		return parent;
 	}
 
-	@SuppressWarnings("unchecked")
 	public Object getAdapter(Class key) {
 		return element;
+		// return null;
 	}
 
 	public IJavaElement getElement() {

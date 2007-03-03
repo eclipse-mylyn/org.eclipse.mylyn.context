@@ -31,8 +31,8 @@ import org.eclipse.mylar.context.core.ContextCorePlugin;
 import org.eclipse.mylar.context.core.IMylarContext;
 import org.eclipse.mylar.context.core.IMylarContextListener;
 import org.eclipse.mylar.context.core.IMylarElement;
+import org.eclipse.mylar.context.core.MylarStatusHandler;
 import org.eclipse.mylar.context.ui.ContextUiPlugin;
-import org.eclipse.mylar.core.MylarStatusHandler;
 import org.eclipse.mylar.internal.context.ui.ContextUiPrefContstants;
 import org.eclipse.mylar.internal.java.JavaStructureBridge;
 
@@ -201,11 +201,11 @@ public class ActiveFoldingListener implements IMylarContextListener {
 		// ignore
 	}
 
-	public void relationsChanged(IMylarElement node) {
+	public void edgesChanged(IMylarElement node) {
 		// ignore
 	}
 
-	public void elementDeleted(IMylarElement node) {
+	public void nodeDeleted(IMylarElement node) {
 		// ignore
 	}
 }

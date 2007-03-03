@@ -19,16 +19,17 @@ import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.mylar.context.core.ContextCorePlugin;
-import org.eclipse.mylar.core.MylarStatusHandler;
+import org.eclipse.mylar.context.core.MylarStatusHandler;
 import org.eclipse.mylar.internal.java.ui.JavaEditingMonitor;
 import org.eclipse.mylar.internal.java.ui.JavaUiUtil;
 import org.eclipse.mylar.internal.java.ui.LandmarkMarkerManager;
 import org.eclipse.mylar.internal.java.ui.editor.ActiveFoldingListener;
 import org.eclipse.mylar.internal.java.ui.wizards.MylarPreferenceWizard;
-import org.eclipse.mylar.monitor.ui.MylarMonitorUiPlugin;
+import org.eclipse.mylar.monitor.MylarMonitorPlugin;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -49,9 +50,9 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 
 	private ActiveFoldingEditorTracker editorTracker;
 
-//	private PackageExplorerManager packageExplorerManager = new PackageExplorerManager();
+	private PackageExplorerManager packageExplorerManager = new PackageExplorerManager();
 
-	private TypeHistoryManager typeHistoryManager = null;
+	private TypeHistoryManager typeHistoryManager = new TypeHistoryManager();
 
 	private LandmarkMarkerManager landmarkMarkerManager = new LandmarkMarkerManager();
 
@@ -78,33 +79,27 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				try {
-//					ContextCorePlugin.getContextManager().addListener(packageExplorerManager);
+					ContextCorePlugin.getContextManager().addListener(packageExplorerManager);
+					ContextCorePlugin.getContextManager().addListener(typeHistoryManager);
 					ContextCorePlugin.getContextManager().addListener(landmarkMarkerManager);
-					
-					try {
-						typeHistoryManager = new TypeHistoryManager();
-						ContextCorePlugin.getContextManager().addListener(typeHistoryManager);
-					} catch (Throwable t) {
-						MylarStatusHandler.log(t, "Could not install type history manager, incompatible Eclipse version.");
-					}					
 				
 					if (getPreferenceStore().getBoolean(MylarJavaPrefConstants.PREDICTED_INTEREST_ERRORS)) {
 						problemListener.enable();
 					}
 					getPreferenceStore().addPropertyChangeListener(problemListener);
 
-//					MylarMonitorPlugin.getDefault().addWindowPostSelectionListener(packageExplorerManager);
+					MylarMonitorPlugin.getDefault().addWindowPostSelectionListener(packageExplorerManager);
 
 					javaEditingMonitor = new JavaEditingMonitor();
-					MylarMonitorUiPlugin.getDefault().getSelectionMonitors().add(javaEditingMonitor);
+					MylarMonitorPlugin.getDefault().getSelectionMonitors().add(javaEditingMonitor);
 					installEditorTracker(workbench);
 
 					// TODO: race conditions prevents this from running?
-//					if (FocusPackageExplorerAction.getDefault() != null) {
-//						FocusPackageExplorerAction.getDefault().update();
+//					if (ApplyMylarToPackageExplorerAction.getDefault() != null) {
+//						ApplyMylarToPackageExplorerAction.getDefault().update();
 //					}
-//					if (FocusBrowsingPerspectiveAction.getDefault() != null) {
-//						FocusBrowsingPerspectiveAction.getDefault().update();
+//					if (ApplyMylarToBrowsingPerspectiveAction.getDefault() != null) {
+//						ApplyMylarToBrowsingPerspectiveAction.getDefault().update();
 //					}
 
 					if (!getPreferenceStore().contains(MylarPreferenceWizard.MYLAR_FIRST_RUN)) {
@@ -143,22 +138,22 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 			INSTANCE = null;
 			resourceBundle = null;
 
-//			ContextCorePlugin.getContextManager().removeListener(packageExplorerManager);
+			ContextCorePlugin.getContextManager().removeListener(packageExplorerManager);
 			ContextCorePlugin.getContextManager().removeListener(typeHistoryManager);
 			ContextCorePlugin.getContextManager().removeListener(landmarkMarkerManager);
 
-			MylarMonitorUiPlugin.getDefault().getSelectionMonitors().remove(javaEditingMonitor);
+			MylarMonitorPlugin.getDefault().getSelectionMonitors().remove(javaEditingMonitor);
 
-//			if (FocusPackageExplorerAction.getDefault() != null) {
-//				getPreferenceStore().removePropertyChangeListener(FocusPackageExplorerAction.getDefault());
+//			if (ApplyMylarToPackageExplorerAction.getDefault() != null) {
+//				getPreferenceStore().removePropertyChangeListener(ApplyMylarToPackageExplorerAction.getDefault());
 //			}
 
-//			if (PlatformUI.getWorkbench() != null && !PlatformUI.getWorkbench().isClosing()) {
-//				for(IWorkbenchWindow w : PlatformUI.getWorkbench().getWorkbenchWindows()) {
-//					ISelectionService service = w.getSelectionService();
-//					service.removePostSelectionListener(packageExplorerManager);
-//				}
-//  		}
+			if (PlatformUI.getWorkbench() != null && !PlatformUI.getWorkbench().isClosing()) {
+				for(IWorkbenchWindow w : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+					ISelectionService service = w.getSelectionService();
+					service.removePostSelectionListener(packageExplorerManager);
+				}
+  		}
 			JavaCore.removeElementChangedListener(javaElementChangeListener);
 			// CVSUIPlugin.getPlugin().getChangeSetManager().remove(changeSetManager);
 			// TODO: uninstall editor tracker
@@ -279,9 +274,9 @@ public class MylarJavaPlugin extends AbstractUIPlugin {
 	// }
 	// }
 
-//	public TypeHistoryManager getTypeHistoryManager() {
-//		return typeHistoryManager;
-//	}
+	public TypeHistoryManager getTypeHistoryManager() {
+		return typeHistoryManager;
+	}
 
 	/**
 	 * For testing.

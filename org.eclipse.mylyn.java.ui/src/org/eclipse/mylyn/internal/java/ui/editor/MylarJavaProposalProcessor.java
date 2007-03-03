@@ -20,7 +20,6 @@ import org.eclipse.jdt.internal.ui.text.java.JavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer;
 import org.eclipse.mylar.context.core.IMylarElement;
 import org.eclipse.mylar.context.core.ContextCorePlugin;
-import org.eclipse.mylar.core.MylarStatusHandler;
 import org.eclipse.mylar.internal.context.core.MylarContextManager;
 import org.eclipse.mylar.internal.context.ui.ContextUiImages;
 
@@ -50,7 +49,7 @@ public class MylarJavaProposalProcessor {
 	private List<IJavaCompletionProposalComputer> alreadyContainSeparator = new ArrayList<IJavaCompletionProposalComputer>();
 
 	private List<IJavaCompletionProposalComputer> containsSingleInterestingProposal = new ArrayList<IJavaCompletionProposalComputer>();
-
+	
 	private static MylarJavaProposalProcessor INSTANCE = new MylarJavaProposalProcessor();
 
 	private MylarJavaProposalProcessor() {
@@ -66,46 +65,39 @@ public class MylarJavaProposalProcessor {
 
 	@SuppressWarnings("unchecked")
 	public List projectInterestModel(IJavaCompletionProposalComputer proposalComputer, List proposals) {
-		try {
-			if (!ContextCorePlugin.getContextManager().isContextActive()) {
-				return proposals;
-			} else {
-				boolean hasInterestingProposals = false;
-				for (Object object : proposals) {
-					if (object instanceof AbstractJavaCompletionProposal) {
-						boolean foundInteresting = boostRelevanceWithInterest((AbstractJavaCompletionProposal) object);
-						if (!hasInterestingProposals && foundInteresting) {
-							hasInterestingProposals = true;
-						}
+		if (!ContextCorePlugin.getContextManager().isContextActive()) {
+			return proposals;
+		} else {
+			boolean hasInterestingProposals = false;
+			for (Object object : proposals) {
+				if (object instanceof AbstractJavaCompletionProposal) {
+					boolean foundInteresting = boostRelevanceWithInterest((AbstractJavaCompletionProposal) object);
+					if (!hasInterestingProposals && foundInteresting) {
+						hasInterestingProposals = true;
 					}
 				}
-
-				// NOTE: this annoying state needs to be maintainted to ensure
-				// the
-				// separator is added only once, and not added for single
-				// proposals
-				if (containsSingleInterestingProposal.size() > 0 && proposals.size() > 0) {
-					proposals.add(MylarJavaProposalProcessor.PROPOSAL_SEPARATOR);
-				} else if (hasInterestingProposals && alreadyContainSeparator.isEmpty()) {
-					if (proposals.size() == 1) {
-						containsSingleInterestingProposal.add(proposalComputer);
-					} else {
-						proposals.add(MylarJavaProposalProcessor.PROPOSAL_SEPARATOR);
-						alreadyContainSeparator.add(proposalComputer);
-					}
-				}
-
-				alreadyComputedProposals.add(proposalComputer);
-				if (alreadyComputedProposals.size() == monitoredProposalComputers.size()) {
-					alreadyComputedProposals.clear();
-					alreadyContainSeparator.clear();
-					containsSingleInterestingProposal.clear();
-				}
-
-				return proposals;
 			}
-		} catch (Throwable t) {
-			MylarStatusHandler.fail(t, "Failed to project interest onto propsals", false);
+			
+			// NOTE: this annoying state needs to be maintainted to ensure the
+			// separator is added only once, and not added for single proposals
+			if (containsSingleInterestingProposal.size() > 0 && proposals.size() > 0) {
+				proposals.add(MylarJavaProposalProcessor.PROPOSAL_SEPARATOR);
+			} else if (hasInterestingProposals && alreadyContainSeparator.isEmpty()) {
+				if (proposals.size() == 1) {
+					containsSingleInterestingProposal.add(proposalComputer);
+				} else {
+					proposals.add(MylarJavaProposalProcessor.PROPOSAL_SEPARATOR);
+					alreadyContainSeparator.add(proposalComputer);
+				}
+			}
+
+			alreadyComputedProposals.add(proposalComputer);
+			if (alreadyComputedProposals.size() == monitoredProposalComputers.size()) {
+				alreadyComputedProposals.clear();
+				alreadyContainSeparator.clear();
+				containsSingleInterestingProposal.clear();
+			}
+ 			
 			return proposals;
 		}
 	}
@@ -114,8 +106,7 @@ public class MylarJavaProposalProcessor {
 		boolean hasInteresting = false;
 		IJavaElement javaElement = proposal.getJavaElement();
 		if (javaElement != null) {
-			IMylarElement mylarElement = ContextCorePlugin.getContextManager().getElement(
-					javaElement.getHandleIdentifier());
+			IMylarElement mylarElement = ContextCorePlugin.getContextManager().getElement(javaElement.getHandleIdentifier());
 			float interest = mylarElement.getInterest().getValue();
 			if (interest > MylarContextManager.getScalingFactors().getInteresting()) {
 				// TODO: losing precision here, only going to one decimal place

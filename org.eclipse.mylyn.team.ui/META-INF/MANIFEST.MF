@@ -2,9 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Mylar Team Plug-in
 Bundle-SymbolicName: org.eclipse.mylar.team;singleton:=true
-Bundle-Version: 2.0.0.v20070216-1630
+Bundle-Version: 1.0.1
 Bundle-Activator: org.eclipse.mylar.team.MylarTeamPlugin
 Bundle-Vendor: Eclipse.org
+Bundle-Localization: plugin
 Require-Bundle: org.eclipse.team.core,
  org.eclipse.team.cvs.ui,
  org.eclipse.team.cvs.core,
@@ -20,9 +21,7 @@ Require-Bundle: org.eclipse.team.core,
  org.eclipse.mylar.tasks.ui,
  org.eclipse.mylar.resources,
  org.eclipse.compare,
- org.eclipse.ui.navigator.resources,
- org.eclipse.mylar.monitor.core,
- org.eclipse.mylar
+ org.eclipse.ui.navigator.resources
 Eclipse-LazyStart: true
 Export-Package: org.eclipse.mylar.internal.team,
  org.eclipse.mylar.internal.team.ccvs,

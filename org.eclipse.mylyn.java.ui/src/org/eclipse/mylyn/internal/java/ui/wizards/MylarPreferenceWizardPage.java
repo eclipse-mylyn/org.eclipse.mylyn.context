@@ -14,8 +14,8 @@ package org.eclipse.mylar.internal.java.ui.wizards;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.mylar.internal.tasks.ui.TaskListColorsAndFonts;
+import org.eclipse.mylar.internal.tasks.ui.TaskUiUtil;
 import org.eclipse.mylar.internal.tasks.ui.views.TaskListView;
-import org.eclipse.mylar.tasks.ui.TasksUiUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -210,16 +210,10 @@ public class MylarPreferenceWizardPage extends WizardPage {
 		hyperlink.setUnderlined(true);
 		hyperlink.setForeground(TaskListColorsAndFonts.COLOR_HYPERLINK);
 		hyperlink.setText("If this is your first time using Mylar please watch the short Getting Started video");
-
-		label = new Label(containerComposite, SWT.NONE);
-		label.setText("For a legend of the icons used by Mylar open: Help (menu) -> Mylar UI Legend");
-		gd = new GridData();
-		label.setLayoutData(gd);
-		
 		hyperlink.addHyperlinkListener(new IHyperlinkListener() {
 
 			public void linkActivated(HyperlinkEvent e) {
-				TasksUiUtil.openBrowser("http://eclipse.org/mylar/start.php");
+				TaskUiUtil.openUrl("http://eclipse.org/mylar/start.php");
 			}
 
 			public void linkEntered(HyperlinkEvent e) {

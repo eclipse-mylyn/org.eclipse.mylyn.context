@@ -11,24 +11,15 @@
 
 package org.eclipse.mylar.internal.team.ui.actions;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.mylar.internal.tasks.core.RepositoryTaskHandleUtil;
 import org.eclipse.mylar.internal.tasks.ui.ITasksUiConstants;
 import org.eclipse.mylar.internal.tasks.ui.TaskListImages;
-import org.eclipse.mylar.internal.tasks.ui.actions.OpenRepositoryTask;
 import org.eclipse.mylar.internal.team.LinkedTaskInfo;
 import org.eclipse.mylar.internal.team.template.CommitTemplateManager;
 import org.eclipse.mylar.tasks.core.AbstractRepositoryConnector;
@@ -37,13 +28,11 @@ import org.eclipse.mylar.tasks.core.ILinkedTaskInfo;
 import org.eclipse.mylar.tasks.core.ITask;
 import org.eclipse.mylar.tasks.core.TaskRepository;
 import org.eclipse.mylar.tasks.core.TaskRepositoryManager;
-import org.eclipse.mylar.tasks.ui.AbstractRepositoryConnectorUi;
 import org.eclipse.mylar.tasks.ui.TasksUiPlugin;
 import org.eclipse.mylar.tasks.ui.TasksUiUtil;
 import org.eclipse.mylar.team.MylarTeamPlugin;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.ObjectPluginAction;
 
@@ -91,10 +80,50 @@ public class OpenCorrespondingTaskAction extends Action implements IViewActionDe
 	}
 
 	private void run(StructuredSelection selection) {
-		final Object element = selection.getFirstElement();
+		Object element = selection.getFirstElement();
 
-		Job job = new OpenCorrespondingTaskJob("Opening Corresponding Task", element);
-		job.schedule();
+		ILinkedTaskInfo info = null;
+		if (element instanceof ILinkedTaskInfo) {
+			info = (ILinkedTaskInfo) element;
+		} else if (element instanceof IAdaptable) {
+			info = (ILinkedTaskInfo) ((IAdaptable) element).getAdapter(ILinkedTaskInfo.class);
+		}
+		if (info == null) {
+			info = (ILinkedTaskInfo) Platform.getAdapterManager().getAdapter(element, ILinkedTaskInfo.class);
+		}
+
+		if (info != null) {
+			info = reconsile(info);
+			if (info.getTask() != null) {
+				// XXX which one to use?
+				// TaskUiUtil.openEditor(info.getTask(), false);
+				TasksUiUtil.refreshAndOpenTaskListElement(info.getTask());
+				return;
+			}
+			if (info.getRepositoryUrl() != null && info.getTaskId() != null) {
+				TaskRepository repository = TasksUiPlugin.getRepositoryManager().getRepository(info.getRepositoryUrl());
+				if (repository != null) {
+					// TODO: temporary work-around for bug 166174
+					if (!info.getTaskId().contains(AbstractRepositoryTask.HANDLE_DELIM)) {	
+						if (TasksUiUtil.openRepositoryTask(repository, info.getTaskId())) {
+							return;
+						}
+					} else {
+						MessageDialog.openInformation(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), 
+								ITasksUiConstants.TITLE_DIALOG, 
+								"Could not resolve task, use Navigate -> Open Task... and enter the task ID or key.");
+					}
+				}
+			}
+			if (info.getTaskFullUrl() != null) {
+				TasksUiUtil.openUrl(info.getTaskFullUrl());
+				return;
+			}
+		}
+
+		// TODO show Open Remote Task dialog?
+		MessageDialog.openInformation(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+				"Unable to open correspond task", "Unable to open correspond task");
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
@@ -107,7 +136,7 @@ public class OpenCorrespondingTaskAction extends Action implements IViewActionDe
 	 * This is used in order to keep LinkedTaskInfo lightweight with minimal
 	 * dependencies.
 	 */
-	private static ILinkedTaskInfo reconsile(ILinkedTaskInfo info) {
+	private ILinkedTaskInfo reconsile(ILinkedTaskInfo info) {
 		ITask task = info.getTask();
 		if (task != null) {
 			return info;
@@ -121,52 +150,32 @@ public class OpenCorrespondingTaskAction extends Action implements IViewActionDe
 		TaskRepositoryManager repositoryManager = TasksUiPlugin.getRepositoryManager();
 
 		TaskRepository repository = null;
-		if (repositoryUrl != null) {
+		if(repositoryUrl!=null) {
 			repository = repositoryManager.getRepository(repositoryUrl);
 		}
 
-		if (taskFullUrl == null && comment != null) {
-			taskFullUrl = getUrlFromComment(comment);
-		}
-
 		AbstractRepositoryConnector connector = null;
-		if (taskFullUrl != null) {
+		if(taskFullUrl!=null) {
 			connector = repositoryManager.getConnectorForRepositoryTaskUrl(taskFullUrl);
-		}
-		if (connector == null && repository != null) {
+		}		
+		if (connector == null && repository!=null) {
 			connector = repositoryManager.getRepositoryConnector(repository.getKind());
 		}
 
 		if (repositoryUrl == null && connector != null) {
 			repositoryUrl = connector.getRepositoryUrlFromTaskUrl(taskFullUrl);
-			if (repository == null) {
-				repository = repositoryManager.getRepository(repositoryUrl);
-			}
 		}
 
 		if (taskId == null && connector != null) {
 			taskId = connector.getTaskIdFromTaskUrl(taskFullUrl);
 		}
-		if (taskId == null && comment != null) {
-			Collection<AbstractRepositoryConnector> connectors = connector != null ? Collections
-					.singletonList(connector) : TasksUiPlugin.getRepositoryManager().getRepositoryConnectors();
-			REPOSITORIES: 
-			for (AbstractRepositoryConnector c : connectors) {
-				Collection<TaskRepository> repositories = repository != null ? Collections.singletonList(repository)
-						: TasksUiPlugin.getRepositoryManager().getRepositories(c.getRepositoryType());
-				for (TaskRepository r : repositories) {
-					String[] ids = c.getTaskIdsFromComment(r, comment);
-					if (ids != null && ids.length > 0) {
-						taskId = ids[0];
-						connector = c;
-						repository = r;
-						repositoryUrl = r.getUrl();
-						break REPOSITORIES;
-					}
-				}
+		if (taskId == null && repository != null && comment != null) {
+			String[] ids = connector.getTaskIdsFromComment(repository, comment);
+			if (ids != null && ids.length > 0) {
+				taskId = ids[0];
 			}
 		}
-		if (taskId == null && comment != null) {
+		if (taskId == null && comment!=null) {
 			CommitTemplateManager commitTemplateManager = MylarTeamPlugin.getDefault().getCommitTemplateManager();
 			taskId = commitTemplateManager.getTaskIdFromCommentOrLabel(comment);
 			if (taskId == null) {
@@ -181,16 +190,16 @@ public class OpenCorrespondingTaskAction extends Action implements IViewActionDe
 		if (task == null) {
 			if (taskId != null && repositoryUrl != null) {
 				// XXX fix this hack (jira ids don't work here)
-				if (!taskId.contains(RepositoryTaskHandleUtil.HANDLE_DELIM)) {
-//					String handle = AbstractRepositoryTask.getHandle(repositoryUrl, taskId);
-					task = TasksUiPlugin.getTaskListManager().getTaskList().getTask(repositoryUrl, taskId);
+				if(!taskId.contains(AbstractRepositoryTask.HANDLE_DELIM)) {
+					String handle = AbstractRepositoryTask.getHandle(repositoryUrl, taskId);
+					task = TasksUiPlugin.getTaskListManager().getTaskList().getTask(handle);
 				}
 			}
 			if (task == null && taskFullUrl != null) {
 				// search by fullUrl
 				for (ITask currTask : TasksUiPlugin.getTaskListManager().getTaskList().getAllTasks()) {
 					if (currTask instanceof AbstractRepositoryTask) {
-						String currUrl = ((AbstractRepositoryTask) currTask).getTaskUrl();
+						String currUrl = ((AbstractRepositoryTask) currTask).getUrl();
 						if (taskFullUrl.equals(currUrl)) {
 							return new LinkedTaskInfo(currTask);
 						}
@@ -250,73 +259,4 @@ public class OpenCorrespondingTaskAction extends Action implements IViewActionDe
 		return null;
 	}
 
-	private static final class OpenCorrespondingTaskJob extends Job {
-		private final Object element;
-
-		private OpenCorrespondingTaskJob(String name, Object element) {
-			super(name);
-			this.element = element;
-		}
-
-		protected IStatus run(IProgressMonitor monitor) {
-			ILinkedTaskInfo info = null;
-			if (element instanceof ILinkedTaskInfo) {
-				info = (ILinkedTaskInfo) element;
-			} else if (element instanceof IAdaptable) {
-				info = (ILinkedTaskInfo) ((IAdaptable) element).getAdapter(ILinkedTaskInfo.class);
-			}
-			if (info == null) {
-				info = (ILinkedTaskInfo) Platform.getAdapterManager().getAdapter(element, ILinkedTaskInfo.class);
-			}
-
-			if (info != null) {
-				info = reconsile(info);
-				final ITask task = info.getTask();
-				if (task != null) {
-					TasksUiUtil.refreshAndOpenTaskListElement(task);
-					return Status.OK_STATUS;
-				}
-				if (info.getRepositoryUrl() != null && info.getTaskId() != null) {
-					TaskRepository repository = TasksUiPlugin.getRepositoryManager().getRepository(info.getRepositoryUrl());
-					String taskId = info.getTaskId();
-					if (repository != null && taskId != null) {
-						// TODO: temporary work-around for bug 166174
-//						if (!info.getTaskId().contains(AbstractRepositoryTask.HANDLE_DELIM)) {
-//							if (TasksUiUtil.openRepositoryTask(repository, info.getTaskId())) {
-//								return Status.OK_STATUS;
-//							}
-//						} else {
-//							MessageDialog.openInformation(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-//								ITasksUiConstants.TITLE_DIALOG,
-//								"Could not resolve task, use Navigate -> Open Task... and enter the task ID or key.");
-//						}
-						AbstractRepositoryConnectorUi connectorUi = TasksUiPlugin.getRepositoryUi(repository.getKind());
-						if (connectorUi != null) {
-							connectorUi.openRepositoryTask(repository.getUrl(), taskId);
-							return Status.OK_STATUS;
-						}
-					}
-				}
-				final String taskFullUrl = info.getTaskFullUrl();
-				if (taskFullUrl != null) {
-					TasksUiUtil.openBrowser(taskFullUrl);
-					return Status.OK_STATUS;
-				}
-			}
-
-			PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-					boolean openDialog = MessageDialog.openQuestion(window.getShell(), ITasksUiConstants.TITLE_DIALOG,
-							"Unable to match task. Open Repository Task dialog?");
-					if (openDialog) {
-						new OpenRepositoryTask().run(null);
-					}
-				}
-			});
-			
-			return Status.OK_STATUS;
-		}
-	}
-	
 }

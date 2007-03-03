@@ -33,10 +33,10 @@ import org.eclipse.mylar.context.core.IMylarContextListener;
 import org.eclipse.mylar.context.core.IMylarElement;
 import org.eclipse.mylar.context.core.IMylarRelation;
 import org.eclipse.mylar.context.core.AbstractContextStructureBridge;
+import org.eclipse.mylar.context.core.InteractionEvent;
 import org.eclipse.mylar.context.core.InterestComparator;
 import org.eclipse.mylar.context.core.ContextCorePlugin;
-import org.eclipse.mylar.core.MylarStatusHandler;
-import org.eclipse.mylar.monitor.core.InteractionEvent;
+import org.eclipse.mylar.context.core.MylarStatusHandler;
 
 /**
  * This is the core class resposible for context management.
@@ -48,6 +48,8 @@ import org.eclipse.mylar.monitor.core.InteractionEvent;
 public class MylarContextManager {
 
 	// TODO: move constants
+
+	public static final String CONTEXTS_DIRECTORY = "contexts";
 
 	public static final String CONTEXT_FILENAME_ENCODING = "UTF-8";
 
@@ -350,6 +352,9 @@ public class MylarContextManager {
 			InteractionEvent propagationEvent = new InteractionEvent(InteractionEvent.Kind.PROPAGATION, bridge
 					.getContentType(node.getHandleIdentifier()), parentHandle,
 					SOURCE_ID_MODEL_PROPAGATION, CONTAINMENT_PROPAGATION_ID, propagatedIncrement);
+//			InteractionEvent propagationEvent = new InteractionEvent(InteractionEvent.Kind.PROPAGATION, bridge
+//					.getContentType(node.getHandleIdentifier()), bridge.getParentHandle(node.getHandleIdentifier()),
+//					SOURCE_ID_MODEL_PROPAGATION, CONTAINMENT_PROPAGATION_ID, propagatedIncrement);
 			IMylarElement previous = currentContext.get(propagationEvent.getStructureHandle());
 			if (previous != null && previous.getInterest() != null) {
 				previousInterest = previous.getInterest().getValue();
@@ -589,7 +594,11 @@ public class MylarContextManager {
 		String encoded;
 		try {
 			encoded = URLEncoder.encode(handleIdentifier, CONTEXT_FILENAME_ENCODING);
-			File contextDirectory = ContextCorePlugin.getDefault().getContextStore().getContextDirectory();
+			File dataDirectory = ContextCorePlugin.getDefault().getContextStore().getRootDirectory();
+			File contextDirectory = new File(dataDirectory, MylarContextManager.CONTEXTS_DIRECTORY);
+			if (!contextDirectory.exists()) {
+				contextDirectory.mkdir();
+			}
 			File contextFile = new File(contextDirectory, encoded + CONTEXT_FILE_EXTENSION);
 			return contextFile;
 		} catch (UnsupportedEncodingException e) {
@@ -721,7 +730,7 @@ public class MylarContextManager {
 				// reduce interest of children
 				for (String childHandle : bridge.getChildHandles(element.getHandleIdentifier())) {
 					IMylarElement childElement = getElement(childHandle);
-					if (childElement != null && childElement.getInterest().isInteresting() && !childElement.equals(element)) {
+					if (childElement.getInterest().isInteresting() && !childElement.equals(element)) {
 						manipulateInterestForElement(childElement, increment, forceLandmark, sourceId);
 					}
 				}

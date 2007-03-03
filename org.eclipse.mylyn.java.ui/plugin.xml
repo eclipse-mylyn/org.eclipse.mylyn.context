@@ -5,13 +5,13 @@
    <extension-point id="javaEditorContributor" 
    		name="Mylar Java Editor Contributor" 
    		schema="schema/javaEditorContributor.exsd"/>
-	
+   		
 	<extension
 	       point="org.eclipse.mylar.context.core.bridges">
 	    <structureBridge
            class="org.eclipse.mylar.internal.java.JavaStructureBridge"
            name="Java Structure Bridge"
-           parentContentType="*"/>
+           parent="org.eclipse.mylar.internal.resources.ResourceStructureBridge"/>
      <structureBridge
            class="org.eclipse.mylar.internal.java.JavaDebugStructureBridge"
            name="Java Debug Structure Bridge"/>
@@ -26,46 +26,8 @@
 	    <labelProvider
 	          class="org.eclipse.mylar.internal.java.ui.JavaContextLabelProvider"
 	          contentType="java"/>
-        <preservedFilters
-            viewId="org.eclipse.jdt.ui.PackageExplorer">
-       	 	<filter
-               class="org.eclipse.jdt.internal.ui.filters.ImportDeclarationFilter">
-         	</filter>
-         	<filter
-               class="org.eclipse.jdt.internal.ui.filters.PackageDeclarationFilter">
-         	</filter>
-         	<filter
-               class="org.eclipse.mylar.internal.java.ui.JavaDeclarationsFilter">
-         	</filter>
-          <filter
-                class="org.eclipse.jdt.internal.ui.filters.ClosedProjectFilter">
-          </filter>
-        </preservedFilters>
-        <preservedFilters
-              viewId="org.eclipse.ui.navigator.ProjectExplorer">
-           <filter
-                 class="org.eclipse.jdt.internal.ui.filters.PackageDeclarationFilter">
-           </filter>
-           <filter
-                 class="org.eclipse.jdt.internal.ui.filters.ImportDeclarationFilter">
-           </filter>
-        </preservedFilters>
-   </extension>
-
-  	<!-- ==================== Context Editing Common Navigator ==================== -->
-
-	<extension
-			point="org.eclipse.ui.navigator.viewer">
-		<viewerContentBinding 
-			viewerId="org.eclipse.mylar.context.ui.navigator.context">
-			<includes>
-				<contentExtension pattern="org.eclipse.jdt.java.ui.javaContent" />	
-			</includes>
-		</viewerContentBinding>
 	</extension>
-
-  	<!-- ==================== Editors ==================== -->
-
+	
 	<extension
           point="org.eclipse.mylar.tasks.ui.editors">
        <hyperlinkDetector
@@ -73,8 +35,7 @@
              id="org.eclipse.mylar.java.hyperlink.detector.stack"/>
     </extension>
 	
-  	<!-- ==================== Content Assist ==================== -->
-
+	<!-- Content Assist -->
 	<extension
 		point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
 		id="javaNoTypeProposalCategory"
@@ -88,13 +49,6 @@
 		name="Type Proposals (Mylar)">
 		<proposalCategory
 			icon="icons/elcl16/proposals-type.gif"/>
-	</extension>
-		<extension
-		point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
-		id="templateProposalCategory"
-		name="Template Proposals (Mylar)">
-		<proposalCategory
-			icon="/icons/elcl16/templateprop_co.gif"/>
 	</extension>
 	<extension
 		point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
@@ -114,17 +68,6 @@
 			categoryId="org.eclipse.mylar.java.javaNoTypeProposalCategory">
 			<partition type="__dftl_partition_content_type"/>
 			<partition type="__java_string"/>
-		</javaCompletionProposalComputer>
-	</extension>
-	<extension
-		point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
-		id="TemplateProposalComputer">
-		<javaCompletionProposalComputer
-			class="org.eclipse.jdt.internal.ui.text.java.TemplateCompletionProposalComputer"
-			categoryId="org.eclipse.mylar.java.templateProposalCategory">
-			<partition type="__dftl_partition_content_type"/>
-			<partition type="__java_singleline_comment"/> <!-- to get NLS templates -->
-			<partition type="__java_javadoc"/>
 		</javaCompletionProposalComputer>
 	</extension>
 		<!-- javadoc completions -->   
@@ -280,13 +223,24 @@
                     relationship="stack"/>-->
           </perspectiveExtension>
    </extension>
- 
+
+
+   <extension point="org.eclipse.ui.views"> 
+   	  <view
+            allowMultiple="false"
+            category="org.eclipse.mylar"
+            class="org.eclipse.mylar.internal.java.ui.views.ActiveHierarchyView"
+            icon="icons/eview16/active-hierarchy.gif"
+            id="org.eclipse.mylar.ui.views.active.hierarchy"
+            name="Context Hierarchy"/>
+   </extension>
+  
    <extension point="org.eclipse.ui.viewActions"> 
 		<viewContribution 
 		id="org.eclipse.mylar.java.explorer.contribution" 
    		targetID="org.eclipse.jdt.ui.PackageExplorer">
     	<action
-           class="org.eclipse.mylar.internal.java.ui.actions.FocusPackageExplorerAction"
+           class="org.eclipse.mylar.internal.java.ui.actions.ApplyMylarToPackageExplorerAction"
            enablesFor="*"
            icon="icons/elcl16/interest-filtering.gif"
            id="org.eclipse.mylar.actions.filter.packageExplorer"
@@ -306,7 +260,7 @@
 		id="org.eclipse.mylar.ui.debug.view.contribution" 
    		targetID="org.eclipse.debug.ui.DebugView">
     	<action
-           class="org.eclipse.mylar.internal.java.ui.actions.FocusDebugViewAction"
+           class="org.eclipse.mylar.internal.java.ui.actions.ApplyMylarToDebugView"
            enablesFor="*"
            icon="icons/elcl16/interest-filtering.gif"
            id="org.eclipse.mylar.ui.actions.FilterResourceNavigatorAction"
@@ -321,40 +275,25 @@
 	
   <extension point="org.eclipse.ui.popupMenus"> 
      <objectContribution
-           id="org.eclipse.mylar.java.ui.interest"
-           objectClass="org.eclipse.jdt.core.IJavaElement">
-     	<action
-            class="org.eclipse.mylar.internal.context.ui.actions.InterestDecrementAction"
-            enablesFor="*"
-            icon="icons/elcl16/interest-decrease.gif"
-            id="org.eclipse.mylar.java.ui.actions.interest.decrement"
-            label="Mark Less Interesting"
-            menubarPath="additions"
-            tooltip="Mark selected element as uninteresting">
-      </action>
+        id="org.eclipse.mylar.ui.interest"
+        objectClass="org.eclipse.jdt.core.IJavaElement">
+     	<action  
+  		  	label="Mylar: Mark Less Interesting" 
+	  		tooltip="Mark selected element as uninteresting"
+	  		menubarPath="mylar" 
+	  		id="org.eclipse.mylar.ui.actions.InterestDecrementAction" 
+	  		class="org.eclipse.mylar.internal.context.ui.actions.InterestDecrementAction"
+	  		icon="icons/elcl16/interest-decrease.gif"
+	  		enablesFor="*"/>
 	    <action  
-  		  	label="Mark as Landmark" 
+  		  	label="Mylar: Mark as Landmark" 
 	  		tooltip="Mark the selected element as a landmark"
-	  		menubarPath="additions" 
+	  		menubarPath="mylar" 
 	  		id="org.eclipse.mylar.ui.actions.InterestIncrementAction" 
 	  		class="org.eclipse.mylar.internal.context.ui.actions.InterestIncrementAction"
 	  		icon="icons/elcl16/interest-increase.gif"
 	  		enablesFor="*"/>
 	 </objectContribution>
-     <objectContribution
-           adaptable="false"
-           id="org.eclipse.mylar.java.ui.interest.contribution.container"
-           objectClass="org.eclipse.jdt.internal.ui.packageview.ClassPathContainer">
-     	<action
-            class="org.eclipse.mylar.internal.context.ui.actions.InterestDecrementAction"
-            enablesFor="*"
-            icon="icons/elcl16/interest-decrease.gif"
-            id="org.eclipse.mylar.java.ui.actions.interest.decrement.container"
-            label="Mark Less Interesting"
-            menubarPath="additions"
-            tooltip="Mark selected element as uninteresting">
-      </action>
-     </objectContribution>
   </extension>   
 
   <extension point="org.eclipse.ui.actionSets">
@@ -368,10 +307,10 @@
           definitionId="org.eclipse.mylar.java.ui.editor.folding.auto"
           icon="icons/elcl16/interest-folding.gif"
           id="org.eclipse.mylar.java.ui.editor.folding.auto"
-          label="Automatically Fold Unintersting Elements"
+          label="Mylar Active Editor Folding"
           style="toggle"
           toolbarPath="org.eclipse.ui.edit.text.actionSet.presentation/Presentation"
-          tooltip="Automatically Fold Unintersting Elements">
+          tooltip="Mylar Active Folding"> 
       	</action> 
         <action
                definitionId="org.eclipse.mylar.java.ui.search.context"
@@ -388,12 +327,12 @@
             label="Mylar Java Browsing"
             visible="false"> 
 	    <action
-           class="org.eclipse.mylar.internal.java.ui.actions.FocusBrowsingPerspectiveAction"
+           class="org.eclipse.mylar.internal.java.ui.actions.ApplyMylarToBrowsingPerspectiveAction"
            id="org.eclipse.mylar.java.ui.actions.ApplyMylarToBrowsingPerspectiveAction"
            style="toggle"
 	       label="Apply Mylar" 
 	       icon="icons/elcl16/interest-filtering-browsing.gif"
-	       tooltip="Focus Java Browsing Views on Active Task"
+	       tooltip="Filter Packages, Types, and Members views"
 	       toolbarPath="mylar"
 	       enablesFor="*">
 	    </action>

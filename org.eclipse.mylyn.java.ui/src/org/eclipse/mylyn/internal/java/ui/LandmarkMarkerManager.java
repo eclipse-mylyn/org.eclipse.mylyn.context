@@ -33,7 +33,7 @@ import org.eclipse.mylar.context.core.IMylarContext;
 import org.eclipse.mylar.context.core.IMylarContextListener;
 import org.eclipse.mylar.context.core.IMylarElement;
 import org.eclipse.mylar.context.core.ContextCorePlugin;
-import org.eclipse.mylar.core.MylarStatusHandler;
+import org.eclipse.mylar.context.core.MylarStatusHandler;
 import org.eclipse.mylar.internal.java.JavaStructureBridge;
 
 /**
@@ -150,7 +150,7 @@ public class LandmarkMarkerManager implements IMylarContextListener {
 		}
 	}
 
-	public void relationsChanged(IMylarElement node) {
+	public void edgesChanged(IMylarElement node) {
 		// don't care when the relationships changed
 	}
 
@@ -162,7 +162,7 @@ public class LandmarkMarkerManager implements IMylarContextListener {
 		// don't care when there is a presentation setting change
 	}
 
-	public void elementDeleted(IMylarElement node) {
+	public void nodeDeleted(IMylarElement node) {
 		// don't care when a node is deleted
 	}
 }

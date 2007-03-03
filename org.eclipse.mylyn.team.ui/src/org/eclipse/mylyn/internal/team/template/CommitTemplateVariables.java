@@ -11,7 +11,6 @@
 package org.eclipse.mylar.internal.team.template;
 
 import java.util.List;
-import java.util.Locale;
 
 import org.eclipse.mylar.internal.tasks.ui.editors.TaskPlanningEditor;
 import org.eclipse.mylar.tasks.core.AbstractRepositoryConnector;
@@ -123,7 +122,7 @@ public class CommitTemplateVariables {
 		@Override
 		public String getValue(ITask task) {
 			if (task instanceof AbstractRepositoryTask && ((AbstractRepositoryTask)task).getTaskData() != null) {
-				return ((AbstractRepositoryTask) task).getTaskData().getStatus().toUpperCase(Locale.ENGLISH);
+				return ((AbstractRepositoryTask) task).getTaskData().getStatus().toUpperCase();
 			} else {
 				// TODO: refactor completion labels
 				if (task.isCompleted()) {
@@ -199,7 +198,7 @@ public class CommitTemplateVariables {
 		@Override
 		public String getValue(ITask task) {
 			if (task instanceof AbstractRepositoryTask) {
-				return ((AbstractRepositoryTask)task).getIdentifyingLabel();
+				return ((AbstractRepositoryTask)task).getIdLabel();
 //				return AbstractRepositoryTask.getTaskId(task.getHandleIdentifier());
 			} else {
 				return null;
@@ -231,7 +230,7 @@ public class CommitTemplateVariables {
 	public static class TaskURL extends AbstractCommitTemplateVariable {
 		@Override
 		public String getValue(ITask task) {
-			return task.getTaskUrl();
+			return task.getUrl();
 		}
 	}
 

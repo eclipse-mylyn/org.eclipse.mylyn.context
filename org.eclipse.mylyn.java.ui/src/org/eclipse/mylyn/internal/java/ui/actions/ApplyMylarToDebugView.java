@@ -12,21 +12,22 @@
 package org.eclipse.mylar.internal.java.ui.actions;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.debug.internal.ui.views.launch.LaunchView;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.mylar.context.ui.InterestFilter;
-import org.eclipse.mylar.internal.context.ui.actions.AbstractFocusViewAction;
+import org.eclipse.mylar.internal.context.ui.actions.AbstractApplyMylarAction;
 import org.eclipse.ui.IViewPart;
 
 /**
  * @author Mik Kersten
  */
-public class FocusDebugViewAction extends AbstractFocusViewAction {
+public class ApplyMylarToDebugView extends AbstractApplyMylarAction {
 
-	public FocusDebugViewAction() {
-		super(new InterestFilter(), true, true, false);
+	public ApplyMylarToDebugView() {
+		super(new InterestFilter());
 	}
 	
 	@Override
@@ -40,4 +41,9 @@ public class FocusDebugViewAction extends AbstractFocusViewAction {
 		return viewers;
 	}
 	
+	@Override
+	public List<Class> getPreservedFilters() {
+		return Collections.emptyList();
+	}
+
 }

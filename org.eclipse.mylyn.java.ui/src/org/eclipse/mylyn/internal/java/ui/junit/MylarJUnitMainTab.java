@@ -39,7 +39,6 @@ class MylarJUnitMainTab extends JUnitLaunchConfigurationTab {
 		this.isPdeMode = isPdeMode;
 	}
 
-	@Override
 	public void createControl(Composite parent) {
 		Composite comp = new Composite(parent, SWT.NONE);
 		setControl(comp);
@@ -57,7 +56,6 @@ class MylarJUnitMainTab extends JUnitLaunchConfigurationTab {
 		label.setText(DESCRIPTION);
 	}
 
-	@Override
 	public void performApply(ILaunchConfigurationWorkingCopy config) {
 		if (!isPdeMode) {
 			Set<IType> types = MylarContextTestUtil.getTestCasesInContext();
@@ -69,22 +67,18 @@ class MylarJUnitMainTab extends JUnitLaunchConfigurationTab {
 		}
 	}
 
-	@Override
 	public void setDefaults(ILaunchConfigurationWorkingCopy config) {
 		// ignore
 	}
 
-	@Override
 	public void initializeFrom(ILaunchConfiguration config) {
 		// ignore
 	}
 
-	@Override
 	public String getName() {
 		return "JUnit";
 	}
 
-	@Override
 	public Image getImage() {
 		return MylarJavaPlugin.getImageDescriptor("icons/etool16/junit-tab.gif").createImage();
 	}

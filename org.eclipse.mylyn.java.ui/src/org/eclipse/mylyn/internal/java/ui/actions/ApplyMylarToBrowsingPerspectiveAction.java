@@ -13,13 +13,14 @@ package org.eclipse.mylar.internal.java.ui.actions;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.runtime.Preferences.PropertyChangeEvent;
 import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.mylar.context.core.MylarStatusHandler;
 import org.eclipse.mylar.context.ui.InterestFilter;
-import org.eclipse.mylar.core.MylarStatusHandler;
-import org.eclipse.mylar.internal.context.ui.actions.AbstractFocusViewAction;
+import org.eclipse.mylar.internal.context.ui.actions.AbstractApplyMylarAction;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -30,10 +31,11 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
  * other subclasses
  * 
  * @author Shawn Minto
- * @author Mik Kersten
  */
-public class FocusBrowsingPerspectiveAction extends AbstractFocusViewAction implements
+public class ApplyMylarToBrowsingPerspectiveAction extends AbstractApplyMylarAction implements
 		IWorkbenchWindowActionDelegate {
+
+//	public static ApplyMylarToBrowsingPerspectiveAction INSTANCE;
 
 	private String packageViewerWrapperClassName = "org.eclipse.jdt.internal.ui.browsing.PackageViewerWrapper";
 
@@ -45,15 +47,9 @@ public class FocusBrowsingPerspectiveAction extends AbstractFocusViewAction impl
 
 	private IWorkbenchWindow initWindow;
 	
-	public FocusBrowsingPerspectiveAction() {
-		super(new InterestFilter(), true, true, false);
+	public ApplyMylarToBrowsingPerspectiveAction() {
+		super(new InterestFilter());
 		globalPrefId = PREF_ID_PREFIX + "javaBrowsing";
-	}
-	
-	public void init(IWorkbenchWindow window) {
-		initWindow = window;
-		IWorkbenchPage activePage = initWindow.getActivePage();
-		super.viewPart = activePage.findView(viewNames[0]);
 	}
 
 	@Override
@@ -67,22 +63,19 @@ public class FocusBrowsingPerspectiveAction extends AbstractFocusViewAction impl
 		return viewers;
 	}
 
-	/**
-	 * HACK: using reflection
-	 */
 	private StructuredViewer getBrowsingViewerFromActivePerspective(String id, String className) {
 		IWorkbenchPage activePage = initWindow.getActivePage();
 		if (activePage == null)
 			return null;
 		try {
 			IViewPart viewPart = activePage.findView(id);
-			Class<?> sub = Class.forName(className);
+			Class sub = Class.forName(className);
 
 			if (sub.isInstance(viewPart)) {
 				IViewPart view = viewPart;
 				if (view != null) {
 					try {
-						Class<?> clazz = sub.getSuperclass();
+						Class clazz = sub.getSuperclass();
 						Method method = clazz.getDeclaredMethod("getViewer", new Class[] {});
 						method.setAccessible(true);
 
@@ -117,8 +110,16 @@ public class FocusBrowsingPerspectiveAction extends AbstractFocusViewAction impl
 		return null;
 	}
 
+	public void init(IWorkbenchWindow window) {
+		initWindow = window;
+	}
+
 	public void propertyChange(PropertyChangeEvent event) {
 		// TODO Auto-generated method stub
 	}
 
+	@Override
+	public List<Class> getPreservedFilters() {
+		return Collections.emptyList();
+	}
 }

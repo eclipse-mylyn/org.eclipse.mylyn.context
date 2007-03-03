@@ -30,8 +30,8 @@ import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.mylar.context.core.ContextCorePlugin;
 import org.eclipse.mylar.context.core.IMylarElement;
-import org.eclipse.mylar.context.ui.AbstractContextUiBridge;
-import org.eclipse.mylar.core.MylarStatusHandler;
+import org.eclipse.mylar.context.core.MylarStatusHandler;
+import org.eclipse.mylar.context.ui.IMylarUiBridge;
 import org.eclipse.mylar.internal.java.JavaStructureBridge;
 import org.eclipse.mylar.resources.MylarResourcesPlugin;
 import org.eclipse.ui.IEditorInput;
@@ -46,7 +46,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 /**
  * @author Mik Kersten
  */
-public class JavaUiBridge extends AbstractContextUiBridge {
+public class JavaUiBridge implements IMylarUiBridge {
 
 	private Field javaOutlineField = null;
 
@@ -59,7 +59,6 @@ public class JavaUiBridge extends AbstractContextUiBridge {
 		}
 	}
 
-	@Override
 	public void open(IMylarElement node) {
 		// get the element and open it in an editor
 		IJavaElement javaElement = JavaCore.create(node.getHandleIdentifier());
@@ -96,7 +95,6 @@ public class JavaUiBridge extends AbstractContextUiBridge {
 //		}
 //	}
 
-	@Override
 	public void restoreEditor(IMylarElement document) {
 		IResource resource = MylarResourcesPlugin.getDefault().getResourceForElement(document, false);
 		IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -109,7 +107,6 @@ public class JavaUiBridge extends AbstractContextUiBridge {
 		}
 	}
 
-	@Override
 	public void close(IMylarElement node) {
 		try {
 			IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -132,12 +129,10 @@ public class JavaUiBridge extends AbstractContextUiBridge {
 		}
 	}
 
-	@Override
 	public boolean acceptsEditor(IEditorPart editorPart) {
 		return editorPart instanceof JavaEditor;
 	}
 
-	@Override
 	public IMylarElement getElement(IEditorInput input) {
 		Object adapter = input.getAdapter(IJavaElement.class);
 		if (adapter instanceof IJavaElement) {
@@ -149,7 +144,6 @@ public class JavaUiBridge extends AbstractContextUiBridge {
 		}
 	}
 	
-	@Override
 	public List<TreeViewer> getContentOutlineViewers(IEditorPart editorPart) {
 		if (editorPart == null || javaOutlineField == null)
 			return null;
@@ -168,10 +162,9 @@ public class JavaUiBridge extends AbstractContextUiBridge {
 		return viewers;
 	}
 
-	@Override
 	public Object getObjectForTextSelection(TextSelection selection, IEditorPart editor) {
 		if (editor instanceof JavaEditor) {
-			TextSelection textSelection = selection;
+			TextSelection textSelection = (TextSelection) selection;
 			try {
 				if (selection != null) {
 					return SelectionConverter.resolveEnclosingElement((JavaEditor) editor, textSelection);
@@ -187,7 +180,6 @@ public class JavaUiBridge extends AbstractContextUiBridge {
 		return null;
 	}
 
-	@Override
 	public String getContentType() {
 		return JavaStructureBridge.CONTENT_TYPE;
 	}

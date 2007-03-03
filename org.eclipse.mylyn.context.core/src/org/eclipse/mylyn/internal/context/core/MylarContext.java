@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.mylar.context.core.IMylarContext;
 import org.eclipse.mylar.context.core.IMylarElement;
-import org.eclipse.mylar.monitor.core.InteractionEvent;
+import org.eclipse.mylar.context.core.InteractionEvent;
 
 /**
  * @author Mik Kersten
@@ -119,11 +119,7 @@ public class MylarContext implements IMylarContext {
 	}
 
 	public IMylarElement get(String elementHandle) {
-		if (elementHandle == null) {
-			return null;
-		} else {
-			return elementMap.get(elementHandle);
-		}
+		return elementMap.get(elementHandle);
 	}
 
 	public List<IMylarElement> getInteresting() {
