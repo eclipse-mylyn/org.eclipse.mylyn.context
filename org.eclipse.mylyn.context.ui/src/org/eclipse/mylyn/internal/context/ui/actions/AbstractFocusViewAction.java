@@ -258,7 +258,7 @@ public abstract class AbstractFocusViewAction extends Action implements IViewAct
 	 * @return filters that should not be removed when the interest filter is
 	 *         installed
 	 */
-	private Set<Class<?>> getPreservedFilters() {
+	private Set<Class<?>> getPreservedFilterClasses() {
 		return ContextUiPlugin.getDefault().getPreservedFilterClasses(viewPart.getSite().getId());
 	}
 
@@ -274,8 +274,9 @@ public abstract class AbstractFocusViewAction extends Action implements IViewAct
 		try {
 			viewer.getControl().setRedraw(false);
 			previousFilters.put(viewer, Arrays.asList(viewer.getFilters()));
+			
 			if (viewPart != null && manageFilters) {
-				Set<Class<?>> excludedFilters = getPreservedFilters();
+				Set<Class<?>> excludedFilters = getPreservedFilterClasses();
 				for (ViewerFilter filter : previousFilters.get(viewer)) {
 					if (!excludedFilters.contains(filter.getClass())) {
 						try {
@@ -311,7 +312,7 @@ public abstract class AbstractFocusViewAction extends Action implements IViewAct
 
 		viewer.getControl().setRedraw(false);
 		if (viewPart != null && manageFilters) {
-			Set<Class<?>> excludedFilters = getPreservedFilters();
+			Set<Class<?>> excludedFilters = getPreservedFilterClasses();
 			if (previousFilters.containsKey(viewer)) {
 				for (ViewerFilter filter : previousFilters.get(viewer)) {
 					if (!excludedFilters.contains(filter.getClass())) {
