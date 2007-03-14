@@ -12,13 +12,10 @@
 package org.eclipse.mylar.context.core;
 
 /**
+ * Tag interface to indicate elements that should not be filtered as uninteresting.
+ * 
  * @author Mik Kersten
  */
-public interface IInteractionEventListener {
+public interface IAlwaysIntersting {
 
-	public abstract void interactionObserved(InteractionEvent event);
-
-	public abstract void startMonitoring();
-
-	public abstract void stopMonitoring();
 }

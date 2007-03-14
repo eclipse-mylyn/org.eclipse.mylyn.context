@@ -23,8 +23,8 @@ import org.eclipse.mylar.context.tests.support.FileTool;
 import org.eclipse.mylar.internal.context.core.MylarContext;
 import org.eclipse.mylar.internal.context.core.MylarContextExternalizer;
 import org.eclipse.mylar.internal.context.core.MylarContextManager;
+import org.eclipse.mylar.internal.context.core.SaxContextReader;
 import org.eclipse.mylar.internal.context.core.ScalingFactors;
-import org.eclipse.mylar.internal.context.core.util.SaxContextReader;
 
 /**
  * @author Mik Kersten
@@ -130,7 +130,7 @@ public class ContextExternalizerTest extends AbstractContextTest {
 		externalizer.writeContextToXml(context, file);
 
 		File dataDirectory = ContextCorePlugin.getDefault().getContextStore().getRootDirectory();
-		File contextsDirectory = new File(dataDirectory, MylarContextManager.CONTEXTS_DIRECTORY);
+		File contextsDirectory = new File(dataDirectory, "contexts"/*WorkspaceAwareContextStore.CONTEXTS_DIRECTORY*/);
 		File zippedContextFile = new File(contextsDirectory, context.getHandleIdentifier()
 				+ MylarContextManager.CONTEXT_FILE_EXTENSION);
 		assertTrue(zippedContextFile.exists());

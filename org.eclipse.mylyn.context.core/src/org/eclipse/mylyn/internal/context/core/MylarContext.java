@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.mylar.context.core.IMylarContext;
 import org.eclipse.mylar.context.core.IMylarElement;
-import org.eclipse.mylar.context.core.InteractionEvent;
+import org.eclipse.mylar.monitor.core.InteractionEvent;
 
 /**
  * @author Mik Kersten
@@ -71,8 +71,13 @@ public class MylarContext implements IMylarContext {
 	 * Propagations and predictions are not added as edges
 	 */
 	private IMylarElement parseInteractionEvent(InteractionEvent event) {
-		if (event.getKind().isUserEvent())
+		if (event.getStructureHandle() == null) {
+			return null;
+		}
+		
+		if (event.getKind().isUserEvent()) {
 			numUserEvents++;
+		}
 		MylarContextElement node = elementMap.get(event.getStructureHandle());
 		if (node == null) {
 			node = new MylarContextElement(event.getStructureKind(), event.getStructureHandle(), this);
@@ -119,7 +124,11 @@ public class MylarContext implements IMylarContext {
 	}
 
 	public IMylarElement get(String elementHandle) {
-		return elementMap.get(elementHandle);
+		if (elementHandle == null) {
+			return null;
+		} else {
+			return elementMap.get(elementHandle);
+		}
 	}
 
 	public List<IMylarElement> getInteresting() {

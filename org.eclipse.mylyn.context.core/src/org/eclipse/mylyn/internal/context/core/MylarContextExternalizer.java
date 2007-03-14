@@ -24,9 +24,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.eclipse.mylar.context.core.IContextReader;
 import org.eclipse.mylar.context.core.IContextWriter;
-import org.eclipse.mylar.context.core.MylarStatusHandler;
-import org.eclipse.mylar.internal.context.core.util.SaxContextReader;
-import org.eclipse.mylar.internal.context.core.util.SaxContextWriter;
+import org.eclipse.mylar.core.MylarStatusHandler;
 
 /**
  * @author Mik Kersten
@@ -71,8 +69,9 @@ public class MylarContextExternalizer {
 		if (context.getInteractionHistory().isEmpty())
 			return;
 		try {
-			 if (!file.exists())
+			 if (!file.exists()) {
 				file.createNewFile();
+			 }
 			String handleIdentifier = context.getHandleIdentifier();
 			String encoded = URLEncoder.encode(handleIdentifier, MylarContextManager.CONTEXT_FILENAME_ENCODING);		
 			ZipOutputStream outputStream = new ZipOutputStream(new FileOutputStream(file));

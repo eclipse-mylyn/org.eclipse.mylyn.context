@@ -13,6 +13,8 @@ package org.eclipse.mylar.context.core;
 
 import java.util.List;
 
+import org.eclipse.mylar.monitor.core.InteractionEvent;
+
 /**
  * @author Mik Kersten
  */
@@ -26,7 +28,7 @@ public interface IMylarContext {
 
 	public abstract IMylarElement getActiveNode();
 
-	public abstract void delete(IMylarElement node);
+	public abstract void delete(IMylarElement element);
 
 	public abstract void updateElementHandle(IMylarElement element, String newHandle);
 
