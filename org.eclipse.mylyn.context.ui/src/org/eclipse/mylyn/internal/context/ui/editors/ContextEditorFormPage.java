@@ -18,8 +18,10 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.IOpenListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.OpenEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.mylar.context.core.ContextCorePlugin;
 import org.eclipse.mylar.context.core.IMylarContext;
@@ -31,11 +33,12 @@ import org.eclipse.mylar.internal.context.ui.actions.ContextAttachAction;
 import org.eclipse.mylar.internal.context.ui.actions.ContextCopyAction;
 import org.eclipse.mylar.internal.context.ui.actions.ContextRetrieveAction;
 import org.eclipse.mylar.internal.context.ui.actions.RemoveFromContextAction;
-import org.eclipse.mylar.internal.tasks.ui.TaskListImages;
+import org.eclipse.mylar.internal.tasks.ui.TasksUiImages;
 import org.eclipse.mylar.internal.tasks.ui.actions.TaskActivateAction;
 import org.eclipse.mylar.tasks.core.AbstractRepositoryTask;
 import org.eclipse.mylar.tasks.core.ITask;
 import org.eclipse.mylar.tasks.ui.TasksUiPlugin;
+import org.eclipse.mylar.tasks.ui.editors.TaskEditorInput;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
@@ -66,9 +69,7 @@ import org.eclipse.ui.navigator.INavigatorContentExtension;
  */
 public class ContextEditorFormPage extends FormPage {
 
-	private static final String LABEL = "Task Context Editor";
-
-	private static final String ID_VIEWER = "org.eclipse.mylar.context.ui.navigator.context";
+	public static final String ID_VIEWER = "org.eclipse.mylar.context.ui.navigator.context";
 
 	private ScrolledForm form;
 
@@ -139,14 +140,14 @@ public class ContextEditorFormPage extends FormPage {
 	protected void createFormContent(IManagedForm managedForm) {
 		super.createFormContent(managedForm);
 		ContextCorePlugin.getContextManager().addListener(CONTEXT_LISTENER);
-		task = ((ContextEditorInput) getEditorInput()).getTask();
+		task = ((TaskEditorInput) getEditorInput()).getTask();
 
 		form = managedForm.getForm();
 		toolkit = managedForm.getToolkit();
 
-		form.setImage(TaskListImages.getImage(TaskListImages.TASK_ACTIVE_CENTERED));
-		form.setText(LABEL);
-//		toolkit.decorateFormHeading(form.getForm());
+		//form.setImage(TaskListImages.getImage(TaskListImages.TASK_ACTIVE_CENTERED));
+		//form.setText(LABEL);
+		//toolkit.decorateFormHeading(form.getForm());
 
 		form.getBody().setLayout(new GridLayout(2, false));
 		form.getBody().setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -180,7 +181,7 @@ public class ContextEditorFormPage extends FormPage {
 		sectionClient.setLayoutData(new GridData());
 
 		Label label = toolkit.createLabel(sectionClient, "");
-		label.setImage(TaskListImages.getImage(TaskListImages.FILTER));
+		label.setImage(TasksUiImages.getImage(TasksUiImages.FILTER));
 
 		doiScale = new Scale(sectionClient, SWT.FLAT);
 		GridData scaleGridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -219,7 +220,7 @@ public class ContextEditorFormPage extends FormPage {
 		}
 		
 		Label attachImage = toolkit.createLabel(sectionClient, "");
-		attachImage.setImage(TaskListImages.getImage(ContextUiImages.CONTEXT_ATTACH));
+		attachImage.setImage(TasksUiImages.getImage(ContextUiImages.CONTEXT_ATTACH));
 		attachImage.setEnabled(task instanceof AbstractRepositoryTask);
 		Hyperlink attachHyperlink = toolkit.createHyperlink(sectionClient, "Attach context...", SWT.NONE);
 		attachHyperlink.setEnabled(task instanceof AbstractRepositoryTask);
@@ -239,7 +240,7 @@ public class ContextEditorFormPage extends FormPage {
 		});
 
 		Label retrieveImage = toolkit.createLabel(sectionClient, "");
-		retrieveImage.setImage(TaskListImages.getImage(ContextUiImages.CONTEXT_RETRIEVE));
+		retrieveImage.setImage(TasksUiImages.getImage(ContextUiImages.CONTEXT_RETRIEVE));
 		retrieveImage.setEnabled(task instanceof AbstractRepositoryTask);
 		Hyperlink retrieveHyperlink = toolkit.createHyperlink(sectionClient, "Retrieve Context...", SWT.NONE);
 		retrieveHyperlink.setEnabled(task instanceof AbstractRepositoryTask);
@@ -259,7 +260,7 @@ public class ContextEditorFormPage extends FormPage {
 		});
 
 		Label copyImage = toolkit.createLabel(sectionClient, "");
-		copyImage.setImage(TaskListImages.getImage(ContextUiImages.CONTEXT_COPY));
+		copyImage.setImage(TasksUiImages.getImage(ContextUiImages.CONTEXT_COPY));
 		Hyperlink copyHyperlink = toolkit.createHyperlink(sectionClient, "Copy Context to...", SWT.NONE);
 		copyHyperlink.addMouseListener(new MouseListener() {
 
@@ -322,32 +323,21 @@ public class ContextEditorFormPage extends FormPage {
 		section.setExpanded(true);
 	}
 
-	public void createViewer(Composite aParent) {
+	private void createViewer(Composite aParent) {
 
 		commonViewer = createCommonViewer(aParent);
 		commonViewer.addFilter(interestFilter);
+		commonViewer.addOpenListener(new IOpenListener() {
 
+			public void open(OpenEvent event) {
+				System.err.println(">>> " + event);
+			}
+		});
+		
 		try {
 			commonViewer.getControl().setRedraw(false);
 
-			INavigatorContentExtension javaContent = commonViewer.getNavigatorContentService().getContentExtensionById(
-					"org.eclipse.jdt.java.ui.javaContent");
-			if (javaContent != null) {
-				ITreeContentProvider treeContentProvider = javaContent.getContentProvider();
-				// TODO: find a sane way of doing this, should be:
-				// if (javaContent.getContentProvider() != null) {
-				// JavaNavigatorContentProvider java =
-				// (JavaNavigatorContentProvider)javaContent.getContentProvider();
-				// java.setIsFlatLayout(true);
-				// }
-				try {
-					Class<?> clazz = treeContentProvider.getClass().getSuperclass();
-					Method method = clazz.getDeclaredMethod("setIsFlatLayout", new Class[] { boolean.class });
-					method.invoke(treeContentProvider, new Object[] { true });
-				} catch (Exception e) {
-					MylarStatusHandler.log(e, "couldn't set flat layout on Java content provider");
-				}
-			}
+			forceFlatLayoutOfJavaContent(commonViewer);
 
 			commonViewer.setInput(getSite().getPage().getInput());
 			getSite().setSelectionProvider(commonViewer);
@@ -358,6 +348,27 @@ public class ContextEditorFormPage extends FormPage {
 			commonViewer.expandAll();
 		} finally {
 			commonViewer.getControl().setRedraw(true);
+		}
+	}
+
+	public static void forceFlatLayoutOfJavaContent(CommonViewer commonViewer) {
+		INavigatorContentExtension javaContent = commonViewer.getNavigatorContentService().getContentExtensionById(
+				"org.eclipse.jdt.java.ui.javaContent");
+		if (javaContent != null) {
+			ITreeContentProvider treeContentProvider = javaContent.getContentProvider();
+			// TODO: find a sane way of doing this, should be:
+			// if (javaContent.getContentProvider() != null) {
+			// JavaNavigatorContentProvider java =
+			// (JavaNavigatorContentProvider)javaContent.getContentProvider();
+			// java.setIsFlatLayout(true);
+			// }
+			try {
+				Class<?> clazz = treeContentProvider.getClass().getSuperclass();
+				Method method = clazz.getDeclaredMethod("setIsFlatLayout", new Class[] { boolean.class });
+				method.invoke(treeContentProvider, new Object[] { true });
+			} catch (Exception e) {
+				MylarStatusHandler.log(e, "couldn't set flat layout on Java content provider");
+			}
 		}
 	}
 

@@ -12,6 +12,7 @@
 package org.eclipse.mylar.internal.resources.ui;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -47,7 +48,7 @@ public class ContextEditorManager implements IMylarContextListener {
 	private boolean previousCloseEditorsSetting = Workbench.getInstance().getPreferenceStore().getBoolean(IPreferenceConstants.REUSE_EDITORS_BOOLEAN);
 	
 	public void contextActivated(IMylarContext context) {
-		if (ContextUiPlugin.getDefault().getPreferenceStore().getBoolean(ContextUiPrefContstants.AUTO_MANAGE_EDITORS)) {
+		if (!Workbench.getInstance().isStarting() && ContextUiPlugin.getDefault().getPreferenceStore().getBoolean(ContextUiPrefContstants.AUTO_MANAGE_EDITORS)) {
 			Workbench workbench = (Workbench) PlatformUI.getWorkbench();
 			previousCloseEditorsSetting = workbench.getPreferenceStore().getBoolean(IPreferenceConstants.REUSE_EDITORS_BOOLEAN);
 			workbench.getPreferenceStore().setValue(IPreferenceConstants.REUSE_EDITORS_BOOLEAN, false);
@@ -61,16 +62,16 @@ public class ContextEditorManager implements IMylarContextListener {
 					ContextCorePlugin.getContextManager().setContextCapturePaused(true);
 				}
 
-				List<IMylarElement> documents = ContextCorePlugin.getContextManager().getInterestingDocuments();
+				Collection<IMylarElement> documents = ContextCorePlugin.getContextManager().getInterestingDocuments();
 				int opened = 0;
 				int threshold = ContextUiPlugin.getDefault().getPreferenceStore().getInt(ContextUiPrefContstants.AUTO_MANAGE_EDITORS_OPEN_NUM);
 				for (Iterator<IMylarElement> iter = documents.iterator(); iter.hasNext() && opened < threshold - 1; opened++) {
 					IMylarElement document = iter.next();
 					AbstractContextUiBridge bridge = ContextUiPlugin.getDefault().getUiBridge(document.getContentType());
 					bridge.restoreEditor(document);
-					opened++;
 				}
 				IMylarElement activeNode = context.getActiveNode();
+
 				if (activeNode != null) {
 					ContextUiPlugin.getDefault().getUiBridge(activeNode.getContentType()).open(activeNode);
 				}

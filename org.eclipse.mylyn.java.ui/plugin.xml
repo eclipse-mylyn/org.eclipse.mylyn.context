@@ -62,6 +62,12 @@
 				<contentExtension pattern="org.eclipse.jdt.java.ui.javaContent" />	
 			</includes>
 		</viewerContentBinding>
+		<viewerContentBinding 
+			viewerId="org.eclipse.mylar.context.ui.navigator.context.quick">
+			<includes>
+				<contentExtension pattern="org.eclipse.jdt.java.ui.javaContent" />	
+			</includes>
+		</viewerContentBinding>
 	</extension>
 
   	<!-- ==================== Editors ==================== -->
@@ -321,17 +327,18 @@
 	
   <extension point="org.eclipse.ui.popupMenus"> 
      <objectContribution
+     	   adaptable="false"
            id="org.eclipse.mylar.java.ui.interest"
-           objectClass="org.eclipse.jdt.core.IJavaElement">
+           objectClass="org.eclipse.jdt.core.IMember">
      	<action
             class="org.eclipse.mylar.internal.context.ui.actions.InterestDecrementAction"
             enablesFor="*"
             icon="icons/elcl16/interest-decrease.gif"
             id="org.eclipse.mylar.java.ui.actions.interest.decrement"
-            label="Mark Less Interesting"
+            label="Remove from Focus"
             menubarPath="additions"
             tooltip="Mark selected element as uninteresting">
-      </action>
+        </action>
 	    <action  
   		  	label="Mark as Landmark" 
 	  		tooltip="Mark the selected element as a landmark"
@@ -340,6 +347,16 @@
 	  		class="org.eclipse.mylar.internal.context.ui.actions.InterestIncrementAction"
 	  		icon="icons/elcl16/interest-increase.gif"
 	  		enablesFor="*"/>
+     <visibility>
+        <or>
+           <objectClass
+                 name="org.eclipse.jdt.core.IMethod">
+           </objectClass>
+           <objectClass
+                 name="org.eclipse.jdt.core.IField">
+           </objectClass>
+        </or>
+     </visibility>
 	 </objectContribution>
      <objectContribution
            adaptable="false"
@@ -350,7 +367,7 @@
             enablesFor="*"
             icon="icons/elcl16/interest-decrease.gif"
             id="org.eclipse.mylar.java.ui.actions.interest.decrement.container"
-            label="Mark Less Interesting"
+            label="Remove from Focus"
             menubarPath="additions"
             tooltip="Mark selected element as uninteresting">
       </action>
@@ -361,26 +378,40 @@
 	<actionSet
             id="org.eclipse.mylar.java.actionSet"
             label="Mylar Java"
-            visible="true"> 
-            
+            visible="false">
   		<action
           class="org.eclipse.mylar.internal.java.ui.actions.ToggleActiveFoldingAction"
           definitionId="org.eclipse.mylar.java.ui.editor.folding.auto"
           icon="icons/elcl16/interest-folding.gif"
           id="org.eclipse.mylar.java.ui.editor.folding.auto"
-          label="Automatically Fold Unintersting Elements"
+          label="Automatically Fold Uninteresting Elements"
           style="toggle"
           toolbarPath="org.eclipse.ui.edit.text.actionSet.presentation/Presentation"
-          tooltip="Automatically Fold Unintersting Elements">
+          tooltip="Automatically Fold Uninteresting Elements">
       	</action> 
+      	<!--
         <action
                definitionId="org.eclipse.mylar.java.ui.search.context"
                label="Search the current task context"
                class="org.eclipse.mylar.internal.java.ui.actions.FindReferencesInContextAction"
                id="org.eclipse.mylar.java.ui.search.context">
          </action>
+        -->
     </actionSet>
   </extension>
+  
+  <extension
+         point="org.eclipse.ui.actionSetPartAssociations">
+      <actionSetPartAssociation
+            targetID="org.eclipse.mylar.java.actionSet">
+         <part
+               id="org.eclipse.jdt.ui.CompilationUnitEditor">
+         </part>
+         <part
+               id="org.eclipse.jdt.ui.ClassFileEditor">
+         </part>
+      </actionSetPartAssociation>
+   </extension>
   
   <extension point="org.eclipse.ui.actionSets">
 	<actionSet
@@ -441,13 +472,13 @@
 
    <extension point="org.eclipse.ui.commands">
 	  <command
-         categoryId="org.eclipse.mylar.ui"
+         categoryId="org.eclipse.mylar.ui.commands"
          description="Search the current task context"
          id="org.eclipse.mylar.java.ui.search.context"
          name="Search Task Context">
       </command>
 	  <command
-         categoryId="org.eclipse.mylar.ui"
+         categoryId="org.eclipse.mylar.ui.commands"
          description="Toggle Active Folding"
          id="org.eclipse.mylar.java.ui.editor.folding.auto"
          name="Toggle Active Folding">
