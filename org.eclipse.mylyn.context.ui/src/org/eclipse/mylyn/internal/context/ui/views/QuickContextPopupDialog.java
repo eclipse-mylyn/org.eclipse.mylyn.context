@@ -70,7 +70,9 @@ public class QuickContextPopupDialog extends PopupDialog implements
 	private StringMatcher fStringMatcher;
 	
 	private QuickOutlinePatternAndInterestFilter namePatternFilter;
-			
+	
+	private ContextNodeOpenListener openListener; 
+	
 	public QuickContextPopupDialog(Shell parent, int shellStyle) {
 		super(parent, shellStyle, true, true, true, true, null, "Task Context");
 		create();
@@ -86,6 +88,12 @@ public class QuickContextPopupDialog extends PopupDialog implements
 	
 	private void createViewer(Composite parent) {
 		commonViewer = createCommonViewer(parent);
+		
+		openListener = new ContextNodeOpenListener(commonViewer);
+		
+		commonViewer.addOpenListener(openListener); 
+		commonViewer.getTree().addMouseListener(openListener);
+		
 		commonViewer.addFilter(interestFilter);
 		
 		namePatternFilter = new QuickOutlinePatternAndInterestFilter();

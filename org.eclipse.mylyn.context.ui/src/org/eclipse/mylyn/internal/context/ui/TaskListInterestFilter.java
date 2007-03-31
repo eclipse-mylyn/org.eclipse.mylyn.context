@@ -45,7 +45,7 @@ public class TaskListInterestFilter extends AbstractTaskListFilter {
 					task = ((AbstractQueryHit) object).getCorrespondingTask();
 				}
 				if (task != null) {
-					if (isUninteresting(task)) {
+					if (isUninteresting(parent, task)) {
 						return false;
 					} else if (isInteresting(parent, task)) {
 						return true;
@@ -64,11 +64,11 @@ public class TaskListInterestFilter extends AbstractTaskListFilter {
 		return (TasksUiPlugin.getTaskListManager().isWeekDay(container));// ||dateRangeTaskContainer.isFuture();
 	}
 
-	protected boolean isUninteresting(ITask task) {
+	protected boolean isUninteresting(Object parent, ITask task) {
 		return !task.isActive()
-				&& ((task.isCompleted() && !TasksUiPlugin.getTaskListManager().isCompletedToday(task) && !hasChanges(task)) || (TasksUiPlugin
-						.getTaskListManager().isScheduledAfterThisWeek(task))
-						&& !hasChanges(task));
+				&& ((task.isCompleted() && !TasksUiPlugin.getTaskListManager().isCompletedToday(task) && !hasChanges(
+						parent, task)) || (TasksUiPlugin.getTaskListManager().isScheduledAfterThisWeek(task))
+						&& !hasChanges(parent, task));
 	}
 
 	// TODO: make meta-context more explicit
@@ -78,9 +78,9 @@ public class TaskListInterestFilter extends AbstractTaskListFilter {
 
 	@Override
 	public boolean shouldAlwaysShow(Object parent, ITask task) {
-		return super.shouldAlwaysShow(parent, task) || hasChanges(task)
+		return super.shouldAlwaysShow(parent, task) || hasChanges(parent, task)
 				|| (TasksUiPlugin.getTaskListManager().isCompletedToday(task))
-				|| shouldShowInFocusedWorkweekDateContainer(parent, task)
+				||  shouldShowInFocusedWorkweekDateContainer(parent, task)
 				|| (isInterestingForThisWeek(parent, task) && !task.isCompleted())
 				|| (TasksUiPlugin.getTaskListManager().isOverdue(task))
 				|| NewLocalTaskAction.DESCRIPTION_DEFAULT.equals(task.getSummary());
@@ -89,11 +89,14 @@ public class TaskListInterestFilter extends AbstractTaskListFilter {
 
 	private static boolean shouldShowInFocusedWorkweekDateContainer(Object parent, ITask task) {
 		if (parent instanceof DateRangeContainer) {
-
-			boolean overdue = TasksUiPlugin.getTaskListManager().isOverdue(task);
-			if (overdue || task.isPastReminder()) {
-				return true;
-			}
+			// if(task.isCompleted()) {
+			// return false;
+			// }
+			// boolean overdue =
+			// TasksUiPlugin.getTaskListManager().isOverdue(task);
+			// if (overdue || task.isPastReminder()) {
+			// return true;
+			// }
 
 			DateRangeContainer container = (DateRangeContainer) parent;
 			Calendar previousCal = TasksUiPlugin.getTaskListManager().getActivityPrevious().getEnd();
@@ -118,12 +121,18 @@ public class TaskListInterestFilter extends AbstractTaskListFilter {
 		}
 	}
 
-	public static boolean hasChanges(ITask task) {
+	public static boolean hasChanges(Object parent, ITask task) {
+		if (parent instanceof DateRangeContainer) {
+			if (!shouldShowInFocusedWorkweekDateContainer(parent, task)) {
+				return false;
+			}
+		}
 		if (task instanceof AbstractRepositoryTask) {
 			AbstractRepositoryTask repositoryTask = (AbstractRepositoryTask) task;
 			if (repositoryTask.getSyncState() == RepositoryTaskSyncState.OUTGOING) {
 				return true;
-			} else if (repositoryTask.getSyncState() == RepositoryTaskSyncState.INCOMING) {
+			} else if (repositoryTask.getSyncState() == RepositoryTaskSyncState.INCOMING
+					&& !(parent instanceof DateRangeContainer)) {
 				return true;
 			} else if (repositoryTask.getSyncState() == RepositoryTaskSyncState.CONFLICT) {
 				return true;
