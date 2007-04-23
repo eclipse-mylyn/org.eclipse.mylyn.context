@@ -31,11 +31,13 @@ import org.eclipse.mylar.internal.context.ui.actions.ContextAttachAction;
 import org.eclipse.mylar.internal.context.ui.actions.ContextCopyAction;
 import org.eclipse.mylar.internal.context.ui.actions.ContextRetrieveAction;
 import org.eclipse.mylar.internal.context.ui.actions.RemoveFromContextAction;
-import org.eclipse.mylar.internal.tasks.ui.TaskListImages;
+import org.eclipse.mylar.internal.context.ui.views.ContextNodeOpenListener;
+import org.eclipse.mylar.internal.tasks.ui.TasksUiImages;
 import org.eclipse.mylar.internal.tasks.ui.actions.TaskActivateAction;
 import org.eclipse.mylar.tasks.core.AbstractRepositoryTask;
 import org.eclipse.mylar.tasks.core.ITask;
 import org.eclipse.mylar.tasks.ui.TasksUiPlugin;
+import org.eclipse.mylar.tasks.ui.editors.TaskEditorInput;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
@@ -66,24 +68,22 @@ import org.eclipse.ui.navigator.INavigatorContentExtension;
  */
 public class ContextEditorFormPage extends FormPage {
 
-	private static final String LABEL = "Task Context Editor";
-
-	private static final String ID_VIEWER = "org.eclipse.mylar.context.ui.navigator.context";
+	public static final String ID_VIEWER = "org.eclipse.mylar.context.ui.navigator.context";
 
 	private ScrolledForm form;
 
 	private FormToolkit toolkit;
-	
+
 	private CommonViewer commonViewer;
-	
+
 	private RemoveFromContextAction removeFromContextAction;
 
 	private ScalableInterestFilter interestFilter = new ScalableInterestFilter();
-		
+
 	private Scale doiScale;
-	
+
 	private ITask task;
-	
+
 	private IMylarContextListener CONTEXT_LISTENER = new IMylarContextListener() {
 
 		private void refresh() {
@@ -92,7 +92,7 @@ public class ContextEditorFormPage extends FormPage {
 				commonViewer.expandAll();
 			}
 		}
-		
+
 		public void contextActivated(IMylarContext context) {
 			refresh();
 		}
@@ -128,62 +128,63 @@ public class ContextEditorFormPage extends FormPage {
 		public void relationsChanged(IMylarElement element) {
 			refresh();
 		}
-		
+
 	};
 
 	public ContextEditorFormPage(FormEditor editor, String id, String title) {
 		super(editor, id, title);
 	}
-	
+
 	@Override
 	protected void createFormContent(IManagedForm managedForm) {
 		super.createFormContent(managedForm);
 		ContextCorePlugin.getContextManager().addListener(CONTEXT_LISTENER);
-		task = ((ContextEditorInput)getEditorInput()).getTask();
+		task = ((TaskEditorInput) getEditorInput()).getTask();
 
 		form = managedForm.getForm();
 		toolkit = managedForm.getToolkit();
-		
-		form.setImage(TaskListImages.getImage(TaskListImages.TASK_ACTIVE_CENTERED));
-		form.setText(LABEL);
-		toolkit.decorateFormHeading(form.getForm());
+
+		//form.setImage(TaskListImages.getImage(TaskListImages.TASK_ACTIVE_CENTERED));
+		//form.setText(LABEL);
+		//toolkit.decorateFormHeading(form.getForm());
 
 		form.getBody().setLayout(new GridLayout(2, false));
 		form.getBody().setLayoutData(new GridData(GridData.FILL_BOTH));
-		
+
 		createActionsSection(form.getBody());
 		createDisplaySection(form.getBody());
-		
+
 		form.reflow(true);
 	}
-	
+
 	@Override
 	public void dispose() {
 		super.dispose();
-//		ContextUiPlugin.getDefault().getViewerManager().removeManagedViewer(commonViewer, this);
+		// ContextUiPlugin.getDefault().getViewerManager().removeManagedViewer(commonViewer,
+		// this);
 		ContextCorePlugin.getContextManager().removeListener(CONTEXT_LISTENER);
 	}
 
 	private void createActionsSection(Composite composite) {
 		Section section = toolkit.createSection(composite, ExpandableComposite.TITLE_BAR | Section.TWISTIE);
 		section.setText("Actions");
-		
-		section.setLayout(new GridLayout());	
+
+		section.setLayout(new GridLayout());
 		GridData sectionGridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
 		sectionGridData.widthHint = 80;
 		section.setLayoutData(sectionGridData);
-		
+
 		Composite sectionClient = toolkit.createComposite(section);
 		section.setClient(sectionClient);
 		sectionClient.setLayout(new GridLayout(2, false));
 		sectionClient.setLayoutData(new GridData());
 
 		Label label = toolkit.createLabel(sectionClient, "");
-		label.setImage(TaskListImages.getImage(TaskListImages.FILTER));
-		
+		label.setImage(TasksUiImages.getImage(TasksUiImages.FILTER));
+
 		doiScale = new Scale(sectionClient, SWT.FLAT);
 		GridData scaleGridData = new GridData(GridData.FILL_HORIZONTAL);
-		scaleGridData.heightHint = 36;	
+		scaleGridData.heightHint = 36;
 		scaleGridData.widthHint = 80;
 		doiScale.setLayoutData(scaleGridData);
 		doiScale.setPageIncrement(1);
@@ -212,157 +213,170 @@ public class ContextEditorFormPage extends FormPage {
 				setFilterThreshold();
 			}
 		});
+
+		if (!task.equals(TasksUiPlugin.getTaskListManager().getTaskList().getActiveTask())) {
+			doiScale.setEnabled(false);
+		}
 		
 		Label attachImage = toolkit.createLabel(sectionClient, "");
-		attachImage.setImage(TaskListImages.getImage(ContextUiImages.CONTEXT_ATTACH));
+		attachImage.setImage(TasksUiImages.getImage(ContextUiImages.CONTEXT_ATTACH));
 		attachImage.setEnabled(task instanceof AbstractRepositoryTask);
 		Hyperlink attachHyperlink = toolkit.createHyperlink(sectionClient, "Attach context...", SWT.NONE);
 		attachHyperlink.setEnabled(task instanceof AbstractRepositoryTask);
 		attachHyperlink.addMouseListener(new MouseListener() {
 
 			public void mouseUp(MouseEvent e) {
-				new ContextAttachAction().run((AbstractRepositoryTask)task);
+				new ContextAttachAction().run((AbstractRepositoryTask) task);
 			}
-			
+
 			public void mouseDoubleClick(MouseEvent e) {
-				// ignore	
+				// ignore
 			}
 
 			public void mouseDown(MouseEvent e) {
 				// ignore
-			}			
+			}
 		});
 
 		Label retrieveImage = toolkit.createLabel(sectionClient, "");
-		retrieveImage.setImage(TaskListImages.getImage(ContextUiImages.CONTEXT_RETRIEVE));
+		retrieveImage.setImage(TasksUiImages.getImage(ContextUiImages.CONTEXT_RETRIEVE));
 		retrieveImage.setEnabled(task instanceof AbstractRepositoryTask);
 		Hyperlink retrieveHyperlink = toolkit.createHyperlink(sectionClient, "Retrieve Context...", SWT.NONE);
 		retrieveHyperlink.setEnabled(task instanceof AbstractRepositoryTask);
 		retrieveHyperlink.addMouseListener(new MouseListener() {
 
 			public void mouseUp(MouseEvent e) {
-				new ContextRetrieveAction().run((AbstractRepositoryTask)task);
+				new ContextRetrieveAction().run((AbstractRepositoryTask) task);
 			}
-			
+
 			public void mouseDoubleClick(MouseEvent e) {
-				// ignore	
+				// ignore
 			}
 
 			public void mouseDown(MouseEvent e) {
 				// ignore
-			}			
+			}
 		});
 
 		Label copyImage = toolkit.createLabel(sectionClient, "");
-		copyImage .setImage(TaskListImages.getImage(ContextUiImages.CONTEXT_COPY));
+		copyImage.setImage(TasksUiImages.getImage(ContextUiImages.CONTEXT_COPY));
 		Hyperlink copyHyperlink = toolkit.createHyperlink(sectionClient, "Copy Context to...", SWT.NONE);
 		copyHyperlink.addMouseListener(new MouseListener() {
 
 			public void mouseUp(MouseEvent e) {
 				new ContextCopyAction().run(task);
 			}
-			
+
 			public void mouseDoubleClick(MouseEvent e) {
-				// ignore	
+				// ignore
 			}
 
 			public void mouseDown(MouseEvent e) {
 				// ignore
-			}			
+			}
 		});
-		
+
 		section.setExpanded(true);
 	}
 
 	protected void setFilterThreshold() {
 		int setting = doiScale.getSelection();
 		int threshold = setting * setting * setting;
-		
+
 		interestFilter.setThreshold(threshold);
 		commonViewer.refresh();
 		commonViewer.expandAll();
 	}
-	
+
 	private void createDisplaySection(Composite composite) {
 		Section section = toolkit.createSection(composite, ExpandableComposite.TITLE_BAR | Section.TWISTIE);
 		section.setText("Elements");
 		section.setLayout(new GridLayout());
 		section.setLayoutData(new GridData(GridData.FILL_BOTH));
-				
+
 		Composite sectionClient = toolkit.createComposite(section);
 		section.setClient(sectionClient);
 		sectionClient.setLayout(new FillLayout());
-		
-		
+
 		if (task.equals(TasksUiPlugin.getTaskListManager().getTaskList().getActiveTask())) {
 			createViewer(sectionClient);
 		} else {
-			Hyperlink retrieveHyperlink = toolkit.createHyperlink(sectionClient, "Active task to edit context", SWT.NONE);
+			Hyperlink retrieveHyperlink = toolkit.createHyperlink(sectionClient, "Activate task to edit context",
+					SWT.NONE);
 			retrieveHyperlink.addMouseListener(new MouseListener() {
 
 				public void mouseUp(MouseEvent e) {
 					new TaskActivateAction().run(task);
 				}
-				
+
 				public void mouseDoubleClick(MouseEvent e) {
-					// ignore	
+					// ignore
 				}
 
 				public void mouseDown(MouseEvent e) {
 					// ignore
-				}			
+				}
 			});
 		}
-		
+
 		section.setExpanded(true);
 	}
-	
-	public void createViewer(Composite aParent) {
 
-		commonViewer = createCommonViewer(aParent);	
+	private void createViewer(Composite aParent) {
+
+		commonViewer = createCommonViewer(aParent);
 		commonViewer.addFilter(interestFilter);
-
+		
+		commonViewer.addOpenListener(new ContextNodeOpenListener(commonViewer)); 
+		
 		try {
 			commonViewer.getControl().setRedraw(false);
-			
-			INavigatorContentExtension javaContent = commonViewer.getNavigatorContentService().getContentExtensionById("org.eclipse.jdt.java.ui.javaContent");
-			ITreeContentProvider treeContentProvider = javaContent.getContentProvider();
 
-			// TODO: find a sane way of doing this, should be:
-//			if (javaContent.getContentProvider() != null) {
-//				JavaNavigatorContentProvider java = (JavaNavigatorContentProvider)javaContent.getContentProvider();
-//				java.setIsFlatLayout(true);
-//			}
-			try {
-				Class<?> clazz = treeContentProvider.getClass().getSuperclass();
-				Method method = clazz.getDeclaredMethod("setIsFlatLayout", new Class[] { boolean.class });
-				method.invoke(treeContentProvider, new Object[] { true } );
-			} catch (Exception e) {
-				MylarStatusHandler.log(e, "couldn't set flat layout on Java content provider");
-			}
-			
-			commonViewer.setInput(getSite().getPage().getInput()); 
+			forceFlatLayoutOfJavaContent(commonViewer);
+
+			commonViewer.setInput(getSite().getPage().getInput());
 			getSite().setSelectionProvider(commonViewer);
-//			ContextUiPlugin.getDefault().getViewerManager().addManagedViewer(commonViewer, this);
+			// ContextUiPlugin.getDefault().getViewerManager().addManagedViewer(commonViewer,
+			// this);
 			makeContextMenuActions();
 			hookContextMenu();
 			commonViewer.expandAll();
-		} finally { 
+		} finally {
 			commonViewer.getControl().setRedraw(true);
 		}
 	}
-	
+
+	public static void forceFlatLayoutOfJavaContent(CommonViewer commonViewer) {
+		INavigatorContentExtension javaContent = commonViewer.getNavigatorContentService().getContentExtensionById(
+				"org.eclipse.jdt.java.ui.javaContent");
+		if (javaContent != null) {
+			ITreeContentProvider treeContentProvider = javaContent.getContentProvider();
+			// TODO: find a sane way of doing this, should be:
+			// if (javaContent.getContentProvider() != null) {
+			// JavaNavigatorContentProvider java =
+			// (JavaNavigatorContentProvider)javaContent.getContentProvider();
+			// java.setIsFlatLayout(true);
+			// }
+			try {
+				Class<?> clazz = treeContentProvider.getClass().getSuperclass();
+				Method method = clazz.getDeclaredMethod("setIsFlatLayout", new Class[] { boolean.class });
+				method.invoke(treeContentProvider, new Object[] { true });
+			} catch (Exception e) {
+				MylarStatusHandler.log(e, "couldn't set flat layout on Java content provider");
+			}
+		}
+	}
+
 	protected CommonViewer createCommonViewer(Composite parent) {
-		CommonViewer viewer = new CommonViewer(ID_VIEWER, parent,
-				SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+		CommonViewer viewer = new CommonViewer(ID_VIEWER, parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		return viewer;
 	}
-	
+
 	private void makeContextMenuActions() {
 		removeFromContextAction = new RemoveFromContextAction(commonViewer, interestFilter);
 		commonViewer.addSelectionChangedListener(removeFromContextAction);
 	}
-	
+
 	private void hookContextMenu() {
 		MenuManager menuManager = new MenuManager("#PopupMenu");
 		menuManager.setRemoveAllWhenShown(true);
@@ -375,7 +389,7 @@ public class ContextEditorFormPage extends FormPage {
 		commonViewer.getControl().setMenu(menu);
 		getSite().registerContextMenu(menuManager, commonViewer);
 	}
-	
+
 	protected void fillContextMenu(IMenuManager manager) {
 		manager.add(removeFromContextAction);
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));

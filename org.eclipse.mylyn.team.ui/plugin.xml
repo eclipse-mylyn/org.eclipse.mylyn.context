@@ -34,19 +34,58 @@
      <extension point="org.eclipse.ui.popupMenus"> 
 
      	<objectContribution
-				id="org.eclipse.mylar.ui.team.synchronize.open.report"
+				id="org.eclipse.mylar.ui.team.synchronize.open.report.contribution"
 				objectClass="org.eclipse.mylar.tasks.core.ILinkedTaskInfo"
 				adaptable="true">
 			<action
 				class="org.eclipse.mylar.internal.team.ui.actions.OpenCorrespondingTaskAction"
 				enablesFor="1" 
 				icon="icons/elcl16/task-repository.gif"
-				id="org.eclipse.mylar.ui.team.synchronize.contribution.open.report"
+				id="org.eclipse.mylar.ui.team.synchronize.open.report.linked"
 				label="Open Corresponding Task"
 				menubarPath="mylar"
 				tooltip="Open Corresponding Task">
 			</action> 
+			<action
+				class="org.eclipse.mylar.internal.team.ui.actions.AddToTaskContextAction"
+				enablesFor="*" 
+				icon="icons/elcl16/context-add.gif"
+				id="org.eclipse.mylar.ui.team.synchronize.create.context"
+				label="Add to Task Context"
+				menubarPath="mylar"
+				tooltip="Add to Task Context">
+			</action> 
 		</objectContribution>
+
+		<objectContribution
+            objectClass="org.eclipse.team.internal.ui.synchronize.SyncInfoModelElement"
+            id="org.eclipse.mylar.ui.team.synchronize.open.report.syncinfo">
+            <action
+				class="org.eclipse.mylar.internal.team.ui.actions.AddToTaskContextAction"
+				enablesFor="*" 
+				icon="icons/elcl16/context-add.gif"
+				id="org.eclipse.mylar.ui.team.synchronize.create.context"
+				label="Add to Task Context"
+				menubarPath="mylar"
+				tooltip="Add to Task Context">
+			</action> 
+		</objectContribution>
+		<objectContribution
+            objectClass="org.eclipse.team.internal.ui.synchronize.UnchangedResourceModelElement"
+            id="org.eclipse.mylar.ui.team.synchronize.open.report.unchanged">
+            <action
+				class="org.eclipse.mylar.internal.team.ui.actions.AddToTaskContextAction"
+				enablesFor="*" 
+				icon="icons/elcl16/context-add.gif"
+				id="org.eclipse.mylar.ui.team.synchronize.create.context"
+				label="Add to Task Context"
+				menubarPath="mylar"
+				tooltip="Add to Task Context">
+			</action> 
+		</objectContribution>
+
+
+
 
         <!--
 		<objectContribution
@@ -154,19 +193,6 @@
 	        </action>
 		</objectContribution>
 	  -->
-	  
-      <objectContribution
-            adaptable="false"
-            id="org.eclipse.mylar.ide.team.ui.contribution.attachment.patch"
-            objectClass="org.eclipse.mylar.tasks.core.RepositoryAttachment">
-         <action
-               class="org.eclipse.mylar.internal.team.ui.actions.ApplyPatchAction"
-               icon="icons/elcl16/apply-patch.gif"
-               id="org.eclipse.mylar.team.ui.patch.apply"
-               label="Apply Patch..."
-               menubarPath="actions">
-         </action>
-      </objectContribution>
       
    </extension>
 	
@@ -228,13 +254,13 @@
              description="Provides the description of a Mylar task."
              recognizedKeyword="task.description"/>
        <templateVariable
-             class="org.eclipse.mylar.internal.team.template.CommitTemplateVariables$TaskHandle"
-             description="Provides the handle of a Mylar task."
-             recognizedKeyword="task.handle"/>
-       <templateVariable
              class="org.eclipse.mylar.internal.team.template.CommitTemplateVariables$TaskId"
              description="Provides the ID of a Mylar task."
              recognizedKeyword="task.id"/>
+       <templateVariable
+             class="org.eclipse.mylar.internal.team.template.CommitTemplateVariables$TaskKey"
+             description="Provides the key of a Mylar task, for most repositories this is equals to the ID."
+             recognizedKeyword="task.key"/>
        <templateVariable
              class="org.eclipse.mylar.internal.team.template.CommitTemplateVariables$TaskKeywords"
              description="Provides the comma separated keyword list of a Mylar task, if available."

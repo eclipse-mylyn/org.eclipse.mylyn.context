@@ -11,32 +11,25 @@
 
 package org.eclipse.mylar.internal.java.ui.junit;
 
-import java.util.Set;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.junit.launcher.JUnitLaunchConfigurationDelegate;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.jdt.internal.junit.launcher.JUnitLaunchConfiguration;
+import org.eclipse.jdt.internal.junit.launcher.TestSearchResult;
+import org.eclipse.jdt.internal.junit.ui.JUnitMessages;
+import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 
 /**
  * @author Mik Kersten
  */
-public class MylarJUnitLaunchConfiguration extends JUnitLaunchConfigurationDelegate {
-	
-	@Override
-	protected IMember[] evaluateTests(ILaunchConfiguration configuration, IProgressMonitor monitor) throws CoreException {
-		Set<IType> contextTestCases = MylarContextTestUtil.getTestCasesInContext();
-		MylarContextTestUtil.setupTestConfiguration(contextTestCases, configuration, monitor);
+public class MylarJUnitLaunchConfiguration extends JUnitLaunchConfiguration {
 
-		if (contextTestCases.isEmpty()) {
-			MessageDialog.openInformation(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), 
-					"Context Test Suite", 
-					"No test types found in the active task context.");
-		} 
-		return (IMember[])contextTestCases.toArray(new IMember[contextTestCases.size()]);
+	protected TestSearchResult findTestTypes(ILaunchConfiguration configuration, IProgressMonitor pm) throws CoreException {
+		TestSearchResult testSearchResult = MylarContextTestUtil.findTestTypes(configuration, pm);
+		if (testSearchResult.getTypes().length == 0) {
+			abort(JUnitMessages.JUnitBaseLaunchConfiguration_error_notests, null,
+					IJavaLaunchConfigurationConstants.ERR_UNSPECIFIED_MAIN_TYPE);
+		}
+		return testSearchResult;
 	}
 }

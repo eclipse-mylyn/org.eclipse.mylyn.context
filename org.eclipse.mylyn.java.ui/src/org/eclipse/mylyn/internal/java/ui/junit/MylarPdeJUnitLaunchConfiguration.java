@@ -13,30 +13,58 @@ package org.eclipse.mylar.internal.java.ui.junit;
 
 import java.util.Set;
 
+import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.pde.ui.launcher.JUnitLaunchConfigurationDelegate;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.jdt.internal.junit.launcher.TestSearchResult;
+import org.eclipse.jdt.internal.junit.ui.JUnitMessages;
+import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
+import org.eclipse.pde.core.plugin.IFragmentModel;
+import org.eclipse.pde.core.plugin.IPluginModelBase;
+import org.eclipse.pde.internal.core.PDECore;
+import org.eclipse.pde.internal.ui.PDEPlugin;
+import org.eclipse.pde.internal.ui.launcher.JUnitLaunchConfiguration;
 
 /**
  * @author Mik Kersten
  */
-public class MylarPdeJUnitLaunchConfiguration extends JUnitLaunchConfigurationDelegate {
+public class MylarPdeJUnitLaunchConfiguration extends JUnitLaunchConfiguration {
 
-	@Override
-	protected IMember[] evaluateTests(ILaunchConfiguration configuration, IProgressMonitor monitor) throws CoreException {
+	protected TestSearchResult findTestTypes(ILaunchConfiguration configuration, IProgressMonitor pm) throws CoreException {
+		TestSearchResult testSearchResult = MylarContextTestUtil.findTestTypes(configuration, pm);
+		if (testSearchResult.getTypes().length == 0) {
+			abort(JUnitMessages.JUnitBaseLaunchConfiguration_error_notests, null,
+					IJavaLaunchConfigurationConstants.ERR_UNSPECIFIED_MAIN_TYPE);
+		}
+		return testSearchResult;
+	}
+
+	protected String getTestPluginId(ILaunchConfiguration configuration) throws CoreException {
 		Set<IType> contextTestCases = MylarContextTestUtil.getTestCasesInContext();
-		MylarContextTestUtil.setupTestConfiguration(contextTestCases, configuration, monitor);
+		IJavaProject javaProject = null;
+		for (IType type : contextTestCases) {
+			IProjectNature nature = type.getJavaProject().getProject().getNature("org.eclipse.pde.PluginNature");
+			if (nature != null) {
+				javaProject = type.getJavaProject(); // HACK: might want
+														// another project
+			}
+		}
+		// IJavaProject javaProject = getJavaProject(configuration);
+		IPluginModelBase model = null;
+		if (javaProject != null) {
+			model = PDECore.getDefault().getModelManager().findModel(javaProject.getProject());
+		}
+		if (javaProject == null || model == null)
+			throw new CoreException(new Status(IStatus.ERROR, PDEPlugin.PLUGIN_ID, IStatus.ERROR,
+					"Could not find JUnit Plug-in Test in Task Context", null));
+		if (model instanceof IFragmentModel)
+			return ((IFragmentModel) model).getFragment().getPluginId();
 
-		if (contextTestCases.isEmpty()) {
-			MessageDialog.openInformation(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), 
-					"Context Test Suite", 
-					"No test types found in the active task context.");
-		} 
-		return (IMember[])contextTestCases.toArray(new IMember[contextTestCases.size()]);
+		return model.getPluginBase().getId();
 	}
 }

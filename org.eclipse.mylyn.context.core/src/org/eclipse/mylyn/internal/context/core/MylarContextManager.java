@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -27,14 +28,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import org.eclipse.mylar.context.core.AbstractContextStructureBridge;
 import org.eclipse.mylar.context.core.AbstractRelationProvider;
+import org.eclipse.mylar.context.core.ContextCorePlugin;
 import org.eclipse.mylar.context.core.IMylarContext;
 import org.eclipse.mylar.context.core.IMylarContextListener;
 import org.eclipse.mylar.context.core.IMylarElement;
 import org.eclipse.mylar.context.core.IMylarRelation;
-import org.eclipse.mylar.context.core.AbstractContextStructureBridge;
-import org.eclipse.mylar.context.core.InterestComparator;
-import org.eclipse.mylar.context.core.ContextCorePlugin;
 import org.eclipse.mylar.core.MylarStatusHandler;
 import org.eclipse.mylar.monitor.core.InteractionEvent;
 
@@ -54,6 +54,8 @@ public class MylarContextManager {
 	public static final String ACTIVITY_DELTA_DEACTIVATED = "deactivated";
 
 	public static final String ACTIVITY_DELTA_ACTIVATED = "activated";
+
+	public static final String ACTIVITY_DELTA_PULSE = "pulse";
 
 	public static final String ACTIVITY_ORIGIN_ID = "org.eclipse.mylar.core";
 
@@ -305,7 +307,8 @@ public class MylarContextManager {
 
 	protected void checkForLandmarkDeltaAndNotify(float previousInterest, IMylarElement node) {
 		// TODO: don't call interestChanged if it's a landmark?
-		AbstractContextStructureBridge bridge = ContextCorePlugin.getDefault().getStructureBridge(node.getContentType());
+		AbstractContextStructureBridge bridge = ContextCorePlugin.getDefault()
+				.getStructureBridge(node.getContentType());
 		if (bridge.canBeLandmark(node.getHandleIdentifier())) {
 			if (previousInterest >= scalingFactors.getLandmark() && !node.getInterest().isLandmark()) {
 				for (IMylarContextListener listener : new ArrayList<IMylarContextListener>(listeners))
@@ -320,7 +323,8 @@ public class MylarContextManager {
 	private void propegateInterestToParents(InteractionEvent.Kind kind, IMylarElement node, float previousInterest,
 			float decayOffset, int level, List<IMylarElement> interestDelta) {
 
-		if (level > MAX_PROPAGATION || node == null || node.getInterest().getValue() <= 0) {
+		if (level > MAX_PROPAGATION || node == null || node.getHandleIdentifier() == null
+				|| node.getInterest().getValue() <= 0) {
 			return;
 		}
 
@@ -329,27 +333,29 @@ public class MylarContextManager {
 		level++; // original is 1st level
 		float propagatedIncrement = node.getInterest().getValue() - previousInterest + decayOffset;
 
-		AbstractContextStructureBridge bridge = ContextCorePlugin.getDefault().getStructureBridge(node.getContentType());
+		AbstractContextStructureBridge bridge = ContextCorePlugin.getDefault()
+				.getStructureBridge(node.getContentType());
 		String parentHandle = bridge.getParentHandle(node.getHandleIdentifier());
-		
+
 		// check if should use child bridge
 		for (String contentType : ContextCorePlugin.getDefault().getChildContentTypes(bridge.getContentType())) {
 			AbstractContextStructureBridge childBridge = ContextCorePlugin.getDefault().getStructureBridge(contentType);
 			Object resolved = childBridge.getObjectForHandle(parentHandle);
 			if (resolved != null) {
-				AbstractContextStructureBridge canonicalBridge = ContextCorePlugin.getDefault().getStructureBridge(resolved);
+				AbstractContextStructureBridge canonicalBridge = ContextCorePlugin.getDefault().getStructureBridge(
+						resolved);
 				// HACK: hard-coded resource content type
 				if (!canonicalBridge.getContentType().equals(ContextCorePlugin.CONTENT_TYPE_ANY)) {
 					// NOTE: resetting bridge
 					bridge = canonicalBridge;
 				}
 			}
-		} 
-	
+		}
+
 		if (parentHandle != null) {
 			InteractionEvent propagationEvent = new InteractionEvent(InteractionEvent.Kind.PROPAGATION, bridge
-					.getContentType(node.getHandleIdentifier()), parentHandle,
-					SOURCE_ID_MODEL_PROPAGATION, CONTAINMENT_PROPAGATION_ID, propagatedIncrement);
+					.getContentType(node.getHandleIdentifier()), parentHandle, SOURCE_ID_MODEL_PROPAGATION,
+					CONTAINMENT_PROPAGATION_ID, propagatedIncrement);
 			IMylarElement previous = currentContext.get(propagationEvent.getStructureHandle());
 			if (previous != null && previous.getInterest() != null) {
 				previousInterest = previous.getInterest().getValue();
@@ -565,7 +571,7 @@ public class MylarContextManager {
 		}
 	}
 
-	public void saveActivityHistoryContext() {
+	public synchronized void saveActivityHistoryContext() {
 		if (ContextCorePlugin.getDefault().getContextStore() == null) {
 			return;
 		}
@@ -574,8 +580,25 @@ public class MylarContextManager {
 			if (!wasPaused) {
 				setContextCapturePaused(true);
 			}
-			externalizer.writeContextToXml(getActivityHistoryMetaContext(),
-					getFileForContext(CONTEXT_HISTORY_FILE_NAME));
+
+			List<InteractionEvent> attention = new ArrayList<InteractionEvent>();
+
+			MylarContext context = getActivityHistoryMetaContext();
+			MylarContext temp = new MylarContext(CONTEXT_HISTORY_FILE_NAME, MylarContextManager.getScalingFactors());
+			for (InteractionEvent event : context.getInteractionHistory()) {
+				if (event.getStructureHandle().equals(MylarContextManager.ACTIVITY_HANDLE_ATTENTION)) {
+					attention.add(event);
+				} else {
+					addAttentionEvents(attention, temp);
+					temp.parseEvent(event);
+				}
+			}
+
+			if (!attention.isEmpty()) {
+				addAttentionEvents(attention, temp);
+			}
+
+			externalizer.writeContextToXml(temp, getFileForContext(CONTEXT_HISTORY_FILE_NAME));
 		} catch (Throwable t) {
 			MylarStatusHandler.fail(t, "could not save activity history", false);
 		} finally {
@@ -583,6 +606,24 @@ public class MylarContextManager {
 				setContextCapturePaused(false);
 			}
 		}
+	}
+
+	private void addAttentionEvents(List<InteractionEvent> attention, MylarContext temp) {
+		InteractionEvent aggregateEvent = null;
+		if (attention.size() > 1) {
+			InteractionEvent firstEvent = attention.get(0);
+			InteractionEvent lastEvent = attention.get(attention.size() - 1);
+			aggregateEvent = new InteractionEvent(firstEvent.getKind(), firstEvent.getStructureKind(), firstEvent
+					.getStructureHandle(), firstEvent.getOriginId(), firstEvent.getNavigation(), firstEvent.getDelta(),
+					firstEvent.getInterestContribution() + firstEvent.getInterestContribution(), firstEvent.getDate(),
+					lastEvent.getEndDate());
+		} else if (attention.size() == 1) {
+			aggregateEvent = attention.get(0);
+		}
+		if (aggregateEvent != null) {
+			temp.parseEvent(aggregateEvent);
+		}
+		attention.clear();
 	}
 
 	public File getFileForContext(String handleIdentifier) {
@@ -654,7 +695,8 @@ public class MylarContextManager {
 		List<IMylarElement> allLandmarks = currentContext.getLandmarks();
 		List<IMylarElement> acceptedLandmarks = new ArrayList<IMylarElement>();
 		for (IMylarElement node : allLandmarks) {
-			AbstractContextStructureBridge bridge = ContextCorePlugin.getDefault().getStructureBridge(node.getContentType());
+			AbstractContextStructureBridge bridge = ContextCorePlugin.getDefault().getStructureBridge(
+					node.getContentType());
 
 			if (bridge.canBeLandmark(node.getHandleIdentifier())) {
 				acceptedLandmarks.add(node);
@@ -663,10 +705,7 @@ public class MylarContextManager {
 		return acceptedLandmarks;
 	}
 
-	/**
-	 * Sorted in descending interest order.
-	 */
-	public List<IMylarElement> getInterestingDocuments(IMylarContext context) {
+	public Collection<IMylarElement> getInterestingDocuments(IMylarContext context) {
 		Set<IMylarElement> set = new HashSet<IMylarElement>();
 		List<IMylarElement> allIntersting = context.getInteresting();
 		for (IMylarElement node : allIntersting) {
@@ -675,17 +714,12 @@ public class MylarContextManager {
 				set.add(node);
 			}
 		}
-		List<IMylarElement> list = new ArrayList<IMylarElement>(set);
-		Collections.sort(list, new InterestComparator<IMylarElement>());
-		return list;
+//		List<IMylarElement> list = new ArrayList<IMylarElement>(set);
+//		Collections.sort(list, new InterestComparator<IMylarElement>());
+		return set;
 	}
 
-	/**
-	 * Get the interesting resources for the active context.
-	 * 
-	 * Sorted in descending interest order.
-	 */
-	public List<IMylarElement> getInterestingDocuments() {
+	public Collection<IMylarElement> getInterestingDocuments() {
 		return getInterestingDocuments(currentContext);
 	}
 
@@ -707,7 +741,8 @@ public class MylarContextManager {
 		}
 		float originalValue = element.getInterest().getValue();
 		float changeValue = 0;
-		AbstractContextStructureBridge bridge = ContextCorePlugin.getDefault().getStructureBridge(element.getContentType());
+		AbstractContextStructureBridge bridge = ContextCorePlugin.getDefault().getStructureBridge(
+				element.getContentType());
 		if (!increment) {
 			if (element.getInterest().isLandmark() && bridge.canBeLandmark(element.getHandleIdentifier())) {
 				// keep it interesting
@@ -721,7 +756,8 @@ public class MylarContextManager {
 				// reduce interest of children
 				for (String childHandle : bridge.getChildHandles(element.getHandleIdentifier())) {
 					IMylarElement childElement = getElement(childHandle);
-					if (childElement != null && childElement.getInterest().isInteresting() && !childElement.equals(element)) {
+					if (childElement != null && childElement.getInterest().isInteresting()
+							&& !childElement.equals(element)) {
 						manipulateInterestForElement(childElement, increment, forceLandmark, sourceId);
 					}
 				}

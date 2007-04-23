@@ -15,20 +15,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jdt.core.Flags;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.junit.launcher.JUnitLaunchConfigurationConstants;
+import org.eclipse.jdt.internal.junit.launcher.ITestKind;
 import org.eclipse.jdt.internal.junit.launcher.TestKindRegistry;
-import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
+import org.eclipse.jdt.internal.junit.launcher.TestSearchResult;
 import org.eclipse.mylar.context.core.AbstractContextStructureBridge;
 import org.eclipse.mylar.context.core.ContextCorePlugin;
 import org.eclipse.mylar.context.core.IMylarElement;
@@ -42,38 +39,20 @@ import org.eclipse.mylar.internal.java.search.JUnitReferencesProvider;
  */
 public class MylarContextTestUtil {
 
-	public static void setupTestConfiguration(Set<IType> contextTestCases, ILaunchConfiguration configuration, IProgressMonitor pm)
-			throws CoreException {
-		String testKindId = TestKindRegistry.JUNIT3_TEST_KIND_ID;
-
-		IJavaProject javaProject = null;
-		for (IType type : contextTestCases) {
-			IProjectNature nature = type.getJavaProject().getProject().getNature("org.eclipse.pde.PluginNature");
-			if (nature != null) {
-				// HACK: might want another project
-				javaProject = type.getJavaProject();
-			}
-		}
-
-		ILaunchConfigurationWorkingCopy workingCopy = configuration.getWorkingCopy();
-		if (javaProject != null) {
-			workingCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, javaProject.getElementName());
-		}
-
+	public static TestSearchResult findTestTypes(ILaunchConfiguration configuration, IProgressMonitor pm) throws CoreException {
+		Set<IType> contextTestCases = MylarContextTestUtil.getTestCasesInContext();
+		ITestKind testKind = TestKindRegistry.getDefault().getKind(configuration);
 		// HACK: only checks first type
 		if (contextTestCases.size() > 0) {
-			testKindId = TestKindRegistry.getContainerTestKindId(contextTestCases.iterator().next());				
-			workingCopy.setAttribute(JUnitLaunchConfigurationConstants.ATTR_TEST_RUNNER_KIND, testKindId);
-			//			testKind = TestKindRegistry.getDefault().getKind(configuration);// contextTestCases.iterator().next());
+			testKind = TestKindRegistry.getDefault().getKind(contextTestCases.iterator().next());
 		}
-		workingCopy.doSave();
+		return new TestSearchResult(contextTestCases.toArray(new IType[contextTestCases.size()]), testKind);
 	}
-
+	
 	public static Set<IType> getTestCasesInContext() {
 		Set<IType> testTypes = new HashSet<IType>();
 		List<IMylarElement> interesting = ContextCorePlugin.getContextManager().getActiveContext().getInteresting();
-		AbstractContextStructureBridge bridge = ContextCorePlugin.getDefault().getStructureBridge(
-				JavaStructureBridge.CONTENT_TYPE);
+		AbstractContextStructureBridge bridge = ContextCorePlugin.getDefault().getStructureBridge(JavaStructureBridge.CONTENT_TYPE);
 		try {
 			for (IMylarElement element : interesting) {
 				if (element.getContentType().equals(JavaStructureBridge.CONTENT_TYPE)) {
