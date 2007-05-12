@@ -55,22 +55,16 @@ public class MylarWorkingSetManager implements IWorkingSetUpdater, IMylarContext
 		// nothing to do here
 	}
 
-	public void contextActivated(IMylarContext taskscape) {
+	public void contextActivated(IMylarContext context) {
 		updateWorkingSet();
 	}
 
-	public void contextDeactivated(IMylarContext taskscape) {
+	public void contextDeactivated(IMylarContext context) {
 		updateWorkingSet();
 	}
-
-	public void presentationSettingsChanging(UpdateKind kind) {
-		// don't care about this event
-
-	}
-
-	public void presentationSettingsChanged(UpdateKind kind) {
-		// don't care about this event
-
+	
+	public void contextCleared(IMylarContext context) {
+		updateWorkingSet();
 	}
 
 	public void interestChanged(List<IMylarElement> nodes) {

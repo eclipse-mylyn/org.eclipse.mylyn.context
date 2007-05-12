@@ -78,6 +78,10 @@ public abstract class AbstractAutoFocusViewAction extends AbstractFocusViewActio
 			update(false);
 		} 
 	}
+	
+	public void contextCleared(IMylarContext context) {
+		// ignore
+	}
 
 	public void relationsChanged(IMylarElement element) {
 		// ignore
@@ -99,12 +103,4 @@ public abstract class AbstractAutoFocusViewAction extends AbstractFocusViewActio
 		// ignore
 	}
 
-	public void presentationSettingsChanged(UpdateKind kind) {
-		// ignore
-	}
-
-	public void presentationSettingsChanging(UpdateKind kind) {
-		// ignore	
-	}
-	
 }

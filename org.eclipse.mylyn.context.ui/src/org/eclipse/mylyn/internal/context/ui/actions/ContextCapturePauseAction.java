@@ -69,6 +69,10 @@ public class ContextCapturePauseAction extends Action implements IViewActionDele
 		}
 	}
 
+	public void contextCleared(IMylarContext context) {
+		// ignore
+	}
+	
 	public void contextDeactivated(IMylarContext context) {
 		// ignore
 	}
@@ -90,14 +94,6 @@ public class ContextCapturePauseAction extends Action implements IViewActionDele
 	}
 
 	public void elementDeleted(IMylarElement element) {
-		// ignore
-	}
-
-	public void presentationSettingsChanged(UpdateKind kind) {
-		// ignore
-	}
-
-	public void presentationSettingsChanging(UpdateKind kind) {
 		// ignore
 	}
 	

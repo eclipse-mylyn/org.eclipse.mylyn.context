@@ -185,14 +185,12 @@ public class ActiveFoldingListener implements IMylarContextListener {
 		}
 	}
 
-	public void presentationSettingsChanging(IMylarContextListener.UpdateKind kind) {
-		// ignore
+	public void contextCleared(IMylarContext context) {
+		if (ContextUiPlugin.getDefault().getPreferenceStore().getBoolean(ContextUiPrefContstants.ACTIVE_FOLDING_ENABLED)) {
+			updateFolding();
+		}
 	}
-
-	public void presentationSettingsChanged(IMylarContextListener.UpdateKind kind) {
-		updateFolding();
-	}
-
+	
 	public void landmarkAdded(IMylarElement element) {
 		// ignore
 	}

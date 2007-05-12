@@ -15,6 +15,30 @@
      <structureBridge
            class="org.eclipse.mylar.internal.java.JavaDebugStructureBridge"
            name="Java Debug Structure Bridge"/>
+     <relationProvider
+           class="org.eclipse.mylar.internal.java.search.JavaImplementorsProvider"
+           contentType="java">
+     </relationProvider>
+     <relationProvider
+           class="org.eclipse.mylar.internal.java.search.JavaReadAccessProvider"
+           contentType="java">
+     </relationProvider>
+     <relationProvider
+           class="org.eclipse.mylar.internal.java.search.JavaReferencesProvider"
+           contentType="java">
+     </relationProvider>
+     <relationProvider
+           class="org.eclipse.mylar.internal.java.search.JavaWriteAccessProvider"
+           contentType="java">
+     </relationProvider>
+     <relationProvider
+           class="org.eclipse.mylar.internal.java.search.JUnitReferencesProvider"
+           contentType="java">
+     </relationProvider>
+     <relationProvider
+           class="org.eclipse.mylar.internal.java.search.XmlJavaRelationProvider"
+           contentType="plugin.xml">
+     </relationProvider>
 	</extension>
 	   
 	<extension point="org.eclipse.mylar.context.ui.bridges">
@@ -398,9 +422,9 @@
          </action>
         -->
     </actionSet>
-  </extension>
+   </extension>
   
-  <extension
+   <extension
          point="org.eclipse.ui.actionSetPartAssociations">
       <actionSetPartAssociation
             targetID="org.eclipse.mylar.java.actionSet">
@@ -413,7 +437,7 @@
       </actionSetPartAssociation>
    </extension>
   
-  <extension point="org.eclipse.ui.actionSets">
+   <extension point="org.eclipse.ui.actionSets">
 	<actionSet
             id="org.eclipse.mylar.java.actionSet.browsing"
             label="Mylar Java Browsing"
@@ -430,7 +454,7 @@
 	    </action>
   	</actionSet>
   </extension>
-
+  
  <extension point="org.eclipse.ui.actionSetPartAssociations">
 	<actionSetPartAssociation targetID="org.eclipse.mylar.java.actionSet.browsing">
          <part id="org.eclipse.jdt.ui.MembersView"/>
@@ -508,150 +532,3 @@
    </extension> 
 -->
 </plugin>
-
-     
-  <!-- ** CUSTOM EDITOR ****************************************** 
-
-  <extension
-         id="editors"
-         point="org.eclipse.ui.editors">
-      <editor 
-            name="Mylar Java Editor"
-            icon="icons/eview16/editor-mylar-java.gif"
-            extensions="java"
-            contributorClass="org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditorActionContributor"
-            class="org.eclipse.mylar.internal.java.ui.editor.MylarCompilationUnitEditor"
-            id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor">
-      		<contentTypeBinding contentTypeId="org.eclipse.jdt.core.javaSource" /> 
-      </editor>  
-   </extension> 
-   
-     <extension point="org.eclipse.ui.actionSetPartAssociations">
-  	<actionSetPartAssociation targetID="org.eclipse.jdt.ui.A_OpenActionSet">
-		<part id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor" /> 
-    </actionSetPartAssociation>
-  	<actionSetPartAssociation targetID="org.eclipse.jdt.ui.CodingActionSet">
-		<part id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor" /> 
-    </actionSetPartAssociation>
-    <actionSetPartAssociation targetID="org.eclipse.jdt.ui.SearchActionSet">
-  		<part id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor" /> 
-  		<part id="org.eclipse.mylar.java.ui.editor.MylarClassFileEditor" /> 
-  	</actionSetPartAssociation>
-    <actionSetPartAssociation targetID="org.eclipse.ui.edit.text.actionSet.annotationNavigation">
-		<part id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor" /> 
-  		<part id="org.eclipse.mylar.java.ui.editor.MylarClassFileEditor" /> 
-   </actionSetPartAssociation>
-   <actionSetPartAssociation targetID="org.eclipse.ui.edit.text.actionSet.presentation">
-		<part id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor" /> 
-  		<part id="org.eclipse.mylar.java.ui.editor.MylarClassFileEditor" /> 
-   </actionSetPartAssociation>
-   <actionSetPartAssociation targetID="org.eclipse.jdt.ui.text.java.actionSet.presentation">
-		<part id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor" /> 
-  		<part id="org.eclipse.mylar.java.ui.editor.MylarClassFileEditor" /> 
-   </actionSetPartAssociation>
-  </extension>
-  
-     COPIED from org.eclipse.jdt.ui and jdt.debug.ui 
-      <extension
-         point="org.eclipse.ui.actionSetPartAssociations">
-      <actionSetPartAssociation
-            targetID="org.eclipse.ui.edit.text.actionSet.annotationNavigation">
-         <part
-               id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor">
-         </part>
-      </actionSetPartAssociation>
-      <actionSetPartAssociation
-            targetID="org.eclipse.ui.edit.text.actionSet.presentation">
-         <part
-               id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor">
-         </part>
-      </actionSetPartAssociation>
-      <actionSetPartAssociation
-            targetID="org.eclipse.jdt.ui.text.java.actionSet.presentation">
-         <part
-               id="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor">
-         </part>
-      </actionSetPartAssociation>
-   </extension>
-   <extension
-         point="org.eclipse.ui.editorActions">
-      <editorContribution
-            targetID="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor"
-            id="org.eclipse.ui.texteditor.ruler.actions">
-         <action
-               label="%Dummy.label"
-               class="org.eclipse.jdt.internal.ui.javaeditor.JavaSelectRulerAction"
-               actionID="RulerClick"
-               id="org.eclipse.jdt.internal.ui.javaeditor.JavaSelectRulerAction">
-         </action>
-      </editorContribution>
-   </extension>
-         <extension
-         point="org.eclipse.ui.editorActions">
-      <editorContribution
-            targetID="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor"
-            id="org.eclipse.jdt.debug.CompilationUnitEditor.BreakpointRulerActions">
-         <action
-               label="%AddBreakpoint.label"
-               class="org.eclipse.debug.ui.actions.RulerToggleBreakpointActionDelegate"
-               actionID="RulerDoubleClick"
-               id="org.eclipse.jdt.debug.ui.actions.ManageBreakpointRulerAction">
-         </action>
-      </editorContribution>
-   </extension>
-
-  -->
-  
-  <!--
-  <extension point="org.eclipse.jdt.ui.foldingStructureProviders">
-  	<provider 
-  		preferencesClass="org.eclipse.mylar.java.ui.editor.AutoFoldPreferenceBlock" 
-  		class="org.eclipse.mylar.java.ui.editor.AutoFoldingStructureProvider" 
-  		name="Mylar Auto Folding" 
-  		id="org.eclipse.mylar.java.ui.editor.foldingprovider" /> 
-    </extension> 
-  --> 
-
-
-	<!--
-	<extension point="org.eclipse.ui.perspectives">
-	   <perspective
-          class="org.eclipse.mylar.java.ui.views.MylarPerspectiveFactory"
-          icon="icons/eview16/editor-mylar-java.gif"
-          id="org.eclipse.mylar.java.perspective"
-          name="Mylar">
-	   </perspective>
-	</extension>
-	-->
-
-<!--
-	<extension point="org.eclipse.ui.editorActions"> 
-		<editorContribution 
-      		id="org.eclipse.ui.articles.action.contribution.editor" 
-   			targetID="org.eclipse.mylar.java.ui.editor.MylarCompilationUnitEditor">
-	   		<action
-	         	id="org.eclipse.mylar.action.contribution.editor.autoFold" 
-	         	style="toggle"
-	         	label="Mylar automatic folding" 
-	         	icon="icons/elcl16/auto-fold.gif"
-	         	tooltip="Mylar automatic folding"
-	      		toolbarPath="Normal/additions"
-	         	class="org.eclipse.mylar.java.ui.actions.ToggleAutoFoldAction"> 
-	      	</action> 
-   	 	</editorContribution> 
-   	 	
-   	 	<editorContribution 
-      		id="org.eclipse.ui.articles.action.contribution.editor.classFile" 
-   			targetID="org.eclipse.jdt.internal.ui.javaeditor.ClassFileEditor">
-	   		<action
-	         	id="org.eclipse.mylar.action.contribution.editor.autoFold.classFile" 
-	         	style="toggle"
-	         	label="Mylar automatic folding" 
-	         	icon="icons/elcl16/auto-fold.gif"
-	         	tooltip="Mylar automatic folding"
-	      		toolbarPath="Normal/additions"
-	         	class="org.eclipse.mylar.java.ui.actions.ToggleAutoFoldAction"> 
-	      	</action> 
-   	 	</editorContribution>
-   </extension>
-	-->

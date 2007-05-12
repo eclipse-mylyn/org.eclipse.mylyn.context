@@ -22,11 +22,10 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import org.eclipse.mylar.context.core.AbstractContextStructureBridge;
 import org.eclipse.mylar.context.core.AbstractRelationProvider;
@@ -45,7 +44,7 @@ import org.eclipse.mylar.monitor.core.InteractionEvent;
  * 
  * @author Mik Kersten
  */
-public class MylarContextManager {
+public class ContextManager {
 
 	// TODO: move constants
 
@@ -93,6 +92,8 @@ public class MylarContextManager {
 
 	private List<String> errorElementHandles = new ArrayList<String>();
 
+	private Set<File> contextFiles = null;
+
 	private boolean contextCapturePaused = false;
 
 	private CompositeContext currentContext = new CompositeContext();
@@ -113,7 +114,7 @@ public class MylarContextManager {
 
 	private static ScalingFactors scalingFactors = new ScalingFactors();
 
-	public MylarContextManager() {
+	public ContextManager() {
 
 	}
 
@@ -154,7 +155,7 @@ public class MylarContextManager {
 	}
 
 	public void resetActivityHistory() {
-		activityMetaContext = new MylarContext(CONTEXT_HISTORY_FILE_NAME, MylarContextManager.getScalingFactors());
+		activityMetaContext = new MylarContext(CONTEXT_HISTORY_FILE_NAME, ContextManager.getScalingFactors());
 		saveActivityHistoryContext();
 	}
 
@@ -411,21 +412,14 @@ public class MylarContextManager {
 		listeners.clear();
 	}
 
-	public void notifyPostPresentationSettingsChange(IMylarContextListener.UpdateKind kind) {
-		for (IMylarContextListener listener : listeners)
-			listener.presentationSettingsChanged(kind);
-	}
-
-	public void notifyActivePresentationSettingsChange(IMylarContextListener.UpdateKind kind) {
-		for (IMylarContextListener listener : listeners)
-			listener.presentationSettingsChanging(kind);
-	}
-
 	/**
 	 * Public for testing, activiate via handle
 	 */
 	public void activateContext(MylarContext context) {
 		currentContext.getContextMap().put(context.getHandleIdentifier(), context);
+		if (contextFiles != null) {
+			contextFiles.add(getFileForContext(context.getHandleIdentifier()));
+		}
 		if (!activationHistorySuppressed) {
 			handleActivityMetaContextEvent(new InteractionEvent(InteractionEvent.Kind.COMMAND, ACTIVITY_STRUCTURE_KIND,
 					context.getHandleIdentifier(), ACTIVITY_ORIGIN_ID, null, ACTIVITY_DELTA_ACTIVATED, 1f));
@@ -464,11 +458,28 @@ public class MylarContextManager {
 	}
 
 	/**
-	 * Could load in the context and inspect it, but this is cheaper.
+	 * Lazily loads set of handles with corresponding contexts.
 	 */
-	public boolean hasContext(String path) {
-		File contextFile = getFileForContext(path);
-		return contextFile.exists() && contextFile.length() > 0;
+	public boolean hasContext(String handleIdentifier) {
+		if (handleIdentifier == null) {
+			return false;
+		}
+		if (contextFiles == null) {
+			contextFiles = new HashSet<File>();
+			File contextDirectory = ContextCorePlugin.getDefault().getContextStore().getContextDirectory();
+			File[] files = contextDirectory.listFiles();
+			for (File file : files) {
+				contextFiles.add(file);
+			}
+		}
+		if (getActiveContext() != null && handleIdentifier.equals(getActiveContext().getHandleIdentifier())) {
+			return !getActiveContext().getAllElements().isEmpty();
+		} else {
+			File file = getFileForContext(handleIdentifier);
+			return contextFiles.contains(file);
+		}
+// File contextFile = getFileForContext(path);
+// return contextFile.exists() && contextFile.length() > 0;
 	}
 
 	public void deactivateAllContexts() {
@@ -492,6 +503,9 @@ public class MylarContextManager {
 						MylarStatusHandler.fail(e, "context listener failed", false);
 					}
 				}
+				if (context.getAllElements().size() == 0) {
+					contextFiles.remove(getFileForContext(context.getHandleIdentifier()));
+				}
 				setContextCapturePaused(false);
 			}
 			if (!activationHistorySuppressed) {
@@ -508,34 +522,33 @@ public class MylarContextManager {
 	public void deleteContext(String handleIdentifier) {
 		IMylarContext context = currentContext.getContextMap().get(handleIdentifier);
 		eraseContext(handleIdentifier, false);
-		if (context != null) {
-			// TODO: this notification is redundant with eraseContext's
-			setContextCapturePaused(true);
-			for (IMylarContextListener listener : new ArrayList<IMylarContextListener>(listeners)) {
-				listener.contextDeactivated(context);
-			}
-			setContextCapturePaused(false);
-		}
 		try {
 			File file = getFileForContext(handleIdentifier);
 			if (file.exists()) {
 				file.delete();
+			}
+			setContextCapturePaused(true);
+			for (IMylarContextListener listener : new ArrayList<IMylarContextListener>(listeners)) {
+				listener.contextCleared(context);
+			}
+			setContextCapturePaused(false);
+			if (contextFiles != null) {
+				contextFiles.add(getFileForContext(handleIdentifier));
 			}
 		} catch (SecurityException e) {
 			MylarStatusHandler.fail(e, "Could not delete context file", false);
 		}
 	}
 
-	private void eraseContext(String id, boolean notify) {
-		MylarContext context = currentContext.getContextMap().get(id);
+	private void eraseContext(String handleIdentifier, boolean notify) {
+		if (contextFiles != null) {
+			contextFiles.remove(getFileForContext(handleIdentifier));
+		}
+		MylarContext context = currentContext.getContextMap().get(handleIdentifier);
 		if (context == null)
 			return;
 		currentContext.getContextMap().remove(context);
 		context.reset();
-		if (notify) {
-			for (IMylarContextListener listener : listeners)
-				listener.presentationSettingsChanging(IMylarContextListener.UpdateKind.UPDATE);
-		}
 	}
 
 	/**
@@ -545,7 +558,7 @@ public class MylarContextManager {
 		MylarContext loadedContext = externalizer.readContextFromXML(handleIdentifier,
 				getFileForContext(handleIdentifier));
 		if (loadedContext == null) {
-			return new MylarContext(handleIdentifier, MylarContextManager.getScalingFactors());
+			return new MylarContext(handleIdentifier, ContextManager.getScalingFactors());
 		} else {
 			return loadedContext;
 		}
@@ -562,6 +575,7 @@ public class MylarContextManager {
 				return;
 			context.collapse();
 			externalizer.writeContextToXml(context, getFileForContext(handleIdentifier));
+			contextFiles.add(getFileForContext(handleIdentifier));
 		} catch (Throwable t) {
 			MylarStatusHandler.fail(t, "could not save context", false);
 		} finally {
@@ -584,21 +598,22 @@ public class MylarContextManager {
 			List<InteractionEvent> attention = new ArrayList<InteractionEvent>();
 
 			MylarContext context = getActivityHistoryMetaContext();
-			MylarContext temp = new MylarContext(CONTEXT_HISTORY_FILE_NAME, MylarContextManager.getScalingFactors());
+			MylarContext tempContext = new MylarContext(CONTEXT_HISTORY_FILE_NAME, ContextManager.getScalingFactors());
 			for (InteractionEvent event : context.getInteractionHistory()) {
-				if (event.getStructureHandle().equals(MylarContextManager.ACTIVITY_HANDLE_ATTENTION)) {
+				if (event.getDelta().equals(ContextManager.ACTIVITY_DELTA_ACTIVATED)
+						&& event.getStructureHandle().equals(ContextManager.ACTIVITY_HANDLE_ATTENTION)) {
 					attention.add(event);
 				} else {
-					addAttentionEvents(attention, temp);
-					temp.parseEvent(event);
+					addAttentionEvents(attention, tempContext);
+					tempContext.parseEvent(event);
 				}
 			}
 
 			if (!attention.isEmpty()) {
-				addAttentionEvents(attention, temp);
+				addAttentionEvents(attention, tempContext);
 			}
 
-			externalizer.writeContextToXml(temp, getFileForContext(CONTEXT_HISTORY_FILE_NAME));
+			externalizer.writeContextToXml(tempContext, getFileForContext(CONTEXT_HISTORY_FILE_NAME));
 		} catch (Throwable t) {
 			MylarStatusHandler.fail(t, "could not save activity history", false);
 		} finally {
@@ -610,20 +625,31 @@ public class MylarContextManager {
 
 	private void addAttentionEvents(List<InteractionEvent> attention, MylarContext temp) {
 		InteractionEvent aggregateEvent = null;
-		if (attention.size() > 1) {
-			InteractionEvent firstEvent = attention.get(0);
-			InteractionEvent lastEvent = attention.get(attention.size() - 1);
-			aggregateEvent = new InteractionEvent(firstEvent.getKind(), firstEvent.getStructureKind(), firstEvent
-					.getStructureHandle(), firstEvent.getOriginId(), firstEvent.getNavigation(), firstEvent.getDelta(),
-					firstEvent.getInterestContribution() + firstEvent.getInterestContribution(), firstEvent.getDate(),
-					lastEvent.getEndDate());
-		} else if (attention.size() == 1) {
-			aggregateEvent = attention.get(0);
+		try {
+			if (attention.size() > 1) {
+				InteractionEvent firstEvent = attention.get(0);
+				long totalTime = 0;
+				for (InteractionEvent interactionEvent : attention) {
+					totalTime += interactionEvent.getEndDate().getTime() - interactionEvent.getDate().getTime();
+				}
+				if (totalTime != 0) {
+					Date newEndDate = new Date(firstEvent.getDate().getTime() + totalTime);
+					aggregateEvent = new InteractionEvent(firstEvent.getKind(), firstEvent.getStructureKind(),
+							firstEvent.getStructureHandle(), firstEvent.getOriginId(), firstEvent.getNavigation(),
+							firstEvent.getDelta(), 1f, firstEvent.getDate(), newEndDate);
+				}
+			} else if (attention.size() == 1) {
+				if (attention.get(0).getEndDate().getTime() - attention.get(0).getDate().getTime() > 0) {
+					aggregateEvent = attention.get(0);
+				}
+			}
+			if (aggregateEvent != null) {
+				temp.parseEvent(aggregateEvent);
+			}
+			attention.clear();
+		} catch (Exception e) {
+			MylarStatusHandler.fail(e, "Error during meta activity collapse", false);
 		}
-		if (aggregateEvent != null) {
-			temp.parseEvent(aggregateEvent);
-		}
-		attention.clear();
 	}
 
 	public File getFileForContext(String handleIdentifier) {
@@ -671,20 +697,8 @@ public class MylarContextManager {
 		}
 	}
 
-	public List<AbstractRelationProvider> getActiveRelationProviders() {
-		List<AbstractRelationProvider> providers = new ArrayList<AbstractRelationProvider>();
-		Map<String, AbstractContextStructureBridge> bridges = ContextCorePlugin.getDefault().getStructureBridges();
-		for (Entry<String, AbstractContextStructureBridge> entry : bridges.entrySet()) {
-			AbstractContextStructureBridge bridge = entry.getValue();// bridges.get(extension);
-			if (bridge.getRelationshipProviders() != null) {
-				providers.addAll(bridge.getRelationshipProviders());
-			}
-		}
-		return providers;
-	}
-
 	public static ScalingFactors getScalingFactors() {
-		return MylarContextManager.scalingFactors;
+		return ContextManager.scalingFactors;
 	}
 
 	public boolean isContextActive() {
@@ -707,16 +721,18 @@ public class MylarContextManager {
 
 	public Collection<IMylarElement> getInterestingDocuments(IMylarContext context) {
 		Set<IMylarElement> set = new HashSet<IMylarElement>();
-		List<IMylarElement> allIntersting = context.getInteresting();
-		for (IMylarElement node : allIntersting) {
-			if (ContextCorePlugin.getDefault().getStructureBridge(node.getContentType()).isDocument(
-					node.getHandleIdentifier())) {
-				set.add(node);
+		if (context == null) {
+			return set;
+		} else {
+			List<IMylarElement> allIntersting = context.getInteresting();
+			for (IMylarElement node : allIntersting) {
+				if (ContextCorePlugin.getDefault().getStructureBridge(node.getContentType()).isDocument(
+						node.getHandleIdentifier())) {
+					set.add(node);
+				}
 			}
+			return set;
 		}
-//		List<IMylarElement> list = new ArrayList<IMylarElement>(set);
-//		Collections.sort(list, new InterestComparator<IMylarElement>());
-		return set;
 	}
 
 	public Collection<IMylarElement> getInterestingDocuments() {
@@ -763,13 +779,13 @@ public class MylarContextManager {
 				}
 			}
 		} else {
-			if (!forceLandmark && (originalValue > MylarContextManager.getScalingFactors().getLandmark())) {
+			if (!forceLandmark && (originalValue > ContextManager.getScalingFactors().getLandmark())) {
 				changeValue = 0;
 			} else {
 				// make it a landmark by setting interest to 2 x landmark
 				// interest
 				if (element != null && bridge.canBeLandmark(element.getHandleIdentifier())) {
-					changeValue = (2 * MylarContextManager.getScalingFactors().getLandmark()) - originalValue + 1;
+					changeValue = (2 * ContextManager.getScalingFactors().getLandmark()) - originalValue + 1;
 				} else {
 					return false;
 				}
@@ -778,13 +794,13 @@ public class MylarContextManager {
 		if (changeValue != 0) {
 			InteractionEvent interactionEvent = new InteractionEvent(InteractionEvent.Kind.MANIPULATION, element
 					.getContentType(), element.getHandleIdentifier(), sourceId, changeValue);
-			ContextCorePlugin.getContextManager().handleInteractionEvent(interactionEvent);
+			handleInteractionEvent(interactionEvent);
 		}
 		return true;
 	}
 
 	public void setActiveSearchEnabled(boolean enabled) {
-		for (AbstractRelationProvider provider : getActiveRelationProviders()) {
+		for (AbstractRelationProvider provider : ContextCorePlugin.getDefault().getRelationProviders()) {
 			provider.setEnabled(enabled);
 		}
 	}
@@ -862,7 +878,7 @@ public class MylarContextManager {
 	}
 
 	public boolean isValidContextFile(File file) {
-		if (file.exists() && file.getName().endsWith(MylarContextManager.CONTEXT_FILE_EXTENSION)) {
+		if (file.exists() && file.getName().endsWith(ContextManager.CONTEXT_FILE_EXTENSION)) {
 			MylarContext context = externalizer.readContextFromXML("temp", file);
 			return context != null;
 		}

@@ -100,6 +100,10 @@ public class ContextEditorFormPage extends FormPage {
 		public void contextDeactivated(IMylarContext context) {
 			refresh();
 		}
+		
+		public void contextCleared(IMylarContext context) {
+			refresh();	
+		}
 
 		public void elementDeleted(IMylarElement element) {
 			refresh();
@@ -117,18 +121,9 @@ public class ContextEditorFormPage extends FormPage {
 			refresh();
 		}
 
-		public void presentationSettingsChanged(UpdateKind kind) {
-			refresh();
-		}
-
-		public void presentationSettingsChanging(UpdateKind kind) {
-			refresh();
-		}
-
 		public void relationsChanged(IMylarElement element) {
 			refresh();
 		}
-
 	};
 
 	public ContextEditorFormPage(FormEditor editor, String id, String title) {

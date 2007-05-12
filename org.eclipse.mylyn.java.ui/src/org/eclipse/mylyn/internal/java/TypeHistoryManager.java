@@ -87,7 +87,11 @@ public class TypeHistoryManager implements IMylarContextListener {
 	}
 
 	public void contextDeactivated(IMylarContext context) {
-//		clearTypeHistory();
+		clearTypeHistory();
+	}
+	
+	public void contextCleared(IMylarContext context) {
+		contextDeactivated(context);
 	}
 
 	/**
@@ -108,14 +112,6 @@ public class TypeHistoryManager implements IMylarContextListener {
 
 	public void elementDeleted(IMylarElement node) {
 		updateTypeHistory(node, false);
-	}
-
-	public void presentationSettingsChanging(UpdateKind kind) {
-		// ignore
-	}
-
-	public void presentationSettingsChanged(UpdateKind kind) {
-		// ignore
 	}
 
 	public void landmarkAdded(IMylarElement node) {

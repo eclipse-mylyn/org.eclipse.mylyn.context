@@ -20,32 +20,19 @@ import java.util.List;
 public interface IMylarContextListener {
 
 	/**
-	 * TODO: refactor, mixes presentation
+	 * The context is now active, e.g. as a result of a task activation.
 	 */
-	public enum UpdateKind {
-		HIGHLIGHTER, SCALING, UPDATE
-	}
-
 	public void contextActivated(IMylarContext context);
 
+	/**
+	 * The context has been deactivated, e.g. as a result of a task deactivation.
+	 */
 	public void contextDeactivated(IMylarContext context);
-
+	
 	/**
-	 * E.g. highlighters or scaling factors are being actively modified (for
-	 * active updating).
-	 * 
-	 * @param kind
-	 *            TODO
+	 * The context has been cleared, typically done by the user.
 	 */
-	public void presentationSettingsChanging(UpdateKind kind);
-
-	/**
-	 * Modification completed (for slow updating).
-	 * 
-	 * @param kind
-	 *            TODO
-	 */
-	public void presentationSettingsChanged(UpdateKind kind);
+	public void contextCleared(IMylarContext context);
 
 	/**
 	 * Called when the interest level for multiple elements changes, sorted

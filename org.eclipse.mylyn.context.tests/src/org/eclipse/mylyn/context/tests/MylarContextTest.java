@@ -9,11 +9,21 @@
  *     University Of British Columbia - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.mylar.internal.resources.ui;
+package org.eclipse.mylar.context.tests;
+
+import org.eclipse.mylar.internal.context.core.MylarContext;
+import org.eclipse.mylar.internal.context.core.ScalingFactors;
+import org.eclipse.mylar.monitor.core.InteractionEvent;
 
 /**
- * Tag interface for editors that do not get opened or closed with interest.
- * 
  * @author Mik Kersten
  */
-public interface IContextIgnoringEditor { }
+public class MylarContextTest extends AbstractContextTest {
+
+	public void testParseEventWithNullHandle() {
+		InteractionEvent event = mockSelection(null);
+		MylarContext context = new MylarContext("test", new ScalingFactors());
+		assertNull(context.parseEvent(event));
+	}
+	
+}
