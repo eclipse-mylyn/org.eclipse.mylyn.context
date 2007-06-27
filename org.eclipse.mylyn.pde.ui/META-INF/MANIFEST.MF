@@ -27,7 +27,10 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.mylyn.resources.ui,
  org.eclipse.mylyn.context.core,
  org.eclipse.mylyn,
- org.eclipse.jdt.debug.ui
+ org.eclipse.jdt.debug.ui,
+ org.eclipse.debug.core,
+ org.eclipse.core.resources,
+ org.eclipse.ui.views
 Bundle-Activator: org.eclipse.mylyn.internal.pde.ui.PdeUiBridgePlugin
 Eclipse-LazyStart: true
 Bundle-ClassPath: .

@@ -12,7 +12,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.mylyn.internal.java.ui.JavaStructureBridge;
-import org.eclipse.mylyn.internal.java.ui.junit.InteractionContextTestUtil;
+import org.eclipse.mylyn.internal.java.ui.junit.MylarContextTestUtil;
 
 /**
  * @author Mik Kersten
@@ -39,7 +39,7 @@ public class JUnitReferencesProvider extends AbstractJavaRelationProvider {
 			IJavaElement parent = method.getParent();
 			if (parent instanceof IType) {
 				IType type = (IType) parent;
-				isTestCase = InteractionContextTestUtil.isTestType(type);
+				isTestCase = MylarContextTestUtil.isTestType(type);
 			}
 			return isTestMethod && isTestCase;
 		}

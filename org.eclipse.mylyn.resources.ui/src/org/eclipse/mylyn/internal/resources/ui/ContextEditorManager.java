@@ -11,6 +11,7 @@ package org.eclipse.mylyn.internal.resources.ui;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -173,11 +174,11 @@ public class ContextEditorManager implements IInteractionContextListener {
 				WorkbenchMessages.EditorManager_problemsRestoringEditors, null);
 
 		// HACK: using reflection to gain accessibility
-//		Class<?> clazz = editorManager.getClass();
+		Class<?> clazz = editorManager.getClass();
 		try {
-//			Method method = clazz.getDeclaredMethod("restoreEditorState", IMemento.class, ArrayList.class,
-//					IEditorReference[].class, MultiStatus.class);
-//			method.setAccessible(true);
+			Method method = clazz.getDeclaredMethod("restoreEditorState", IMemento.class, ArrayList.class,
+					IEditorReference[].class, MultiStatus.class);
+			method.setAccessible(true);
 
 			IMemento[] editorMementos = memento.getChildren(IWorkbenchConstants.TAG_EDITOR);
 			Set<IMemento> editorMementoSet = new HashSet<IMemento>();
@@ -191,9 +192,9 @@ public class ContextEditorManager implements IInteractionContextListener {
 			for (IMemento editorMemento : editorMementoSet) {
 				String partName = editorMemento.getString(IWorkbenchConstants.TAG_PART_NAME);
 				if (!restoredPartNames.contains(partName)) {
-					editorManager.restoreEditorState(editorMemento, visibleEditors, activeEditor, result);
-					// method.invoke(editorManager, new Object[] { editorMemento, visibleEditors,
-					// activeEditor, result });
+//					editorManager.restoreEditorState(editorMemento, visibleEditors, activeEditor, result);
+					 method.invoke(editorManager, new Object[] { editorMemento, visibleEditors,
+					 activeEditor, result });
 				} else {
 					restoredPartNames.add(partName);
 				}

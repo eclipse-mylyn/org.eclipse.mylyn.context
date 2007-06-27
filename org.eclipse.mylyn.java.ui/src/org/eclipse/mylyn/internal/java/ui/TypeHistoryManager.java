@@ -1,22 +1,36 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2007 Mylyn project committers and others.
+ * Copyright (c) 2004 - 2006 University Of British Columbia and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     University Of British Columbia - initial API and implementation
  *******************************************************************************/
 
 package org.eclipse.mylyn.internal.java.ui;
 
+import java.io.File;
 import java.util.List;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.search.TypeNameMatch;
-import org.eclipse.jdt.internal.core.search.JavaSearchTypeNameMatch;
+import org.eclipse.jdt.core.compiler.CharOperation;
+import org.eclipse.jdt.core.search.IJavaSearchScope;
+import org.eclipse.jdt.internal.core.JavaModel;
+import org.eclipse.jdt.internal.core.search.HierarchyScope;
+import org.eclipse.jdt.internal.core.search.indexing.IIndexConstants;
 import org.eclipse.jdt.internal.corext.util.OpenTypeHistory;
+import org.eclipse.jdt.internal.corext.util.TypeInfo;
+import org.eclipse.jdt.internal.corext.util.TypeInfoFactory;
 import org.eclipse.mylyn.context.core.IInteractionContext;
 import org.eclipse.mylyn.context.core.IInteractionContextListener;
 import org.eclipse.mylyn.context.core.IInteractionElement;
@@ -27,7 +41,7 @@ import org.eclipse.mylyn.monitor.core.StatusHandler;
  */
 public class TypeHistoryManager implements IInteractionContextListener {
 
-//	private TypeInfoFactory factory = new TypeInfoFactory();
+	private TypeInfoFactory factory = new TypeInfoFactory();
 
 	public void contextActivated(IInteractionContext context) {
 		clearTypeHistory();
@@ -44,15 +58,13 @@ public class TypeHistoryManager implements IInteractionContextListener {
 			IType type = (IType) element;
 			try {
 				if (type.exists() && !type.isAnonymous() && !isAspectjType(type)) {
-//					TypeInfo info = factory.create(type.getPackageFragment().getElementName().toCharArray(), type
-//							.getElementName().toCharArray(), enclosingTypeNames(type), type.getFlags(), getPath(type));
+					TypeInfo info = factory.create(type.getPackageFragment().getElementName().toCharArray(), type
+							.getElementName().toCharArray(), enclosingTypeNames(type), type.getFlags(), getPath(type));
 
-					JavaSearchTypeNameMatch typeNameMatch = new JavaSearchTypeNameMatch(type, type.getFlags());
-
-					if (add && !OpenTypeHistory.getInstance().contains(typeNameMatch)) {
-						OpenTypeHistory.getInstance().accessed(typeNameMatch);
+					if (add && !OpenTypeHistory.getInstance().contains(info)) {
+						OpenTypeHistory.getInstance().accessed(info);
 					} else {
-						OpenTypeHistory.getInstance().remove(typeNameMatch);
+						OpenTypeHistory.getInstance().remove(info);
 					}
 				}
 			} catch (JavaModelException e) {
@@ -77,19 +89,19 @@ public class TypeHistoryManager implements IInteractionContextListener {
 	public void contextDeactivated(IInteractionContext context) {
 		clearTypeHistory();
 	}
-
+	
 	public void contextCleared(IInteractionContext context) {
-		clearTypeHistory();
+		contextDeactivated(context);
 	}
 
 	/**
 	 * Public for testing
 	 */
 	public void clearTypeHistory() {
-		TypeNameMatch[] typeInfos = OpenTypeHistory.getInstance().getTypeInfos();
+		TypeInfo[] typeInfos = OpenTypeHistory.getInstance().getTypeInfos();
 		for (int i = 0; i < typeInfos.length; i++) {
 			OpenTypeHistory.getInstance().remove(typeInfos[i]);
-		}
+		} 
 	}
 
 	public void interestChanged(List<IInteractionElement> nodes) {
@@ -112,5 +124,62 @@ public class TypeHistoryManager implements IInteractionContextListener {
 
 	public void relationsChanged(IInteractionElement node) {
 		// ignore
+	}
+
+	/**
+	 * Coped from: HierarchyScope constructor
+	 */
+	private String getPath(IType type) {
+		String focusPath = null;
+		IPackageFragmentRoot root = (IPackageFragmentRoot) type.getPackageFragment().getParent();
+		if (root.isArchive()) {
+			IPath jarPath = root.getPath();
+			Object target = JavaModel.getTarget(ResourcesPlugin.getWorkspace().getRoot(), jarPath, true);
+			String zipFileName;
+			if (target instanceof IFile) {
+				// internal jar
+				zipFileName = jarPath.toString();
+			} else if (target instanceof File) {
+				// external jar
+				zipFileName = ((File) target).getPath();
+			} else {
+				return null; // unknown target
+			}
+			focusPath = zipFileName + IJavaSearchScope.JAR_FILE_ENTRY_SEPARATOR
+					+ type.getFullyQualifiedName().replace('.', '/') + HierarchyScope.SUFFIX_STRING_class;
+		} else {
+			focusPath = type.getPath().toString();
+		}
+		return focusPath;
+	}
+
+	/**
+	 * Copied from: org.eclipse.java.search.SearchPattern
+	 */
+	private char[][] enclosingTypeNames(IType type) {
+		IJavaElement parent = type.getParent();
+		switch (parent.getElementType()) {
+		case IJavaElement.CLASS_FILE:
+			// For a binary type, the parent is not the enclosing type, but the
+			// declaring type is.
+			// (see bug 20532 Declaration of member binary type not found)
+			IType declaringType = type.getDeclaringType();
+			if (declaringType == null)
+				return CharOperation.NO_CHAR_CHAR;
+			return CharOperation.arrayConcat(enclosingTypeNames(declaringType), declaringType.getElementName()
+					.toCharArray());
+		case IJavaElement.COMPILATION_UNIT:
+			return CharOperation.NO_CHAR_CHAR;
+		case IJavaElement.FIELD:
+		case IJavaElement.INITIALIZER:
+		case IJavaElement.METHOD:
+			IType declaringClass = ((IMember) parent).getDeclaringType();
+			return CharOperation.arrayConcat(enclosingTypeNames(declaringClass), new char[][] {
+					declaringClass.getElementName().toCharArray(), IIndexConstants.ONE_STAR });
+		case IJavaElement.TYPE:
+			return CharOperation.arrayConcat(enclosingTypeNames((IType) parent), parent.getElementName().toCharArray());
+		default:
+			return null;
+		}
 	}
 }

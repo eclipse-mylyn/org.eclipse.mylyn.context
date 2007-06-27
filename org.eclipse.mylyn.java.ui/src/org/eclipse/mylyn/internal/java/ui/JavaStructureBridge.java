@@ -35,7 +35,6 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JarEntryFile;
 import org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
 import org.eclipse.jdt.internal.ui.packageview.ClassPathContainer;
-import org.eclipse.jdt.internal.ui.packageview.PackageFragmentRootContainer;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 import org.eclipse.mylyn.context.core.AbstractContextStructureBridge;
 import org.eclipse.mylyn.context.core.AbstractRelationProvider;
@@ -212,7 +211,7 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 			return adapter instanceof IJavaElement;
 		}
 
-		boolean accepts = object instanceof IJavaElement || object instanceof PackageFragmentRootContainer
+		boolean accepts = object instanceof IJavaElement
 				|| object instanceof ClassPathContainer.RequiredProjectWrapper || object instanceof JarEntryFile
 				|| object instanceof IPackageFragment || object instanceof WorkingSet || isWtpClass(object);
 
@@ -227,16 +226,15 @@ public class JavaStructureBridge extends AbstractContextStructureBridge {
 	public boolean canFilter(Object object) {
 		if (object instanceof ClassPathContainer.RequiredProjectWrapper) {
 			return true;
-		} else if (object instanceof PackageFragmentRootContainer) {
-			// since not in model, check if it contains anything interesting
-			PackageFragmentRootContainer container = (PackageFragmentRootContainer) object;
+		} else if (object instanceof ClassPathContainer) { 
+			// HACK: check if it has anything interesting
+			ClassPathContainer container = (ClassPathContainer) object;
 
-			Object[] children = container.getChildren();
+			Object[] children = container.getChildren(container);
 			for (int i = 0; i < children.length; i++) {
 				if (children[i] instanceof JarPackageFragmentRoot) {
 					JarPackageFragmentRoot element = (JarPackageFragmentRoot) children[i];
-					IInteractionElement node = ContextCorePlugin.getContextManager().getElement(
-							element.getHandleIdentifier());
+					IInteractionElement node = ContextCorePlugin.getContextManager().getElement(element.getHandleIdentifier());
 					if (node != null && node.getInterest().isInteresting()) {
 						return false;
 					}

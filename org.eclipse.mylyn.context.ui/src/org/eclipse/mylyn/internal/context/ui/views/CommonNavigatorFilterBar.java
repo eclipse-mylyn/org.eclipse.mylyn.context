@@ -637,7 +637,7 @@ public class CommonNavigatorFilterBar extends Composite {
 	 * @since 3.3
 	 */
 	protected Text doCreateFilterText(Composite parent) {
-		return new Text(parent, SWT.SINGLE | SWT.BORDER | SWT.SEARCH | SWT.CANCEL);
+		return new Text(parent, SWT.SINGLE | SWT.BORDER | SWT.CANCEL);
 	}
 
 	private String previousFilterText;

@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2007 Mylyn project committers and others.
+ * Copyright (c) 2004 - 2006 University Of British Columbia and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     University Of British Columbia - initial API and implementation
  *******************************************************************************/
 
 package org.eclipse.mylyn.internal.java.ui.junit;
@@ -24,16 +27,15 @@ import org.eclipse.jdt.debug.ui.launchConfigurations.JavaJRETab;
  * 
  * @author Mik Kersten
  */
-public class TaskContextJUnitTabGroup extends AbstractLaunchConfigurationTabGroup {
+public class MylarJUnitTabGroup extends AbstractLaunchConfigurationTabGroup {
 
 	public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
-		ILaunchConfigurationTab[] tabs = new ILaunchConfigurationTab[] { new TaskContextJUnitMainTab(false),
+		ILaunchConfigurationTab[] tabs = new ILaunchConfigurationTab[] { new MylarJUnitMainTab(false),
 				new JavaArgumentsTab(), new JavaClasspathTab(), new JavaJRETab(), new SourceLookupTab(),
 				new EnvironmentTab(), new CommonTab() };
 		setTabs(tabs);
 	}
 
-	@Override
 	public void setDefaults(ILaunchConfigurationWorkingCopy config) {
 		super.setDefaults(config);
 	}

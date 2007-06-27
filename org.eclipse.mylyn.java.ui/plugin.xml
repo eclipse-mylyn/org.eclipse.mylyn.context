@@ -191,10 +191,10 @@
 	<extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
-            name="Task Context Test"
-            delegate="org.eclipse.mylyn.internal.java.ui.junit.TaskContextJUnitLaunchConfiguration"
+            name="Mylar Context Test"
+            delegate="org.eclipse.mylyn.internal.java.ui.junit.MylarJUnitLaunchConfiguration"
             modes="run, debug"
-            id="org.eclipse.mylyn.java.junit.launchconfig"
+            id="org.eclipse.mylar.java.junit.launchconfig"
             sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
             sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
          <fileExtension
@@ -210,16 +210,16 @@
     
 	<extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
 	  	<launchConfigurationTypeImage
-	 		id="org.eclipse.mylyn.pde.junit.launchconfig.image"
-	 		configTypeID="org.eclipse.mylyn.pde.junit.launchconfig"
+	 		id="org.eclipse.mylar.pde.junit.launchconfig.image"
+	 		configTypeID="org.eclipse.mylar.pde.junit.launchconfig"
 	 		icon="icons/etool16/launch-junit-pde.gif">
 	  	</launchConfigurationTypeImage>
 	</extension>
 
 	<extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
 	  	<launchConfigurationTypeImage
-	 		id="org.eclipse.mylyn.java.junit.launchconfig.image"
-	 		configTypeID="org.eclipse.mylyn.java.junit.launchconfig"
+	 		id="org.eclipse.mylar.java.junit.launchconfig.image"
+	 		configTypeID="org.eclipse.mylar.java.junit.launchconfig"
 	 		icon="icons/etool16/launch-junit.gif">
 	  	</launchConfigurationTypeImage>
 	</extension>
@@ -227,10 +227,10 @@
 	<extension
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
-            type="org.eclipse.mylyn.java.junit.launchconfig"
+            type="org.eclipse.mylar.java.junit.launchconfig"
             helpContextId="org.eclipse.jdt.junit.junit_tab_group"
-            class="org.eclipse.mylyn.internal.java.ui.junit.TaskContextJUnitTabGroup"
-            id="org.eclipse.mylyn.java.junit.launchconfig.tabgroup">
+            class="org.eclipse.mylyn.internal.java.ui.junit.MylarJUnitTabGroup"
+            id="org.eclipse.mylar.java.junit.launchconfig.tabgroup">
          <launchMode
                perspective="org.eclipse.debug.ui.DebugPerspective"
                description="Test suite automatically populated by elements in the task context."
