@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.mylyn.pde_feature"
       label="Mylyn Bridge: PDE"
-      version="2.0.0.v20070626-1300"
+      version="2.0.0.v20070627-0100"
       provider-name="Eclipse.org"
       plugin="org.eclipse.mylyn">
 
@@ -237,7 +237,7 @@ litigation.
       <import plugin="org.eclipse.mylyn.resources.ui"/>
       <import plugin="org.eclipse.mylyn.context.core"/>
       <import plugin="org.eclipse.mylyn"/>
-      <import feature="org.eclipse.mylyn_feature" version="2.0.0.v20070626-1000" match="compatible"/>
+      <import feature="org.eclipse.mylyn_feature" version="2.0.0.v20070627-0100" match="compatible"/>
       <import feature="org.eclipse.mylyn.ide_feature" version="2.0.0.v20070626-1000" match="compatible"/>
       <import plugin="org.eclipse.jdt.launching"/>
       <import plugin="org.eclipse.jdt.junit"/>
@@ -250,14 +250,14 @@ litigation.
          id="org.eclipse.mylyn.pde.ui"
          download-size="0"
          install-size="0"
-         version="2.0.0.v20070626-1300"
+         version="2.0.0.v20070627-0100"
          unpack="false"/>
 
    <plugin
          id="org.eclipse.mylyn.ide.ant"
          download-size="0"
          install-size="0"
-         version="2.0.0.v20070626-1300"
+         version="2.0.0.v20070627-0100"
          unpack="false"/>
 
 </feature>
