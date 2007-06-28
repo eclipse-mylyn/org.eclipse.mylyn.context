@@ -15,7 +15,6 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.mylyn.context.core.ContextCorePlugin;
 import org.eclipse.mylyn.context.core.IInteractionContext;
 import org.eclipse.mylyn.context.core.IInteractionContextListener;
@@ -24,7 +23,6 @@ import org.eclipse.mylyn.internal.java.ui.editor.ActiveFoldingListener;
 import org.eclipse.mylyn.internal.java.ui.wizards.RecommendedPreferencesWizard;
 import org.eclipse.mylyn.monitor.core.StatusHandler;
 import org.eclipse.mylyn.monitor.ui.MonitorUiPlugin;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbench;
@@ -59,23 +57,24 @@ public class JavaUiBridgePlugin extends AbstractUIPlugin {
 
 	private InterestUpdateDeltaListener javaElementChangeListener = new InterestUpdateDeltaListener();
 
-	private final IInteractionContextListener PREFERENCES_WIZARD_LISTENER = new IInteractionContextListener() {
+	// TODO: remove
+	final IInteractionContextListener PREFERENCES_WIZARD_LISTENER = new IInteractionContextListener() {
 
 		public void contextActivated(IInteractionContext context) {
-			if (getPreferenceStore().getBoolean(RecommendedPreferencesWizard.MYLAR_FIRST_RUN)) {
-				getPreferenceStore().setValue(RecommendedPreferencesWizard.MYLAR_FIRST_RUN, false);
-				getDefault().savePluginPreferences();
-				JavaUiUtil.installContentAssist(JavaPlugin.getDefault().getPreferenceStore(), true);
-				if (!MonitorUiPlugin.getDefault().suppressConfigurationWizards()) {
-					RecommendedPreferencesWizard wizard = new RecommendedPreferencesWizard();
-					Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-					if (shell != null && !shell.isDisposed()) {
-						WizardDialog dialog = new WizardDialog(shell, wizard);
-						dialog.create();
-						dialog.open();
-					}
-				}
-			}
+//			if (getPreferenceStore().getBoolean(RecommendedPreferencesWizard.MYLAR_FIRST_RUN)) {
+//				getPreferenceStore().setValue(RecommendedPreferencesWizard.MYLAR_FIRST_RUN, false);
+//				getDefault().savePluginPreferences();
+//				JavaUiUtil.installContentAssist(JavaPlugin.getDefault().getPreferenceStore(), true);
+//				if (!MonitorUiPlugin.getDefault().suppressConfigurationWizards()) {
+//					RecommendedPreferencesWizard wizard = new RecommendedPreferencesWizard();
+//					Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+//					if (shell != null && !shell.isDisposed()) {
+//						WizardDialog dialog = new WizardDialog(shell, wizard);
+//						dialog.create();
+//						dialog.open();
+//					}
+//				}
+//			}
 		}
 
 		public void contextCleared(IInteractionContext context) {
@@ -120,11 +119,17 @@ public class JavaUiBridgePlugin extends AbstractUIPlugin {
 		super.start(context);
 		initDefaultPrefs();
 
+		// NOTE: moved out of wizard and first task activation to avoid bug 194766
+		if (getPreferenceStore().getBoolean(RecommendedPreferencesWizard.MYLAR_FIRST_RUN)) {
+			getPreferenceStore().setValue(RecommendedPreferencesWizard.MYLAR_FIRST_RUN, false);
+			JavaUiUtil.installContentAssist(JavaPlugin.getDefault().getPreferenceStore(), true);
+		}
+		
 		final IWorkbench workbench = PlatformUI.getWorkbench();
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				try {
-					ContextCorePlugin.getContextManager().addListener(PREFERENCES_WIZARD_LISTENER);
+//					ContextCorePlugin.getContextManager().addListener(PREFERENCES_WIZARD_LISTENER);
 					ContextCorePlugin.getContextManager().addListener(landmarkMarkerManager);
 
 					try {
@@ -164,7 +169,7 @@ public class JavaUiBridgePlugin extends AbstractUIPlugin {
 			INSTANCE = null;
 			resourceBundle = null;
 
-			ContextCorePlugin.getContextManager().removeListener(PREFERENCES_WIZARD_LISTENER);
+//			ContextCorePlugin.getContextManager().removeListener(PREFERENCES_WIZARD_LISTENER);
 			ContextCorePlugin.getContextManager().removeListener(typeHistoryManager);
 			ContextCorePlugin.getContextManager().removeListener(landmarkMarkerManager);
 
