@@ -15,7 +15,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.mylyn.context.core.ContextCorePlugin;
 import org.eclipse.mylyn.context.ui.InterestFilter;
 import org.eclipse.ui.views.markers.internal.ConcreteMarker;
-import org.eclipse.ui.views.markers.internal.MarkerNode;
 import org.eclipse.ui.views.markers.internal.ProblemMarker;
 
 /**
@@ -26,23 +25,23 @@ public class MarkerInterestFilter extends InterestFilter {
 	@Override
 	public boolean select(Viewer viewer, Object parent, Object element) {
 		if (!(element instanceof ConcreteMarker)) {
-			if (element instanceof MarkerNode) {
-				MarkerNode markerNode = (MarkerNode) element;
-				MarkerNode[] children = markerNode.getChildren();
-				for (int i = 0; i < children.length; i++) {
-					MarkerNode node = children[i];
-					if (node instanceof ConcreteMarker) {
-						return isInteresting((ConcreteMarker) node, viewer, parent);
-					} else {
-						return true;
-					}
-				}
-			}
+			return true;
+			// NOTE: code commented out below did a look-down the children, which may be too expensive
+//			if (element instanceof MarkerNode) {
+//				MarkerNode markerNode = (MarkerNode) element;
+//				MarkerNode[] children = markerNode.getChildren();
+//				for (int i = 0; i < children.length; i++) {
+//					MarkerNode node = children[i];
+//					if (node instanceof ConcreteMarker) {
+//						return isInteresting((ConcreteMarker) node, viewer, parent);
+//					} else {
+//						return true;
+//					}
+//				}
+//			} 
 		} else {
-//			ConcreteMarker marker = (ConcreteMarker) element;
 			return isInteresting((ConcreteMarker) element, viewer, parent);
 		}
-		return false;
 	}
 
 	private boolean isImplicitlyInteresting(ConcreteMarker marker) {
