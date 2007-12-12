@@ -12,22 +12,20 @@ package org.eclipse.mylyn.internal.ide.ui.actions;
 /**
  * @author Mik Kersten
  */
-public class FocusTaskMarkersViewAction extends AbstractFocusMarkerViewAction {
+public class FocusBookmarkMarkersViewAction extends AbstractFocusMarkerViewAction {
 
-	public FocusTaskMarkersViewAction() {
+	public FocusBookmarkMarkersViewAction() {
 		super();
 	}
 	
-//	/**
-//	 * HACK: changing accessibility
-//	 */
 //	@Override
 //	public List<StructuredViewer> getViewers() {
 //		List<StructuredViewer> viewers = new ArrayList<StructuredViewer>();
 //		if (cachedViewer == null) {
 //			try {
 //				IViewPart viewPart = super.getPartForAction();
-//				if (viewPart instanceof TaskView) {
+//				System.err.println(">>> " + viewPart.getClass());
+//				if (viewPart instanceof  BookmarkView) {
 //					Class<?> infoClass = TableView.class;
 //					Method method = infoClass.getDeclaredMethod("getViewer", new Class[] {});
 //					method.setAccessible(true);
@@ -35,38 +33,11 @@ public class FocusTaskMarkersViewAction extends AbstractFocusMarkerViewAction {
 //					updateMarkerViewLabelProvider(cachedViewer);
 //				}
 //			} catch (Exception e) {
-//				StatusHandler.log(e, "couldn't get task view list viewer");
+//				StatusHandler.log(e, "couldn't get bookmarks view viewer");
 //			}
 //		}
 //		if (cachedViewer != null)
 //			viewers.add(cachedViewer);
 //		return viewers;
-//	}
-
-//	protected void updateMarkerViewLabelProvider(StructuredViewer viewer) {
-//		IBaseLabelProvider currentProvider = viewer.getLabelProvider();
-//		if (currentProvider instanceof TableViewLabelProvider && !(currentProvider instanceof MarkerViewLabelProvider)) {
-//			viewer.setLabelProvider(new MarkerViewLabelProvider((TableViewLabelProvider) currentProvider));
-//		}
-//	}
-
-//	public void propertyChange(PropertyChangeEvent event) {
-//		// ignore
-//	}
-
-//	@Override
-//	protected boolean installInterestFilter(final StructuredViewer viewer) {
-//		super.installInterestFilter(viewer);
-//		return true;
-//	}
-//
-//	@Override
-//	protected void uninstallInterestFilter(StructuredViewer viewer) {
-//		super.uninstallInterestFilter(viewer);
-//	}
-
-//	@Override
-//	public List<Class> getPreservedFilters() {
-//		return Collections.emptyList();
 //	}
 }

@@ -34,10 +34,6 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.FileEditorInput;
 
-/**
- * @author Shawn Minto
- * @author Mik Kersten
- */
 public class PdeEditingMonitor extends AbstractUserInteractionMonitor {
 
 	public PdeEditingMonitor() {

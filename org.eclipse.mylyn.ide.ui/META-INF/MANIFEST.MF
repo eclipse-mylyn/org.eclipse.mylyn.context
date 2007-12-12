@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Mylyn IDE UI
 Bundle-SymbolicName: org.eclipse.mylyn.ide.ui;singleton:=true
-Bundle-Version: 2.1.0.v20070924-2200
+Bundle-Version: 2.2.0.qualifier
 Bundle-Activator: org.eclipse.mylyn.internal.ide.ui.IdeUiBridgePlugin
 Bundle-Vendor: Eclipse.org
 Require-Bundle: org.eclipse.ui,
@@ -12,6 +12,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.navigator,
  org.eclipse.ui.ide,
  org.eclipse.ui.forms,
+ org.eclipse.mylyn.tasks.core,
  org.eclipse.mylyn.context.core,
  org.eclipse.mylyn.tasks.ui,
  org.eclipse.mylyn.resources.ui,
