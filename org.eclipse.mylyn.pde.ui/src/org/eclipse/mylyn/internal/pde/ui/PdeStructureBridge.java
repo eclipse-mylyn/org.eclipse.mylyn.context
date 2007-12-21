@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.internal.resources.File;
-import org.eclipse.core.internal.resources.Marker;
 import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -33,7 +32,7 @@ import org.eclipse.pde.internal.ui.editor.PDEFormPage;
 import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.views.markers.internal.ConcreteMarker;
+import org.eclipse.ui.views.markers.internal.ProblemMarker;
 
 /**
  * @author Mik Kersten
@@ -278,28 +277,19 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 	}
 
 	@Override
-	public String getHandleForOffsetInObject(Object object, int offset) {
-		if (object == null) {
+	public String getHandleForOffsetInObject(Object resource, int offset) {
+		if (resource == null)
 			return null;
-		}
+		if (resource instanceof ProblemMarker) {
+			ProblemMarker marker = (ProblemMarker) resource;
 
-		IResource markerResource = null;
-		try {
-			if (object instanceof ConcreteMarker) {
-				markerResource = ((ConcreteMarker) object).getMarker().getResource();
-			} else if (object instanceof Marker) {
-				markerResource = ((Marker) object).getResource();
-			}
-		} catch (Exception e) {
-			return null;
-		}
-
-		if (markerResource != null) {
 			// we can only get a handle for a marker with the resource
 			// plugin.xml
 			try {
-				if (markerResource instanceof IFile) {
-					IFile file = (IFile) markerResource;
+				IResource res = marker.getResource();
+
+				if (res instanceof IFile) {
+					IFile file = (IFile) res;
 					if (file.getFullPath().toString().endsWith("plugin.xml")) {
 						return file.getFullPath().toString();
 					} else {
@@ -308,12 +298,12 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 				}
 				return null;
 			} catch (Throwable t) {
-				StatusHandler.log(t, "Could not find element for: " + object);
+				StatusHandler.log(t, "Could not find element for: " + marker);
 				return null;
 			}
-		} else if (object instanceof IFile) {
+		} else if (resource instanceof IFile) {
 			try {
-				IFile file = (IFile) object;
+				IFile file = (IFile) resource;
 				if (file.getFullPath().toString().endsWith("plugin.xml")) {
 					String content = XmlNodeHelper.getContents(file.getContents());
 					IDocument d = new Document(content);

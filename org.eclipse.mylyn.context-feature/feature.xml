@@ -214,7 +214,7 @@ litigation.
    </license>
 
    <url>
-      <update label="Mylyn for Eclipse 3.4" url="http://download.eclipse.org/tools/mylyn/update/e3.4"/>
+      <update label="Mylyn for Eclipse 3.3" url="http://download.eclipse.org/tools/mylyn/update/e3.3"/>
    </url>
 
    <requires>
@@ -232,10 +232,10 @@ litigation.
       <import plugin="org.eclipse.mylyn.monitor.core"/>
       <import plugin="org.eclipse.ui.ide"/>
       <import plugin="org.eclipse.compare"/>
-      <import plugin="org.eclipse.mylyn"/>
-      <import feature="org.eclipse.mylyn_feature" version="2.2.0.I20071017-1130" match="greaterOrEqual"/>
       <import plugin="org.eclipse.mylyn.context.ui"/>
+      <import plugin="org.eclipse.mylyn"/>
       <import plugin="org.eclipse.ui.browser"/>
+      <import feature="org.eclipse.mylyn_feature" version="2.2.0.I20071017-1130" match="greaterOrEqual"/>
    </requires>
 
    <plugin
