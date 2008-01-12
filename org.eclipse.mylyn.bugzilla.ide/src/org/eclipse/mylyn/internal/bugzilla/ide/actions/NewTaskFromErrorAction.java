@@ -17,9 +17,11 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.mylyn.tasks.core.TaskSelection;
 import org.eclipse.mylyn.tasks.ui.TasksUiUtil;
 import org.eclipse.pde.internal.runtime.logview.LogEntry;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * Creates a new task from the selected error log entry.
@@ -62,8 +64,9 @@ public class NewTaskFromErrorAction implements IViewActionDelegate, ISelectionCh
 			sb.append(entry.getStack());
 		}
 
+		Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 		TaskSelection taskSelection = new TaskSelection("", sb.toString());
-		TasksUiUtil.openNewTaskWizard(taskSelection, false);
+		TasksUiUtil.openNewTaskEditor(shell, taskSelection, null);
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
