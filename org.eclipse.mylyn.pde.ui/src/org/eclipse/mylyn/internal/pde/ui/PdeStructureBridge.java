@@ -17,7 +17,9 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.mylyn.context.core.AbstractContextStructureBridge;
@@ -109,8 +111,9 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 	 */
 	@Override
 	public Object getObjectForHandle(String handle) {
-		if (handle == null)
+		if (handle == null) {
 			return null;
+		}
 		int first = handle.indexOf(";");
 		String filename = "";
 		if (first == -1) {
@@ -191,7 +194,7 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 						PdeEditingMonitor.getStringOfNode(node).hashCode()).getHandle();
 				return handle;
 			} catch (Exception e) {
-				StatusHandler.log(e, "pde handle failed");
+				StatusHandler.log(new Status(IStatus.ERROR, PdeUiBridgePlugin.ID_PLUGIN, "Could not get handle", e));
 			}
 		} else if (object instanceof PluginNode) {
 			PluginNode node = (PluginNode) object;
@@ -208,14 +211,15 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 						PdeEditingMonitor.getStringOfNode(node).hashCode()).getHandle();
 				return handle;
 			} catch (Exception e) {
-				StatusHandler.log(e, "pde handle failed");
+				StatusHandler.log(new Status(IStatus.ERROR, PdeUiBridgePlugin.ID_PLUGIN, "Could not get handle", e));
 			}
 
 		} else if (object instanceof File) {
 			// get the handle for the file if it is plugin.xml
 			File file = (File) object;
-			if (file.getFullPath().toString().endsWith("plugin.xml"))
+			if (file.getFullPath().toString().endsWith("plugin.xml")) {
 				return file.getFullPath().toString();
+			}
 		}
 		return null;
 	}
@@ -225,14 +229,16 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 		if (object instanceof PluginObjectNode) {
 			PluginObjectNode node = (PluginObjectNode) object;
 			String name = node.getXMLAttributeValue("name");
-			if (name == null)
+			if (name == null) {
 				name = node.getXMLTagName();
+			}
 			name = node.getModel().getUnderlyingResource().getName() + ": " + name;
 			return name;
 		} else if (object instanceof File) {
 			File file = (File) object;
-			if (file.getFullPath().toString().endsWith("plugin.xml"))
+			if (file.getFullPath().toString().endsWith("plugin.xml")) {
 				return "plugin.xml";
+			}
 		}
 		return "";
 	}
@@ -256,12 +262,14 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 				|| object instanceof PDEFormPage) {
 			return true;
 		} else if (object instanceof XmlNodeHelper) {
-			if (((XmlNodeHelper) object).getFilename().endsWith("plugin.xml"))
+			if (((XmlNodeHelper) object).getFilename().endsWith("plugin.xml")) {
 				return true;
+			}
 		} else if (object instanceof File) {
 			File file = (File) object;
-			if (file.getFullPath().toString().endsWith("plugin.xml"))
+			if (file.getFullPath().toString().endsWith("plugin.xml")) {
 				return true;
+			}
 		}
 		return false;
 	}
@@ -278,8 +286,9 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 
 	@Override
 	public String getHandleForOffsetInObject(Object resource, int offset) {
-		if (resource == null)
+		if (resource == null) {
 			return null;
+		}
 		if (resource instanceof ProblemMarker) {
 			ProblemMarker marker = (ProblemMarker) resource;
 
@@ -298,7 +307,7 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 				}
 				return null;
 			} catch (Throwable t) {
-				StatusHandler.log(t, "Could not find element for: " + marker);
+				StatusHandler.log(new Status(IStatus.WARNING, PdeUiBridgePlugin.ID_PLUGIN, "Could not find element for: " + marker));
 				return null;
 			}
 		} else if (resource instanceof IFile) {
@@ -313,7 +322,7 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 					return handle;
 				}
 			} catch (Exception e) {
-				StatusHandler.log(e, "Unable to get handle for offset in object");
+				StatusHandler.log(new Status(IStatus.ERROR, PdeUiBridgePlugin.ID_PLUGIN, "Unable to get handle for offset in object", e));
 			}
 		}
 		return null;
