@@ -12,8 +12,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.mylyn.internal.ide.ui.IdeUiBridgePlugin;
 import org.eclipse.mylyn.internal.ide.ui.MarkerViewLabelProvider;
 import org.eclipse.mylyn.monitor.core.StatusHandler;
 import org.eclipse.ui.IViewPart;
@@ -44,7 +47,7 @@ public class FocusProblemsListAction extends AbstractFocusMarkerViewAction {
 					}
 				}
 			} catch (Exception e) {
-				StatusHandler.log(e, "couldn't get problems view viewer");
+				StatusHandler.fail(new Status(IStatus.ERROR, IdeUiBridgePlugin.PLUGIN_ID, "Could not get problems view viewer", e));
 			}
 		}
 		if (cachedViewer != null) {

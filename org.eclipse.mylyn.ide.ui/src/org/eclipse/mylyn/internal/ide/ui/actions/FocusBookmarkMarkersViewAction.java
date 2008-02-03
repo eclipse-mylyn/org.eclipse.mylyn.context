@@ -12,7 +12,10 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.mylyn.internal.ide.ui.IdeUiBridgePlugin;
 import org.eclipse.mylyn.monitor.core.StatusHandler;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.views.markers.internal.BookmarkView;
@@ -34,11 +37,12 @@ public class FocusBookmarkMarkersViewAction extends AbstractFocusMarkerViewActio
 					updateMarkerViewLabelProvider(cachedViewer);
 				}
 			} catch (Exception e) {
-				StatusHandler.log(e, "couldn't get bookmarks view viewer");
+				StatusHandler.fail(new Status(IStatus.ERROR, IdeUiBridgePlugin.PLUGIN_ID, "Could not get bookmarks view viewer", e));
 			}
 		}
-		if (cachedViewer != null)
+		if (cachedViewer != null) {
 			viewers.add(cachedViewer);
+		}
 		return viewers;
 	}
 }

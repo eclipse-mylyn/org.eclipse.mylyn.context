@@ -12,7 +12,10 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.mylyn.internal.ide.ui.IdeUiBridgePlugin;
 import org.eclipse.mylyn.monitor.core.StatusHandler;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.views.markers.internal.TableView;
@@ -40,11 +43,12 @@ public class FocusTaskMarkersViewAction extends AbstractFocusMarkerViewAction {
 					updateMarkerViewLabelProvider(cachedViewer);
 				}
 			} catch (Exception e) {
-				StatusHandler.log(e, "couldn't get task view list viewer");
+				StatusHandler.fail(new Status(IStatus.ERROR, IdeUiBridgePlugin.PLUGIN_ID, "Could not get task view list viewer", e));
 			}
 		}
-		if (cachedViewer != null)
+		if (cachedViewer != null) {
 			viewers.add(cachedViewer);
+		}
 		return viewers;
 	}
 
