@@ -9,11 +9,18 @@
 package org.eclipse.mylyn.internal.bugzilla.ide;
 
 /**
- * @author Mik Kersten
  * @author Steffen Pingel
  */
-public interface IBugzillaIdeConstants {
+public class IRepositoryConstants {
 
-	public static final String ENHANCED_BUG_REPORTING = "org.eclipse.mylyn.bugzilla.ide.reportbug.enhanced";
+	public static final String REPOSITORY = "repository"; 
+
+	public static final String REPOSITORY_KIND = "repositoryKind"; 
+
+	public static final String COMPONENT = "component";
+	
+	public static final String PRODUCT = "product";
+	
+	public static final String BRANDING = "branding";
 	
 }

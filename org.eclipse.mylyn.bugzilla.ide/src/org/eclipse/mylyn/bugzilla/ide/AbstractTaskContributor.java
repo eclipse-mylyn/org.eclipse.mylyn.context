@@ -6,14 +6,22 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.eclipse.mylyn.internal.bugzilla.ide;
+package org.eclipse.mylyn.bugzilla.ide;
+
+import java.util.Map;
+
+import org.eclipse.core.runtime.IStatus;
 
 /**
- * @author Mik Kersten
+ * Note: This API is likely to change for 3.0.
+ * 
  * @author Steffen Pingel
+ * @since 2.3
  */
-public interface IBugzillaIdeConstants {
+public abstract class AbstractTaskContributor {
 
-	public static final String ENHANCED_BUG_REPORTING = "org.eclipse.mylyn.bugzilla.ide.reportbug.enhanced";
+	public abstract Map<String, String> getAttributes(IStatus status);
+		
+	public abstract String getDescription(IStatus status);
 	
 }

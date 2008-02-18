@@ -6,14 +6,26 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.eclipse.mylyn.internal.bugzilla.ide;
+package org.eclipse.mylyn.internal.bugzilla.ide.wizards;
+
+import org.eclipse.core.runtime.IBundleGroup;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 
 /**
- * @author Mik Kersten
  * @author Steffen Pingel
  */
-public interface IBugzillaIdeConstants {
+public class FeatureStatus extends Status {
 
-	public static final String ENHANCED_BUG_REPORTING = "org.eclipse.mylyn.bugzilla.ide.reportbug.enhanced";
+	private final IBundleGroup bundleGroup;
+
+	public FeatureStatus(IBundleGroup bundleGroup) {
+		super(IStatus.INFO, bundleGroup.getIdentifier(), "");
+		this.bundleGroup = bundleGroup;
+	}
+
+	public IBundleGroup getBundleGroup() {
+		return bundleGroup;
+	}
 	
 }
