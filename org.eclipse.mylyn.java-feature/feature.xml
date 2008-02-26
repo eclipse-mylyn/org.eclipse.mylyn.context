@@ -214,7 +214,7 @@ litigation.
    </license>
 
    <url>
-      <update label="Mylyn for Eclipse 3.4" url="http://download.eclipse.org/tools/mylyn/update/e3.4"/>
+      <update label="Mylyn for Eclipse 3.3" url="http://download.eclipse.org/tools/mylyn/update/e3.3"/>
    </url>
 
    <requires>
@@ -234,15 +234,17 @@ litigation.
       <import plugin="org.eclipse.debug.core"/>
       <import plugin="org.eclipse.ui.ide"/>
       <import plugin="org.eclipse.ui.forms"/>
-      <import plugin="org.eclipse.mylyn.monitor.ui"/>
-      <import plugin="org.eclipse.mylyn.resources.ui"/>
       <import plugin="org.eclipse.jdt.debug"/>
-      <import plugin="org.eclipse.mylyn.context.core"/>
-      <import plugin="org.eclipse.mylyn.context.ui"/>
-      <import plugin="org.eclipse.mylyn.tasks.ui"/>
-      <import plugin="org.eclipse.mylyn.monitor.core"/>
       <import plugin="org.eclipse.ui.editors"/>
+      <import feature="org.eclipse.mylyn_feature" version="2.3.0.qualifier" match="greaterOrEqual"/>
       <import feature="org.eclipse.mylyn.ide_feature" version="2.3.0.qualifier" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.mylyn.monitor.ui" version="2.3.0" match="compatible"/>
+      <import plugin="org.eclipse.mylyn.resources.ui" version="2.3.0" match="compatible"/>
+      <import plugin="org.eclipse.mylyn.context.core" version="2.3.0" match="compatible"/>
+      <import plugin="org.eclipse.mylyn.context.ui" version="2.3.0" match="compatible"/>
+      <import plugin="org.eclipse.mylyn.tasks.core" version="2.3.0" match="compatible"/>
+      <import plugin="org.eclipse.mylyn.tasks.ui" version="2.3.0" match="compatible"/>
+      <import plugin="org.eclipse.mylyn.monitor.core" version="2.3.0" match="compatible"/>
    </requires>
 
    <plugin

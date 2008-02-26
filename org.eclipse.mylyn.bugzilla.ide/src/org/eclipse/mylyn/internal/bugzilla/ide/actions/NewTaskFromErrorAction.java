@@ -4,9 +4,6 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors:
- *    Chris Aniszczyk <zx@us.ibm.com> - bug 208819
  *******************************************************************************/
 
 package org.eclipse.mylyn.internal.bugzilla.ide.actions;
@@ -15,15 +12,19 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.mylyn.internal.bugzilla.ide.BugzillaIdePlugin;
 import org.eclipse.mylyn.tasks.core.TaskSelection;
 import org.eclipse.mylyn.tasks.ui.TasksUiUtil;
+import org.eclipse.pde.internal.runtime.logview.LogEntry;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IObjectActionDelegate;
-import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.ui.IViewActionDelegate;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.internal.views.log.LogEntry;
 
 /**
  * Creates a new task from the selected error log entry.
@@ -31,11 +32,11 @@ import org.eclipse.ui.internal.views.log.LogEntry;
  * @author Jeff Pound
  * @author Steffen Pingel
  */
-public class NewTaskFromErrorAction implements IObjectActionDelegate {
+public class NewTaskFromErrorAction implements IViewActionDelegate, ISelectionChangedListener {
 
 	public static final String ID = "org.eclipse.mylyn.tasklist.ui.repositories.actions.create";
 
-	private LogEntry entry;
+	private TreeViewer treeViewer;
 
 	/**
 	 * Fills a {@link StringBuilder} with {@link LogEntry} information, optionally including subentries too
@@ -76,14 +77,13 @@ public class NewTaskFromErrorAction implements IObjectActionDelegate {
 		Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 		boolean includeChildren = false;
 
-		if (entry.hasChildren()
-				&& MessageDialog.openQuestion(shell, "Report Bug", "Include children of this entry in the report?")) {
+		if (entry.hasChildren() && MessageDialog.openQuestion(shell, "Report Bug", "Include children of this entry in the report?")) {
 			includeChildren = true;
 		}
 
 		StringBuilder sb = new StringBuilder();
 		buildDescriptionFromLogEntry(entry, sb, includeChildren);
-
+		
 		if (BugzillaIdePlugin.getTaskErrorReporter().isEnabled()) {
 			Status status = new Status(entry.getSeverity(), entry.getPluginId(), entry.getMessage());
 			BugzillaIdePlugin.getTaskErrorReporter().handle(status);
@@ -93,7 +93,22 @@ public class NewTaskFromErrorAction implements IObjectActionDelegate {
 		}
 	}
 
+	public void init(IViewPart view) {
+		ISelectionProvider sp = view.getViewSite().getSelectionProvider();
+		sp.addSelectionChangedListener(this);
+		sp.setSelection(sp.getSelection());
+	}
+
 	public void run() {
+		TreeItem[] items = treeViewer.getTree().getSelection();
+		LogEntry entry = null;
+		if (items.length > 0) {
+			entry = (LogEntry) items[0].getData();
+		}
+		if (entry == null) {
+			return;
+		}
+		
 		createTask(entry);
 	}
 
@@ -102,13 +117,12 @@ public class NewTaskFromErrorAction implements IObjectActionDelegate {
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
-		Object object = ((IStructuredSelection) selection).getFirstElement();
-		if (object instanceof LogEntry) {
-			entry = (LogEntry) object;
-		}
+		// this selection is always empty? explicitly register a listener in
+		// init() instead
 	}
 
-	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
+	public void selectionChanged(SelectionChangedEvent event) {
+		treeViewer = (TreeViewer) event.getSource();
 	}
-
+	
 }
