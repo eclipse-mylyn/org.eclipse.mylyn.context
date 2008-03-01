@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.mylyn.pde_feature"
       label="Mylyn Bridge: PDE, CVS and Ant"
-      version="2.3.0.qualifier"
+      version="2.3.1.qualifier"
       provider-name="Eclipse.org"
       plugin="org.eclipse.mylyn">
 
@@ -245,7 +245,7 @@ litigation.
       <import plugin="org.eclipse.ui.workbench"/>
       <import plugin="org.eclipse.compare"/>
       <import plugin="org.eclipse.ui.navigator.resources"/>
-      <import feature="org.eclipse.mylyn.ide_feature" version="2.3.0.qualifier" match="greaterOrEqual"/>
+      <import feature="org.eclipse.mylyn.ide_feature" version="2.3.1.qualifier" match="greaterOrEqual"/>
       <import plugin="org.eclipse.pde.ui" version="3.3.0" match="equivalent"/>
       <import plugin="org.eclipse.mylyn.tasks.core" version="2.3.0" match="compatible"/>
       <import plugin="org.eclipse.mylyn.context.ui" version="2.3.0" match="compatible"/>
@@ -265,35 +265,35 @@ litigation.
          id="org.eclipse.mylyn.pde.ui"
          download-size="0"
          install-size="0"
-         version="2.3.0.qualifier"
+         version="2.3.1.qualifier"
          unpack="false"/>
 
    <plugin
          id="org.eclipse.mylyn.ide.ant"
          download-size="0"
          install-size="0"
-         version="2.3.0.qualifier"
+         version="2.3.1.qualifier"
          unpack="false"/>
 
    <plugin
          id="org.eclipse.mylyn.team.cvs"
          download-size="0"
          install-size="0"
-         version="2.3.0.qualifier"
+         version="2.3.1.qualifier"
          unpack="false"/>
 
    <plugin
          id="org.eclipse.mylyn.bugzilla.ide"
          download-size="0"
          install-size="0"
-         version="2.3.0.qualifier"
+         version="2.3.1.qualifier"
          unpack="false"/>
 
    <plugin
          id="org.eclipse.mylyn.team.ui"
          download-size="0"
          install-size="0"
-         version="2.3.0.qualifier"
+         version="2.3.1.qualifier"
          unpack="false"/>
 
 </feature>
