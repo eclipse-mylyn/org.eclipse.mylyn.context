@@ -40,9 +40,9 @@ public class AttributeTaskMapper {
 		if (repositoryUrl != null) {
 			String repositoryKind = attributes.get(IRepositoryConstants.REPOSITORY_KIND);
 			if (repositoryKind != null) {
-				taskRepository = TasksUiPlugin.getRepositoryManager().getRepository(repositoryUrl);
+				taskRepository = TasksUiPlugin.getRepositoryManager().getRepository(repositoryKind, repositoryUrl);
 			} else {
-				taskRepository = TasksUiPlugin.getRepositoryManager().getRepository(repositoryUrl, repositoryKind);
+				taskRepository = TasksUiPlugin.getRepositoryManager().getRepository(repositoryUrl);
 			}
 		}
 		return taskRepository;

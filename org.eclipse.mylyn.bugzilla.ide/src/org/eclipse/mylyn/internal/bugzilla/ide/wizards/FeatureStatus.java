@@ -17,15 +17,15 @@ import org.eclipse.core.runtime.Status;
  */
 public class FeatureStatus extends Status {
 
-	private final IBundleGroup bundleGroup;
+	private final IBundleGroup[] bundleGroups;
 
-	public FeatureStatus(IBundleGroup bundleGroup) {
-		super(IStatus.INFO, bundleGroup.getIdentifier(), "");
-		this.bundleGroup = bundleGroup;
+	public FeatureStatus(String id, IBundleGroup[] bundleGroups) {
+		super(IStatus.INFO, id, "");
+		this.bundleGroups = bundleGroups;
 	}
 
-	public IBundleGroup getBundleGroup() {
-		return bundleGroup;
+	public IBundleGroup[] getBundleGroup() {
+		return bundleGroups;
 	}
 	
 }
