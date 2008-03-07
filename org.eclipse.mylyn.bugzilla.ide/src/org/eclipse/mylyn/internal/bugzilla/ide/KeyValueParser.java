@@ -52,6 +52,8 @@ public class KeyValueParser {
 					escaping = true;
 				}
 				break;
+			case '\n':
+				break;
 			case '=':
 				if (escaping) {
 					append(c);
@@ -79,7 +81,7 @@ public class KeyValueParser {
 			}
 		}
 		
-		if (mode == Mode.KEY) {
+		if (mode == Mode.KEY && token.length() > 0) {
 			throw new ParseException("Unexpected end of input", text.length());
 		}
 		

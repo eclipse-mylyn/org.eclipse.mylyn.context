@@ -8,7 +8,6 @@
 
 package org.eclipse.mylyn.internal.bugzilla.ide.actions;
 
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -17,6 +16,7 @@ import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.mylyn.internal.bugzilla.ide.BugzillaIdePlugin;
+import org.eclipse.mylyn.internal.bugzilla.ide.wizards.ErrorLogStatus;
 import org.eclipse.mylyn.tasks.core.TaskSelection;
 import org.eclipse.mylyn.tasks.ui.TasksUiUtil;
 import org.eclipse.pde.internal.runtime.logview.LogEntry;
@@ -85,7 +85,10 @@ public class NewTaskFromErrorAction implements IViewActionDelegate, ISelectionCh
 		buildDescriptionFromLogEntry(entry, sb, includeChildren);
 		
 		if (BugzillaIdePlugin.getTaskErrorReporter().isEnabled()) {
-			Status status = new Status(entry.getSeverity(), entry.getPluginId(), entry.getMessage());
+			ErrorLogStatus status = new ErrorLogStatus(entry.getSeverity(), entry.getPluginId(), entry.getCode(), entry.getMessage());
+			status.setDate(entry.getDate());
+			status.setStack(entry.getStack());
+			status.setLogSessionData(entry.getSession().getSessionData());
 			BugzillaIdePlugin.getTaskErrorReporter().handle(status);
 		} else {
 			TaskSelection taskSelection = new TaskSelection("", sb.toString());
