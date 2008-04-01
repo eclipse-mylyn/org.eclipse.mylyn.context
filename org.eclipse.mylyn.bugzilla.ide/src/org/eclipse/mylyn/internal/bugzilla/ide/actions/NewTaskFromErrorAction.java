@@ -88,7 +88,9 @@ public class NewTaskFromErrorAction implements IViewActionDelegate, ISelectionCh
 			ErrorLogStatus status = new ErrorLogStatus(entry.getSeverity(), entry.getPluginId(), entry.getCode(), entry.getMessage());
 			status.setDate(entry.getDate());
 			status.setStack(entry.getStack());
-			status.setLogSessionData(entry.getSession().getSessionData());
+			if (entry.getSession() != null) {
+				status.setLogSessionData(entry.getSession().getSessionData());
+			}
 			BugzillaIdePlugin.getTaskErrorReporter().handle(status);
 		} else {
 			TaskSelection taskSelection = new TaskSelection("", sb.toString());
