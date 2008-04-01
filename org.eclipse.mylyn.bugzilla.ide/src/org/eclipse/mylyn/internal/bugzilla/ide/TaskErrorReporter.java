@@ -93,7 +93,9 @@ public class TaskErrorReporter extends AbstractErrorReporter {
 			}
 
 			TaskSelection taskSelection = mapper.createTaskSelection();
-			updateAttributes(taskSelection.getTaskData(), status);
+
+			TaskContributorManager manager = new TaskContributorManager();
+			manager.updateAttributes(taskSelection.getTaskData(), status);
 
 			// fall back to opening wizard
 			TasksUiUtil.openNewTaskEditor(null, taskSelection, taskRepository);
@@ -144,10 +146,6 @@ public class TaskErrorReporter extends AbstractErrorReporter {
 		taskDataHandler.cloneTaskData(mapper.createTaskSelection().getTaskData(), taskData);
 
 		return taskData;
-	}
-
-	private void updateAttributes(RepositoryTaskData taskData, IStatus status) {
-
 	}
 
 }

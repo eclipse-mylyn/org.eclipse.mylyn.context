@@ -12,7 +12,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.eclipse.core.runtime.IBundleGroup;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -40,7 +39,7 @@ import org.eclipse.ui.branding.IBundleGroupConstants;
  */
 public class SelectFeaturePage extends WizardPage {
 
-	private static final int TABLE_HEIGHT = IDialogConstants.MINIMUM_MESSAGE_AREA_WIDTH;
+	private static final int TABLE_HEIGHT = 200;
 
 	private IBundleGroup selectedBundleGroup;
 
@@ -150,8 +149,8 @@ public class SelectFeaturePage extends WizardPage {
 		super.dispose();
 	}
 
-	public IBundleGroup getSelectedBundleGroup() {
-		return selectedBundleGroup;
+	public IBundleGroup[] getSelectedBundleGroups() {
+		return new IBundleGroup[] { selectedBundleGroup };
 	}
 
 }

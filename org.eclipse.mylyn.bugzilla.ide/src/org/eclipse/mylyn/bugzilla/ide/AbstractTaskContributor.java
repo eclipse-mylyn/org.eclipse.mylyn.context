@@ -20,6 +20,9 @@ import org.eclipse.core.runtime.IStatus;
  */
 public abstract class AbstractTaskContributor {
 
+	/**
+	 * Currently not used.
+	 */
 	public abstract Map<String, String> getAttributes(IStatus status);
 		
 	public abstract String getDescription(IStatus status);
