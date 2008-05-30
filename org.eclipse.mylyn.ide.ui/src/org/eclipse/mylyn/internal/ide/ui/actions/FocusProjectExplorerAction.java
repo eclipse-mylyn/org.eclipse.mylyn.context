@@ -13,14 +13,14 @@ import java.util.List;
 
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.mylyn.context.ui.InterestFilter;
-import org.eclipse.mylyn.resources.ui.FocusCommonNavigatorAction;
+import org.eclipse.mylyn.internal.resources.ui.FocusCommonNavigatorAction;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.navigator.CommonNavigator;
 
 /**
  * @author Mik Kersten
  */
-public class FocusProjectExplorerAction extends FocusCommonNavigatorAction {
+public class FocusProjectExplorerAction extends FocusCommonNavigatorAction { 
 
 	public FocusProjectExplorerAction() {
 		super(new InterestFilter(), true, true, true);

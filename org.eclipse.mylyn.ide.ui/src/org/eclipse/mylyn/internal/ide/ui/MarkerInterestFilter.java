@@ -10,46 +10,23 @@
  */
 package org.eclipse.mylyn.internal.ide.ui;
 
-import java.lang.reflect.Method;
-
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.mylyn.ide.ui.AbstractMarkerInterestFilter;
-import org.eclipse.ui.views.markers.MarkerItem;
+import org.eclipse.mylyn.context.core.ContextCorePlugin;
+import org.eclipse.mylyn.context.ui.InterestFilter;
+import org.eclipse.ui.views.markers.internal.ConcreteMarker;
+import org.eclipse.ui.views.markers.internal.ProblemMarker;
 
 /**
  * @author Mik Kersten
  */
-public class MarkerInterestFilter extends AbstractMarkerInterestFilter {
+public class MarkerInterestFilter extends InterestFilter {
 
 	@Override
 	public boolean select(Viewer viewer, Object parent, Object element) {
-
-		if (element instanceof MarkerItem) {
-			if (element.getClass().getSimpleName().equals("MarkerCategory")) {
-
-				// HACK: using reflection to gain accessibily
-				Class<?> clazz;
-				try {
-					clazz = Class.forName("org.eclipse.ui.internal.views.markers.MarkerCategory");
-					Method method = clazz.getDeclaredMethod("getChildren", new Class[] {});
-					method.setAccessible(true);
-					Object result = method.invoke(element, new Object[] {});
-					System.err.println(">>>>>> " + result.getClass());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-
-				return true;
-			} else if (element.getClass().getSimpleName().equals("MarkerEntry")) {
-				return isInteresting(((MarkerItem) element).getMarker(), viewer, parent);
-			}
-		}
-
-		return false;
-//			return true;
-		// NOTE: code commented out below did a look-down the children, which may be too expensive
+		if (!(element instanceof ConcreteMarker)) {
+			return true;
+			// NOTE: code commented out below did a look-down the children, which may be too expensive
 //			if (element instanceof MarkerNode) {
 //				MarkerNode markerNode = (MarkerNode) element;
 //				MarkerNode[] children = markerNode.getChildren();
@@ -61,21 +38,29 @@ public class MarkerInterestFilter extends AbstractMarkerInterestFilter {
 //						return true;
 //					}
 //				}
-//			}
-//		} else {
-//			ConcreteMarker marker = (ConcreteMarker) element;
-//			return isInteresting((ConcreteMarker) element, viewer, parent);
-//		}
+//			} 
+		} else {
+			return isInteresting((ConcreteMarker) element, viewer, parent);
+		}
 	}
 
-	@Override
-	protected boolean isImplicitlyInteresting(IMarker marker) {
-		try {
-			Object severity = marker.getAttribute(IMarker.SEVERITY);
-			return severity != null && severity.equals(IMarker.SEVERITY_ERROR);
-		} catch (CoreException e) {
-			// ignore
+	private boolean isImplicitlyInteresting(ConcreteMarker marker) {
+		return (marker instanceof ProblemMarker) && ((ProblemMarker) marker).getSeverity() == IMarker.SEVERITY_ERROR;
+	}
+
+	private boolean isInteresting(ConcreteMarker marker, Viewer viewer, Object parent) {
+		if (isImplicitlyInteresting(marker)) {
+			return true;
+		} else {
+			String handle = ContextCorePlugin.getDefault()
+					.getStructureBridge(marker.getResource().getFileExtension())
+					.getHandleForOffsetInObject(marker, 0);
+			if (handle == null) {
+				return false;
+			} else {
+				return super.select(viewer, parent, ContextCorePlugin.getContextManager().getElement(handle));
+			}
 		}
-		return false;
+
 	}
 }

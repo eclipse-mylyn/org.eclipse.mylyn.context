@@ -8,13 +8,10 @@
           contentType="plugin.xml"
           activeSearchIcon="icons/elcl16/edge-ref-xml.gif"
 	      activeSearchLabel="XML Search"/>
+    <labelProvider
+          class="org.eclipse.mylyn.internal.pde.ui.PdeContextLabelProvider"
+          contentType="plugin.xml"/>
   </extension>
-   <extension
-         point="org.eclipse.mylyn.context.ui.startup">
-      <startup
-            class="org.eclipse.mylyn.internal.pde.ui.PdeUiBridgePlugin$PdeUiBrideStartup">
-      </startup>
-   </extension>
 
    	<extension point="org.eclipse.mylyn.context.core.bridges">
 		<structureBridge
@@ -32,6 +29,14 @@
             delegate="org.eclipse.mylyn.internal.pde.ui.junit.TaskContextPdeJUnitLaunchConfiguration"
             modes="run, debug"
             id="org.eclipse.mylyn.pde.junit.launchconfig">
+         <fileExtension
+               default="false"
+               extension="java">
+         </fileExtension>
+         <fileExtension
+               default="false"
+               extension="class">
+         </fileExtension>
       </launchConfigurationType>
     </extension>
 

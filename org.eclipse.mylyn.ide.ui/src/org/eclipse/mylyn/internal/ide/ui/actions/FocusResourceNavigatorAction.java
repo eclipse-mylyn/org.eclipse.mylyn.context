@@ -61,27 +61,20 @@ public class FocusResourceNavigatorAction extends AbstractAutoFocusViewAction {
 	}
 
 	// TODO: should have better way of doing this
-	@Override
 	protected void setManualFilteringAndLinkingEnabled(boolean on) {
 		IViewPart part = super.getPartForAction();
 		if (part instanceof IResourceNavigator) {
-			for (IContributionItem item : ((IResourceNavigator) part).getViewSite()
-					.getActionBars()
-					.getToolBarManager()
-					.getItems()) {
+			for (IContributionItem item : ((IResourceNavigator) part).getViewSite().getActionBars().getToolBarManager().getItems()) {
 				if (item instanceof ActionContributionItem) {
-					ActionContributionItem actionItem = (ActionContributionItem) item;
+					ActionContributionItem actionItem = (ActionContributionItem)item;
 					if (actionItem.getAction() instanceof ToggleLinkingAction) {
 						actionItem.getAction().setEnabled(on);
 					}
 				}
 			}
-			for (IContributionItem item : ((IResourceNavigator) part).getViewSite()
-					.getActionBars()
-					.getMenuManager()
-					.getItems()) {
+			for (IContributionItem item : ((IResourceNavigator) part).getViewSite().getActionBars().getMenuManager().getItems()) {
 				if (item instanceof ActionContributionItem) {
-					ActionContributionItem actionItem = (ActionContributionItem) item;
+					ActionContributionItem actionItem = (ActionContributionItem)item;
 					// TODO: consider filing bug asking for extensibility
 					if (actionItem.getAction() instanceof FilterSelectionAction) {
 						actionItem.getAction().setEnabled(on);
@@ -90,7 +83,7 @@ public class FocusResourceNavigatorAction extends AbstractAutoFocusViewAction {
 			}
 		}
 	}
-
+	
 	@Override
 	protected void setDefaultLinkingEnabled(boolean on) {
 		IViewPart part = super.getPartForAction();

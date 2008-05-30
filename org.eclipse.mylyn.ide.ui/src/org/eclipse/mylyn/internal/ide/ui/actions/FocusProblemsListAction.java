@@ -8,14 +8,66 @@
 
 package org.eclipse.mylyn.internal.ide.ui.actions;
 
-import org.eclipse.mylyn.ide.ui.AbstractFocusMarkerViewAction;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.mylyn.internal.ide.ui.IdeUiBridgePlugin;
+import org.eclipse.mylyn.internal.ide.ui.MarkerViewLabelProvider;
+import org.eclipse.mylyn.monitor.core.StatusHandler;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.views.markers.internal.TableView;
+import org.eclipse.ui.views.markers.internal.TableViewLabelProvider;
 
 /**
  * @author Mik Kersten
  */
 public class FocusProblemsListAction extends AbstractFocusMarkerViewAction {
 
-	public FocusProblemsListAction() {
-		super();
+	/**
+	 * HACK: changing accessibility
+	 */
+	@Override
+	public List<StructuredViewer> getViewers() {
+		List<StructuredViewer> viewers = new ArrayList<StructuredViewer>();
+		if (cachedViewer == null) {
+			try {
+				IViewPart viewPart = super.getPartForAction();
+				if (viewPart != null) {
+					Class<?> infoClass = TableView.class;// problemView.getClass();
+					Method method = infoClass.getDeclaredMethod("getViewer", new Class[] {});
+					method.setAccessible(true);
+					cachedViewer = (StructuredViewer) method.invoke(viewPart, new Object[] {});
+					if (!cachedViewer.getControl().isDisposed()) {
+						updateMarkerViewLabelProvider(cachedViewer);
+					}
+				}
+			} catch (Exception e) {
+				StatusHandler.fail(new Status(IStatus.ERROR, IdeUiBridgePlugin.PLUGIN_ID, "Could not get problems view viewer", e));
+			}
+		}
+		if (cachedViewer != null) {
+			viewers.add(cachedViewer);
+		}
+		return viewers;
+	}
+
+	@Override
+	public void update() {
+		super.update();
+		cachedViewer = null;
+		for (StructuredViewer viewer : getViewers()) {
+			if (viewer instanceof TableViewer) {
+				TableViewer tableViewer = (TableViewer) viewer;
+				if (!(tableViewer.getLabelProvider() instanceof MarkerViewLabelProvider)) {
+					tableViewer.setLabelProvider(new MarkerViewLabelProvider(
+							(TableViewLabelProvider) tableViewer.getLabelProvider()));
+				}
+			}
+		}
 	}
 }

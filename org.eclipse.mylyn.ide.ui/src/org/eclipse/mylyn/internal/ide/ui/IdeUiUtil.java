@@ -24,9 +24,8 @@ public class IdeUiUtil {
 
 	public static IViewPart getView(String id) {
 		IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-		if (activePage == null) {
+		if (activePage == null)
 			return null;
-		}
 		IViewPart view = activePage.findView(id);
 		return view;
 	}
@@ -52,17 +51,14 @@ public class IdeUiUtil {
 //	}
 
 	public static ResourceNavigator getNavigatorFromActivePage() {
-		if (PlatformUI.getWorkbench() == null || PlatformUI.getWorkbench().getActiveWorkbenchWindow() == null) {
+		if (PlatformUI.getWorkbench() == null || PlatformUI.getWorkbench().getActiveWorkbenchWindow() == null)
 			return null;
-		}
 		IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-		if (activePage == null) {
+		if (activePage == null)
 			return null;
-		}
 		IViewPart view = activePage.findView(ID_NAVIGATOR);
-		if (view instanceof ResourceNavigator) {
+		if (view instanceof ResourceNavigator)
 			return (ResourceNavigator) view;
-		}
 		return null;
 	}
 }

@@ -26,8 +26,8 @@ import org.eclipse.mylyn.monitor.ui.AbstractUserInteractionMonitor;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.core.plugin.IPluginObject;
 import org.eclipse.pde.internal.core.plugin.ImportObject;
-import org.eclipse.pde.internal.core.text.IDocumentAttributeNode;
-import org.eclipse.pde.internal.core.text.IDocumentElementNode;
+import org.eclipse.pde.internal.core.text.IDocumentAttribute;
+import org.eclipse.pde.internal.core.text.IDocumentNode;
 import org.eclipse.pde.internal.core.text.plugin.PluginModel;
 import org.eclipse.pde.internal.core.text.plugin.PluginObjectNode;
 import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
@@ -40,7 +40,6 @@ import org.eclipse.ui.part.FileEditorInput;
  * @author Shawn Minto
  * @author Mik Kersten
  */
-@SuppressWarnings("restriction")
 public class PdeEditingMonitor extends AbstractUserInteractionMonitor {
 
 	public PdeEditingMonitor() {
@@ -129,12 +128,12 @@ public class PdeEditingMonitor extends AbstractUserInteractionMonitor {
 		}
 	}
 
-	public static String getStringOfNode(IDocumentElementNode node) {
+	public static String getStringOfNode(IDocumentNode node) {
 		if (node == null) {
 			return null;
 		}
 		String s = node.getXMLTagName();
-		for (IDocumentAttributeNode a : node.getNodeAttributes()) {
+		for (IDocumentAttribute a : node.getNodeAttributes()) {
 			s += a.getAttributeName() + "=" + a.getAttributeValue();
 		}
 		return s;
@@ -200,14 +199,14 @@ public class PdeEditingMonitor extends AbstractUserInteractionMonitor {
 	/**
 	 * COPIED FROM ManifestSourcePage
 	 */
-	private static IDocumentElementNode findNode(IPluginObject[] nodes, int offset, boolean hashCode) {
-		for (IPluginObject node3 : nodes) {
-			IDocumentElementNode node = (IDocumentElementNode) node3;
-			IDocumentElementNode[] children = node.getChildNodes();
+	private static IDocumentNode findNode(IPluginObject[] nodes, int offset, boolean hashCode) {
+		for (IPluginObject element : nodes) {
+			IDocumentNode node = (IDocumentNode) element;
+			IDocumentNode[] children = node.getChildNodes();
 
 			// changed region - added to check the children to make it work
 			// properly
-			IDocumentElementNode node2 = null;
+			IDocumentNode node2 = null;
 			if (children.length > 0) {
 				node2 = PdeEditingMonitor.findNode(children, offset, hashCode);
 				// end changed region
@@ -233,10 +232,10 @@ public class PdeEditingMonitor extends AbstractUserInteractionMonitor {
 	/**
 	 * Copy of previous, taking different arguments
 	 */
-	private static IDocumentElementNode findNode(IDocumentElementNode[] nodes, int offset, boolean hashCode) {
-		for (IDocumentElementNode node : nodes) {
-			IDocumentElementNode[] children = node.getChildNodes();
-			IDocumentElementNode node2 = null;
+	private static IDocumentNode findNode(IDocumentNode[] nodes, int offset, boolean hashCode) {
+		for (IDocumentNode node : nodes) {
+			IDocumentNode[] children = node.getChildNodes();
+			IDocumentNode node2 = null;
 			if (children.length > 0) {
 				node2 = PdeEditingMonitor.findNode(children, offset, hashCode);
 			}
