@@ -34,18 +34,19 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.mylyn.commons.core.StatusHandler;
 import org.eclipse.mylyn.context.core.AbstractContextStructureBridge;
-import org.eclipse.mylyn.context.core.AbstractRelationProvider;
-import org.eclipse.mylyn.context.core.ContextCorePlugin;
+import org.eclipse.mylyn.context.core.ContextCore;
 import org.eclipse.mylyn.context.core.IDegreeOfSeparation;
 import org.eclipse.mylyn.context.core.IInteractionElement;
+import org.eclipse.mylyn.internal.context.core.AbstractRelationProvider;
+import org.eclipse.mylyn.internal.context.core.ContextCorePlugin;
 import org.eclipse.mylyn.internal.context.core.DegreeOfSeparation;
 import org.eclipse.mylyn.internal.context.core.IActiveSearchListener;
 import org.eclipse.mylyn.internal.context.core.IActiveSearchOperation;
-import org.eclipse.mylyn.internal.ide.xml.XmlNodeHelper;
+import org.eclipse.mylyn.internal.ide.ui.XmlNodeHelper;
 import org.eclipse.mylyn.internal.java.ui.search.XmlActiveSearchUpdater;
-import org.eclipse.mylyn.monitor.core.StatusHandler;
-import org.eclipse.mylyn.resources.ResourcesUiBridgePlugin;
+import org.eclipse.mylyn.internal.resources.ui.ResourcesUiBridgePlugin;
 import org.eclipse.search.core.text.TextSearchScope;
 import org.eclipse.search.internal.ui.text.FileSearchQuery;
 import org.eclipse.search.internal.ui.text.FileSearchResult;
@@ -57,6 +58,7 @@ import org.eclipse.search.ui.text.Match;
  * @author Shawn Minto
  * @author Mik Kersten
  */
+@SuppressWarnings("restriction")
 public class XmlJavaRelationProvider extends AbstractRelationProvider {
 
 	public static final String SOURCE_ID = "org.eclipse.mylyn.xml.search.references";
@@ -88,22 +90,25 @@ public class XmlJavaRelationProvider extends AbstractRelationProvider {
 
 	@Override
 	protected void findRelated(final IInteractionElement node, int degreeOfSeparation) {
-		if (!node.getContentType().equals("java"))
+		if (!node.getContentType().equals("java")) {
 			return;
+		}
 		IJavaElement javaElement = JavaCore.create(node.getHandleIdentifier());
-		if (javaElement == null || javaElement instanceof ICompilationUnit || !javaElement.exists())
+		if (javaElement == null || javaElement instanceof ICompilationUnit || !javaElement.exists()) {
 			return;
+		}
 		if (!acceptElement(javaElement)) {
 			return;
 		}
 
 		TextSearchScope scope = createTextSearchScope(degreeOfSeparation);
-		if (scope != null)
+		if (scope != null) {
 			runJob(node, javaElement, degreeOfSeparation, getId());
+		}
 	}
 
 	protected TextSearchScope createTextSearchScope(int degreeOfSeparation) {
-		List<IInteractionElement> landmarks = ContextCorePlugin.getContextManager().getActiveLandmarks();
+		Set<IInteractionElement> landmarks = ContextCore.getContextManager().getActiveLandmarks();
 
 		switch (degreeOfSeparation) {
 		case 1:
@@ -118,14 +123,16 @@ public class XmlJavaRelationProvider extends AbstractRelationProvider {
 					IResource element = null;
 					int first = handle.indexOf(";");
 					String filename = handle;
-					if (first != -1)
+					if (first != -1) {
 						filename = handle.substring(0, first);
+					}
 					try {
 						// change the file into a document
 						IPath path = new Path(filename);
 						element = ((Workspace) ResourcesPlugin.getWorkspace()).newResource(path, IResource.FILE);
 					} catch (Exception e) {
-						StatusHandler.log(new Status(IStatus.WARNING, PdeUiBridgePlugin.ID_PLUGIN, "Scope creation failed", e));
+						StatusHandler.log(new Status(IStatus.WARNING, PdeUiBridgePlugin.ID_PLUGIN,
+								"Scope creation failed", e));
 					}
 					l.add(element);
 				}
@@ -140,8 +147,7 @@ public class XmlJavaRelationProvider extends AbstractRelationProvider {
 			// create a search scope for the projects of landmarks
 			Set<IProject> projectsToSearch = new HashSet<IProject>();
 			for (IInteractionElement landmark : landmarks) {
-				AbstractContextStructureBridge bridge = ContextCorePlugin.getDefault().getStructureBridge(
-						landmark.getContentType());
+				AbstractContextStructureBridge bridge = ContextCore.getStructureBridge(landmark.getContentType());
 				IResource resource = ResourcesUiBridgePlugin.getDefault().getResourceForElement(landmark, true);
 				IProject project = null;
 				if (resource != null) {
@@ -187,8 +193,9 @@ public class XmlJavaRelationProvider extends AbstractRelationProvider {
 		// get the fully qualified name and if it is null, don't search
 		String fullyQualifiedName = getFullyQualifiedName(javaElement);
 
-		if (fullyQualifiedName == null)
+		if (fullyQualifiedName == null) {
 			return;
+		}
 
 		// Create the search query
 		final XMLSearchOperation query = (XMLSearchOperation) getSearchOperation(node, 0, degreeOfSeparation);
@@ -200,8 +207,9 @@ public class XmlJavaRelationProvider extends AbstractRelationProvider {
 
 				public void searchCompleted(List<?> l) {
 					// deal with File
-					if (l.isEmpty())
+					if (l.isEmpty()) {
 						return;
+					}
 
 					Map<String, String> nodes = new HashMap<String, String>();
 
@@ -209,17 +217,16 @@ public class XmlJavaRelationProvider extends AbstractRelationProvider {
 						FileSearchResult fsr = (FileSearchResult) l.get(0);
 
 						Object[] far = fsr.getElements();
-						for (int i = 0; i < far.length; i++) {
-							Match[] mar = fsr.getMatches(far[i]);
+						for (Object element : far) {
+							Match[] mar = fsr.getMatches(element);
 
-							if (far[i] instanceof File) {
-								File f = (File) far[i];
+							if (element instanceof File) {
+								File f = (File) element;
 
 								// change the file into a document
 								// FileEditorInput fei = new FileEditorInput(f);
 
-								for (int j = 0; j < mar.length; j++) {
-									Match m = mar[j];
+								for (Match m : mar) {
 									try {
 										AbstractContextStructureBridge bridge = ContextCorePlugin.getDefault()
 												.getStructureBridge(f.getName());
@@ -236,7 +243,8 @@ public class XmlJavaRelationProvider extends AbstractRelationProvider {
 											}
 										}
 									} catch (Exception e) {
-										StatusHandler.log(new Status(IStatus.ERROR, PdeUiBridgePlugin.ID_PLUGIN, "Unable to create match", e));
+										StatusHandler.log(new Status(IStatus.ERROR, PdeUiBridgePlugin.ID_PLUGIN,
+												"Unable to create match", e));
 									}
 								}
 							}
@@ -265,8 +273,9 @@ public class XmlJavaRelationProvider extends AbstractRelationProvider {
 	public IActiveSearchOperation getSearchOperation(IInteractionElement node, int limitTo, int degreeOfSeparation) {
 		IJavaElement javaElement = JavaCore.create(node.getHandleIdentifier());
 		TextSearchScope scope = createTextSearchScope(degreeOfSeparation);
-		if (scope == null)
+		if (scope == null) {
 			return null;
+		}
 
 		String fullyQualifiedName = getFullyQualifiedName(javaElement);
 
@@ -274,19 +283,21 @@ public class XmlJavaRelationProvider extends AbstractRelationProvider {
 	}
 
 	private String getFullyQualifiedName(IJavaElement je) {
-		if (!(je instanceof IMember))
+		if (!(je instanceof IMember)) {
 			return null;
+		}
 
 		IMember m = (IMember) je;
-		if (m.getDeclaringType() == null)
+		if (m.getDeclaringType() == null) {
 			return ((IType) m).getFullyQualifiedName();
-		else
+		} else {
 			return m.getDeclaringType().getFullyQualifiedName() + "." + m.getElementName();
+		}
 	}
 
 	public static class XMLSearchJob extends Job {
 
-		private XMLSearchOperation op;
+		private final XMLSearchOperation op;
 
 		/**
 		 * Constructor
@@ -322,7 +333,8 @@ public class XmlJavaRelationProvider extends AbstractRelationProvider {
 				}
 				return fResult;
 			} catch (Exception e) {
-				StatusHandler.log(new Status(IStatus.WARNING, PdeUiBridgePlugin.ID_PLUGIN, "Failed to get search result: " + e.getMessage()));
+				StatusHandler.log(new Status(IStatus.WARNING, PdeUiBridgePlugin.ID_PLUGIN,
+						"Failed to get search result: " + e.getMessage()));
 			}
 			return super.getSearchResult();
 		}
@@ -334,8 +346,9 @@ public class XmlJavaRelationProvider extends AbstractRelationProvider {
 				ISearchResult result = getSearchResult();
 				if (result instanceof FileSearchResult) {
 					List<Object> l = new ArrayList<Object>();
-					if (((FileSearchResult) result).getElements().length != 0)
+					if (((FileSearchResult) result).getElements().length != 0) {
 						l.add(result);
+					}
 
 					notifySearchCompleted(l);
 				}
@@ -355,7 +368,7 @@ public class XmlJavaRelationProvider extends AbstractRelationProvider {
 		}
 
 		/** List of listeners wanting to know about the searches */
-		private List<IActiveSearchListener> listeners = new ArrayList<IActiveSearchListener>();
+		private final List<IActiveSearchListener> listeners = new ArrayList<IActiveSearchListener>();
 
 		/**
 		 * Add a listener for when the bugzilla search is completed
