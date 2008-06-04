@@ -11,9 +11,9 @@ package org.eclipse.mylyn.internal.ide.ui;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
-import org.eclipse.mylyn.context.core.ContextCorePlugin;
-import org.eclipse.mylyn.context.core.IInteractionElement;
 import org.eclipse.mylyn.context.core.AbstractContextStructureBridge;
+import org.eclipse.mylyn.context.core.ContextCore;
+import org.eclipse.mylyn.context.core.IInteractionElement;
 import org.eclipse.mylyn.context.core.InterestComparator;
 import org.eclipse.ui.views.markers.internal.ProblemMarker;
 
@@ -35,12 +35,12 @@ public class MarkerViewerInterestSorter extends ViewerSorter {
 					&& marker1.getSeverity() < IMarker.SEVERITY_ERROR) {
 				return 1;
 			} else {
-				if (ContextCorePlugin.getContextManager().isContextActive()) {
-					AbstractContextStructureBridge bridge = ContextCorePlugin.getDefault().getStructureBridge(
+				if (ContextCore.getContextManager().isContextActive()) {
+					AbstractContextStructureBridge bridge = ContextCore.getStructureBridge(
 							marker1.getResource().getFileExtension());
-					IInteractionElement node1 = ContextCorePlugin.getContextManager().getElement(
+					IInteractionElement node1 = ContextCore.getContextManager().getElement(
 							bridge.getHandleForOffsetInObject(marker1, 0));
-					IInteractionElement node2 = ContextCorePlugin.getContextManager().getElement(
+					IInteractionElement node2 = ContextCore.getContextManager().getElement(
 							bridge.getHandleForOffsetInObject(marker2, 0));
 					return interestComparator.compare(node1, node2);
 				}

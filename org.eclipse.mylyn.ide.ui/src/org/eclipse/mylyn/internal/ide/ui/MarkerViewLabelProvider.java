@@ -12,10 +12,10 @@ import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.IFontProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.mylyn.context.core.ContextCorePlugin;
+import org.eclipse.mylyn.context.core.ContextCore;
 import org.eclipse.mylyn.context.core.IInteractionElement;
-import org.eclipse.mylyn.internal.context.ui.ContextUiPrefContstants;
-import org.eclipse.mylyn.internal.context.ui.InterestDecorator;
+import org.eclipse.mylyn.context.ui.ContextUi;
+import org.eclipse.mylyn.internal.provisional.commons.ui.CommonFonts;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
@@ -27,7 +27,7 @@ import org.eclipse.ui.views.markers.internal.TableViewLabelProvider;
  */
 public class MarkerViewLabelProvider implements ITableLabelProvider, IColorProvider, IFontProvider {
 
-	private TableViewLabelProvider provider;
+	private final TableViewLabelProvider provider;
 
 	public MarkerViewLabelProvider(TableViewLabelProvider provider) {
 		this.provider = provider;
@@ -35,13 +35,12 @@ public class MarkerViewLabelProvider implements ITableLabelProvider, IColorProvi
 
 	public Font getFont(Object element) {
 		if (element instanceof ConcreteMarker) {
-			String handle = ContextCorePlugin.getDefault().getStructureBridge(
-					((ConcreteMarker) element).getResource().getFileExtension()).getHandleForOffsetInObject((element),
-					0);
-			IInteractionElement node = ContextCorePlugin.getContextManager().getElement(handle);
+			String handle = ContextCore.getStructureBridge(((ConcreteMarker) element).getResource().getFileExtension())
+					.getHandleForOffsetInObject((element), 0);
+			IInteractionElement node = ContextCore.getContextManager().getElement(handle);
 			if (node != null) {
 				if (node.getInterest().isLandmark() && !node.getInterest().isPropagated()) {
-					return ContextUiPrefContstants.BOLD;
+					return CommonFonts.BOLD;
 				}
 			}
 		}
@@ -58,10 +57,9 @@ public class MarkerViewLabelProvider implements ITableLabelProvider, IColorProvi
 
 	public Color getForeground(Object element) {
 		if (element instanceof ConcreteMarker) {
-			String handle = ContextCorePlugin.getDefault().getStructureBridge(
-					((ConcreteMarker) element).getResource().getFileExtension()).getHandleForOffsetInObject((element),
-					0);
-			return InterestDecorator.getForegroundForElement(ContextCorePlugin.getContextManager().getElement(handle));
+			String handle = ContextCore.getStructureBridge(((ConcreteMarker) element).getResource().getFileExtension())
+					.getHandleForOffsetInObject((element), 0);
+			return ContextUi.getForeground(ContextCore.getContextManager().getElement(handle));
 		} else {
 			return null;
 		}
@@ -70,7 +68,7 @@ public class MarkerViewLabelProvider implements ITableLabelProvider, IColorProvi
 	public Color getBackground(Object element) {
 		return null;
 //		if (element instanceof ConcreteMarker) {
-//			String handle = ContextCorePlugin.getDefault().getStructureBridge(
+//			String handle = ContextCore.getStructureBridge(
 //					((ConcreteMarker) element).getResource().getFileExtension()).getHandleForOffsetInObject((element),
 //					0);
 //			return UiUtil.getBackgroundForElement(ContextCorePlugin.getContextManager().getElement(handle));

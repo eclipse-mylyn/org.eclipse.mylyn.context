@@ -8,7 +8,7 @@
 /*
  * Created on Apr 4, 2005
  */
-package org.eclipse.mylyn.internal.ide.xml;
+package org.eclipse.mylyn.internal.ide.ui;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,8 +17,7 @@ import java.io.InputStreamReader;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.mylyn.internal.ide.ui.IdeUiBridgePlugin;
-import org.eclipse.mylyn.monitor.core.StatusHandler;
+import org.eclipse.mylyn.commons.core.StatusHandler;
 
 /**
  * Class to help get the handle for an xml file
@@ -70,32 +69,6 @@ public class XmlNodeHelper {
 		this.end = s;
 	}
 
-	// /**
-	// * Constructor
-	// * @param fei The FileEditorInput for the editor the node is in
-	// * @param offset The offset of the node
-	// * @throws CoreException
-	// * @throws BadLocationException
-	// */
-	// public XmlNodeHelper(FileEditorInput fei, int offset) throws
-	// CoreException {
-	//
-	// this.filename = fei.getFile().getFullPath().toString();
-	// InputStream i = fei.getFile().getContents();
-	// String contents = getContents(i);
-	// Document d = new Document(contents);
-	// try{
-	// startOffset = d.getLineOfOffset(offset - 1);
-	// } catch (BadLocationException e){
-	// // SHAWNTODO this happens when the document has not been saved and
-	// selections
-	// // are made to new nodes
-	// startOffset = 0;
-	// ContextCorePlugin.log(e, "Unable to get start line from the editor: " +
-	// filename + ":" + offset);
-	// }
-	// }
-
 	/**
 	 * Get the handle for the node Format: filename;startOffset
 	 * 
@@ -106,8 +79,9 @@ public class XmlNodeHelper {
 	}
 
 	public String getFilename() {
-		if (filename != null)
+		if (filename != null) {
 			filename = filename.trim();
+		}
 		return filename;
 	}
 
