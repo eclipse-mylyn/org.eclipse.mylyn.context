@@ -12,8 +12,8 @@ package org.eclipse.mylyn.internal.ide.ui;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.mylyn.context.core.ContextCorePlugin;
 import org.eclipse.mylyn.context.ui.InterestFilter;
+import org.eclipse.mylyn.internal.context.core.ContextCorePlugin;
 import org.eclipse.ui.views.markers.internal.ConcreteMarker;
 import org.eclipse.ui.views.markers.internal.ProblemMarker;
 
