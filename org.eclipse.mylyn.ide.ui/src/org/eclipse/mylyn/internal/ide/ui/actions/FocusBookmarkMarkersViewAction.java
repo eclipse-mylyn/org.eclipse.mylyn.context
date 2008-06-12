@@ -37,7 +37,7 @@ public class FocusBookmarkMarkersViewAction extends AbstractFocusMarkerViewActio
 					updateMarkerViewLabelProvider(cachedViewer);
 				}
 			} catch (Exception e) {
-				StatusHandler.fail(new Status(IStatus.ERROR, IdeUiBridgePlugin.PLUGIN_ID,
+				StatusHandler.fail(new Status(IStatus.ERROR, IdeUiBridgePlugin.ID_PLUGIN,
 						"Could not get bookmarks view viewer", e));
 			}
 		}

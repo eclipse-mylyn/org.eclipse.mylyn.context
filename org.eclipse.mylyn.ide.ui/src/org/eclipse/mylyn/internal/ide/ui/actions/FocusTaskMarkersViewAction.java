@@ -43,7 +43,8 @@ public class FocusTaskMarkersViewAction extends AbstractFocusMarkerViewAction {
 					updateMarkerViewLabelProvider(cachedViewer);
 				}
 			} catch (Exception e) {
-				StatusHandler.fail(new Status(IStatus.ERROR, IdeUiBridgePlugin.PLUGIN_ID, "Could not get task view list viewer", e));
+				StatusHandler.fail(new Status(IStatus.ERROR, IdeUiBridgePlugin.ID_PLUGIN,
+						"Could not get task view list viewer", e));
 			}
 		}
 		if (cachedViewer != null) {

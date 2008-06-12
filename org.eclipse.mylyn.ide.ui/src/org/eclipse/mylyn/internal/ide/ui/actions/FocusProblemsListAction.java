@@ -47,7 +47,7 @@ public class FocusProblemsListAction extends AbstractFocusMarkerViewAction {
 					}
 				}
 			} catch (Exception e) {
-				StatusHandler.fail(new Status(IStatus.ERROR, IdeUiBridgePlugin.PLUGIN_ID,
+				StatusHandler.fail(new Status(IStatus.ERROR, IdeUiBridgePlugin.ID_PLUGIN,
 						"Could not get problems view viewer", e));
 			}
 		}
