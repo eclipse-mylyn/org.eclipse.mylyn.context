@@ -11,24 +11,13 @@
 
 package org.eclipse.mylyn.ide.ui;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.mylyn.commons.core.StatusHandler;
 import org.eclipse.mylyn.context.ui.AbstractFocusViewAction;
 import org.eclipse.mylyn.context.ui.InterestFilter;
-import org.eclipse.mylyn.internal.ide.ui.IdeUiBridgePlugin;
 import org.eclipse.mylyn.internal.ide.ui.MarkerInterestFilter;
 import org.eclipse.mylyn.internal.ide.ui.MarkerViewLabelProvider;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.internal.views.markers.ExtendedMarkersView;
-import org.eclipse.ui.internal.views.markers.MarkersTreeViewer;
 import org.eclipse.ui.views.markers.internal.TableViewLabelProvider;
 
 /**
@@ -63,35 +52,35 @@ public abstract class AbstractFocusMarkerViewAction extends AbstractFocusViewAct
 		}
 	}
 
-	/**
-	 * HACK: changing accessibility
-	 */
-	@Override
-	public List<StructuredViewer> getViewers() {
-		List<StructuredViewer> viewers = new ArrayList<StructuredViewer>();
-		if (cachedViewer == null) {
-			try {
-				IViewPart viewPart = super.getPartForAction();
-				if (viewPart != null) {
-					// NOTE: following code is Eclipse 3.4 specific
-					Class<?> clazz = ExtendedMarkersView.class;
-					Field field = clazz.getDeclaredField("viewer");
-					field.setAccessible(true);
-					cachedViewer = (MarkersTreeViewer) field.get(viewPart);
-					if (cachedViewer != null && !cachedViewer.getControl().isDisposed()) {
-						updateMarkerViewLabelProvider(cachedViewer);
-					}
-				}
-			} catch (Exception e) {
-				StatusHandler.log(new Status(IStatus.ERROR, IdeUiBridgePlugin.ID_PLUGIN,
-						"Could not get problems view viewer", e));
-			}
-		}
-		if (cachedViewer != null) {
-			viewers.add(cachedViewer);
-		}
-		return viewers;
-	}
+//	/**
+//	 * HACK: changing accessibility
+//	 */
+//	@Override
+//	public List<StructuredViewer> getViewers() {
+//		List<StructuredViewer> viewers = new ArrayList<StructuredViewer>();
+//		if (cachedViewer == null) {
+//			try {
+//				IViewPart viewPart = super.getPartForAction();
+//				if (viewPart != null) {
+//					// NOTE: following code is Eclipse 3.4 specific
+//					Class<?> clazz = ExtendedMarkersView.class;
+//					Field field = clazz.getDeclaredField("viewer");
+//					field.setAccessible(true);
+//					cachedViewer = (MarkersTreeViewer) field.get(viewPart);
+//					if (!cachedViewer.getControl().isDisposed()) {
+//						updateMarkerViewLabelProvider(cachedViewer);
+//					}
+//				}
+//			} catch (Exception e) {
+//				StatusHandler.log(new Status(IStatus.ERROR, IdeUiBridgePlugin.PLUGIN_ID,
+//						"Could not get problems view viewer", e));
+//			}
+//		}
+//		if (cachedViewer != null) {
+//			viewers.add(cachedViewer);
+//		}
+//		return viewers;
+//	}
 
 	@Override
 	public void update() {
