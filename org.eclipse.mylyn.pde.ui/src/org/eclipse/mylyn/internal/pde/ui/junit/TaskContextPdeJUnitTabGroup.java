@@ -28,7 +28,6 @@ import org.eclipse.pde.ui.launcher.TracingTab;
  * 
  * @author Mik Kersten
  */
-@SuppressWarnings("restriction")
 public class TaskContextPdeJUnitTabGroup extends JUnitTabGroup {
 
 	@Override
