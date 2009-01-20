@@ -94,14 +94,42 @@ public class SaxContextContentHandler extends DefaultHandler {
 		String structureHandle = org.eclipse.mylyn.internal.commons.core.XmlStringConverter.convertXmlToString(attributes.getValue(InteractionContextExternalizer.ATR_STRUCTURE_HANDLE));
 		String structureKind = org.eclipse.mylyn.internal.commons.core.XmlStringConverter.convertXmlToString(attributes.getValue(InteractionContextExternalizer.ATR_STRUCTURE_KIND));
 
+		// the number of events and event count on creation are needed to ensure that the context that is read in is the same as what was written out
+		String numEventsString = attributes.getValue(InteractionContextExternalizer.ATR_NUM_EVENTS);
+		int numEvents = 1;
+		if (numEventsString != null && numEventsString.length() != 0) {
+			try {
+				numEvents = Integer.parseInt(numEventsString);
+			} catch (NumberFormatException nfe) {
+				//ignore.
+			}
+		}
+
+		String eventCountOnCreationString = attributes.getValue(InteractionContextExternalizer.ATR_CREATION_COUNT);
+		int eventCountOnCreation = -1;
+		if (eventCountOnCreationString != null && eventCountOnCreationString.length() != 0) {
+			try {
+				eventCountOnCreation = Integer.parseInt(eventCountOnCreationString);
+			} catch (NumberFormatException nfe) {
+				//ignore.
+			}
+		}
+
 		SimpleDateFormat dateFormat = new SimpleDateFormat(InteractionContextExternalizer.DATE_FORMAT_STRING,
 				Locale.ENGLISH);
 		Date dStartDate = dateFormat.parse(startDate);
 		Date dEndDate = dateFormat.parse(endDate);
 		float iInterest = Float.parseFloat(interest);
 
-		InteractionEvent ie = new InteractionEvent(Kind.fromString(kind), structureKind, structureHandle, originId,
-				navigation, delta, iInterest, dStartDate, dEndDate);
+		InteractionEvent ie = null;
+		if (numEventsString == null || eventCountOnCreationString == null) {
+			// if we don't have the values for the collapsed event, it must be one that is uncollapsed
+			ie = new InteractionEvent(Kind.fromString(kind), structureKind, structureHandle, originId, navigation,
+					delta, iInterest, dStartDate, dEndDate);
+		} else {
+			ie = new AggregateInteractionEvent(Kind.fromString(kind), structureKind, structureHandle, originId,
+					navigation, delta, iInterest, dStartDate, dEndDate, numEvents, eventCountOnCreation);
+		}
 		return ie;
 	}
 }

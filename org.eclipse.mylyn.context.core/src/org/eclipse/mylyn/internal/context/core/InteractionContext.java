@@ -84,8 +84,18 @@ public class InteractionContext implements IInteractionContext {
 
 		InteractionContextElement node = elementMap.get(event.getStructureHandle());
 		if (node == null) {
-			node = new InteractionContextElement(event.getStructureKind(), event.getStructureHandle(), this);
+			if (event instanceof AggregateInteractionEvent) {
+				node = new InteractionContextElement(event.getStructureKind(), event.getStructureHandle(), this,
+						((AggregateInteractionEvent) event).getEventCountOnCreation());
+			} else {
+				node = new InteractionContextElement(event.getStructureKind(), event.getStructureHandle(), this);
+			}
 			elementMap.put(event.getStructureHandle(), node);
+		}
+
+		if (event.getKind().isUserEvent() && event instanceof AggregateInteractionEvent) {
+			// add the rest of the events that this event represented
+			numUserEvents += ((AggregateInteractionEvent) event).getNumCollapsedEvents() - 1;
 		}
 
 		if (event.getNavigation() != null && !event.getNavigation().equals("null") && lastEdgeEvent != null
