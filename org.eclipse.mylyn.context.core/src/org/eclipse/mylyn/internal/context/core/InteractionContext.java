@@ -187,7 +187,7 @@ public class InteractionContext implements IInteractionContext {
 				toRemove.add(event);
 			}
 		}
-		interactionHistory.remove(toRemove);
+		interactionHistory.removeAll(toRemove);
 
 		if (activeNode != null && node.getHandleIdentifier().equals(activeNode.getHandleIdentifier())) {
 			activeNode = null;
