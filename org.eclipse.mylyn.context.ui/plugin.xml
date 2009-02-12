@@ -470,7 +470,7 @@
                       value="org.eclipse.mylyn.tasks.core.ITask">
                 </instanceof>
                 <test
-                      property="org.eclipse.mylyn.task.canPostAttachment"
+                      property="org.eclipse.mylyn.task.canGetAttachment"
                       value="true">
                 </test>
                 <test
