@@ -111,4 +111,41 @@ public class FocusResourceNavigatorAction extends AbstractAutoFocusViewAction {
 		return false;
 	}
 
+//	private Set<String> getPreservedFilterPatterns() {
+//		Set<String> preservedIds = ContextUiPlugin.getDefault().getPreservedFilterIds(viewPart.getSite().getId());
+//		IExtensionPoint extension = Platform.getExtensionRegistry().getExtensionPoint(
+//				"org.eclipse.ui.ide.resourceFilters"); //$NON-NLS-1$
+//		Set<String> filters = new HashSet<String>();
+//		if (extension != null) {
+//			IExtension[] extensions = extension.getExtensions();
+//			for (IExtension extension2 : extensions) {
+//				IConfigurationElement[] configElements = extension2.getConfigurationElements();
+//				if (extension2.getUniqueIdentifier() != null && preservedIds.contains(extension2.getUniqueIdentifier())) {
+//					for (IConfigurationElement configElement : configElements) {
+//						String pattern = configElement.getAttribute("pattern");//$NON-NLS-1$
+//						if (pattern != null) {
+//							filters.add(pattern);
+//						}
+//					}
+//				}
+//
+//			}
+//		}
+//		return filters;
+//	}
+
+//	@Override
+//	protected boolean isPreservedFilter(ViewerFilter filter) {
+//		if (filter instanceof ResourcePatternFilter) {
+//			Set<String> preservedFilterPatterns = getPreservedFilterPatterns();
+//			//NOTE: since the resource filters are all contained in one filter, if one is preserved, then we preserve all filters
+//			for (String pattern : ((ResourcePatternFilter) filter).getPatterns()) {
+//				if (preservedFilterPatterns.contains(pattern)) {
+//					return true;
+//				}
+//			}
+//		}
+//		return super.isPreservedFilter(filter);
+//	}
+
 }
