@@ -45,7 +45,7 @@
       <import plugin="org.eclipse.mylyn.monitor.ui" version="3.0.0" match="compatible"/>
       <import plugin="org.eclipse.mylyn.resources.ui" version="3.0.0" match="compatible"/>
       <import plugin="org.eclipse.mylyn.monitor.core" version="3.0.0" match="compatible"/>
-      <import feature="org.eclipse.mylyn.java_feature" version="3.1.0.qualifier" match="perfect"/>
+      <import feature="org.eclipse.mylyn.java_feature" version="3.1.1.qualifier" match="perfect"/>
       <import plugin="org.eclipse.pde.ui" version="3.3.0" match="equivalent"/>
       <import feature="org.eclipse.pde" version="3.3.0" match="equivalent"/>
    </requires>

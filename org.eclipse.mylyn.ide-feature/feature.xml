@@ -44,8 +44,8 @@
       <import plugin="org.eclipse.mylyn.context.ui" version="3.0.0" match="compatible"/>
       <import plugin="org.eclipse.mylyn.commons.core" version="3.0.0" match="compatible"/>
       <import plugin="org.eclipse.mylyn.commons.ui" version="3.0.0" match="compatible"/>
-      <import feature="org.eclipse.mylyn.context_feature" version="3.1.0.qualifier"/>
-      <import feature="org.eclipse.mylyn.team_feature" version="3.1.0.qualifier" match="perfect"/>
+      <import feature="org.eclipse.mylyn.context_feature" version="3.1.1.qualifier"/>
+      <import feature="org.eclipse.mylyn.team_feature" version="3.1.1.qualifier" match="perfect"/>
    </requires>
 
    <plugin
