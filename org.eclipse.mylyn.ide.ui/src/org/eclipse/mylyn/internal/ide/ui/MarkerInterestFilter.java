@@ -11,71 +11,57 @@
 
 package org.eclipse.mylyn.internal.ide.ui;
 
-import java.lang.reflect.Method;
-
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.mylyn.commons.core.StatusHandler;
-import org.eclipse.mylyn.ide.ui.AbstractMarkerInterestFilter;
-import org.eclipse.ui.views.markers.MarkerItem;
+import org.eclipse.mylyn.context.ui.InterestFilter;
+import org.eclipse.mylyn.internal.context.core.ContextCorePlugin;
+import org.eclipse.ui.views.markers.internal.ConcreteMarker;
+import org.eclipse.ui.views.markers.internal.ProblemMarker;
 
 /**
  * @author Mik Kersten
  */
-public class MarkerInterestFilter extends AbstractMarkerInterestFilter {
-
-	private Method markerCategoryMethod = null;
+public class MarkerInterestFilter extends InterestFilter {
 
 	@Override
 	public boolean select(Viewer viewer, Object parent, Object element) {
+		if (!(element instanceof ConcreteMarker)) {
+			return true;
+			// NOTE: code commented out below did a look-down the children, which may be too expensive
+//			if (element instanceof MarkerNode) {
+//				MarkerNode markerNode = (MarkerNode) element;
+//				MarkerNode[] children = markerNode.getChildren();
+//				for (int i = 0; i < children.length; i++) {
+//					MarkerNode node = children[i];
+//					if (node instanceof ConcreteMarker) {
+//						return isInteresting((ConcreteMarker) node, viewer, parent);
+//					} else {
+//						return true;
+//					}
+//				}
+//			} 
+		} else {
+			return isInteresting((ConcreteMarker) element, viewer, parent);
+		}
+	}
 
-		if (element instanceof MarkerItem) {
-			if (element.getClass().getSimpleName().equals("MarkerCategory")) { //$NON-NLS-1$
-				try {
-					if (markerCategoryMethod == null) {
-						Class<?> markerCategoryClass = Class.forName("org.eclipse.ui.internal.views.markers.MarkerCategory"); //$NON-NLS-1$ 
-						markerCategoryMethod = markerCategoryClass.getDeclaredMethod("getChildren", new Class[] {}); //$NON-NLS-1$ 
-						markerCategoryMethod.setAccessible(true);
-					}
+	private boolean isImplicitlyInteresting(ConcreteMarker marker) {
+		return (marker instanceof ProblemMarker) && ((ProblemMarker) marker).getSeverity() == IMarker.SEVERITY_ERROR;
+	}
 
-					Object[] entries = (Object[]) markerCategoryMethod.invoke(element, new Object[] {});
-					if (entries != null && entries.length == 0) {
-						return false;
-					} else if (entries != null && entries.length != 0) {
-						// PERFORMANCE: need to look down children, so O(n^2) complexity
-						for (Object markerEntry : entries) {
-							if (markerEntry.getClass().getSimpleName().equals("MarkerEntry") //$NON-NLS-1$ 
-									&& isInteresting(((MarkerItem) markerEntry).getMarker(), viewer, parent)) {
-								return true;
-							}
-						}
-						return false;
-					}
-				} catch (Exception e) {
-					StatusHandler.log(new Status(IStatus.ERROR, IdeUiBridgePlugin.ID_PLUGIN,
-							"Could not access marker view elements.")); //$NON-NLS-1$
-				}
-
-				return true;
-			} else if (element.getClass().getSimpleName().equals("MarkerEntry")) { //$NON-NLS-1$
-				return isInteresting(((MarkerItem) element).getMarker(), viewer, parent);
+	private boolean isInteresting(ConcreteMarker marker, Viewer viewer, Object parent) {
+		if (isImplicitlyInteresting(marker)) {
+			return true;
+		} else {
+			String handle = ContextCorePlugin.getDefault()
+					.getStructureBridge(marker.getResource().getFileExtension())
+					.getHandleForOffsetInObject(marker, 0);
+			if (handle == null) {
+				return false;
+			} else {
+				return super.select(viewer, parent, ContextCorePlugin.getContextManager().getElement(handle));
 			}
 		}
 
-		return false;
-	}
-
-	@Override
-	protected boolean isImplicitlyInteresting(IMarker marker) {
-		try {
-			Object severity = marker.getAttribute(IMarker.SEVERITY);
-			return severity != null && severity.equals(IMarker.SEVERITY_ERROR);
-		} catch (CoreException e) {
-			// ignore
-		}
-		return false;
 	}
 }
