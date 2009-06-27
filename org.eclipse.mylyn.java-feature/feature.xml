@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.mylyn.java_feature"
       label="%featureName"
-      version="3.2.0.qualifier"
+      version="3.2.1.qualifier"
       provider-name="%providerName"
       plugin="org.eclipse.mylyn">
 
@@ -52,7 +52,7 @@
       <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.ui.navigator"/>
       <import plugin="org.eclipse.ant.ui"/>
-      <import feature="org.eclipse.mylyn.context_feature" version="3.2.0.qualifier" match="perfect"/>
+      <import feature="org.eclipse.mylyn.context_feature" version="3.2.1.qualifier" match="perfect"/>
       <import plugin="org.eclipse.ui.ide" version="3.3.0" match="equivalent"/>
       <import feature="org.eclipse.jdt" version="3.3.0" match="equivalent"/>
    </requires>
