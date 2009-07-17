@@ -19,10 +19,11 @@
    </license>
 
    <url>
-      <update label="%updateSiteName" url="http://download.eclipse.org/tools/mylyn/update/e3.4"/>
+      <update label="%updateSiteName" url="http://download.eclipse.org/tools/mylyn/update/e3.3"/>
    </url>
 
    <requires>
+      <import plugin="org.eclipse.team.ui"/>
       <import plugin="org.eclipse.team.core"/>
       <import plugin="org.eclipse.team.cvs.ui"/>
       <import plugin="org.eclipse.team.cvs.core"/>
@@ -30,6 +31,7 @@
       <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.core.runtime"/>
       <import plugin="org.eclipse.ui.workbench"/>
+      <import plugin="org.eclipse.mylyn.monitor.core" version="3.0.0" match="compatible"/>
       <import plugin="org.eclipse.mylyn.tasks.core" version="3.0.0" match="compatible"/>
       <import plugin="org.eclipse.mylyn.tasks.ui" version="3.0.0" match="compatible"/>
       <import plugin="org.eclipse.mylyn.team.ui" version="3.0.0" match="compatible"/>
@@ -38,15 +40,12 @@
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.jface.text"/>
       <import plugin="org.eclipse.ui.navigator"/>
-      <import plugin="org.eclipse.ui.ide" version="3.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.ide" version="3.3.0" match="equivalent"/>
       <import plugin="org.eclipse.mylyn.context.ui" version="3.0.0" match="compatible"/>
       <import plugin="org.eclipse.mylyn.commons.core" version="3.0.0" match="compatible"/>
       <import plugin="org.eclipse.mylyn.commons.ui" version="3.0.0" match="compatible"/>
-      <import feature="org.eclipse.mylyn.context_feature" version="3.2.1.qualifier" match="perfect"/>
+      <import feature="org.eclipse.mylyn.context_feature" version="3.2.1.qualifier"/>
       <import feature="org.eclipse.mylyn.team_feature" version="3.2.1.qualifier" match="perfect"/>
-      <import plugin="org.eclipse.team.ui"/>
-      <import plugin="org.eclipse.mylyn.monitor.core" version="3.0.0" match="compatible"/>
-      <import feature="org.eclipse.cvs" version="1.1.0" match="compatible"/>
    </requires>
 
    <plugin
