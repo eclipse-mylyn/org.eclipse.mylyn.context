@@ -29,7 +29,7 @@
    </license>
 
    <url>
-      <update label="%updateSiteName" url="http://download.eclipse.org/tools/mylyn/update/e3.4"/>
+      <update label="%updateSiteName" url="http://download.eclipse.org/tools/mylyn/update/e3.3"/>
    </url>
 
    <requires>
@@ -64,7 +64,7 @@
       <import plugin="org.eclipse.ui.ide"/>
       <import plugin="org.eclipse.ant.ui"/>
       <import feature="org.eclipse.mylyn.context_feature" version="3.2.2.qualifier" match="perfect"/>
-      <import feature="org.eclipse.jdt" version="3.4.0" match="compatible"/>
+      <import feature="org.eclipse.jdt" version="3.3.0" match="equivalent"/>
    </requires>
 
    <plugin
