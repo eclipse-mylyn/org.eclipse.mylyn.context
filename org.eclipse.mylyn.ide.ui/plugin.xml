@@ -80,30 +80,6 @@
              </enablement>
   		</action>  
       </viewContribution> 
-
-      <viewContribution 
-		id="org.eclipse.mylyn.markers.all.contribution" 
-   		targetID="org.eclipse.ui.views.AllMarkersView">
-    	<action
-           class="org.eclipse.mylyn.internal.ide.ui.actions.FocusAllMarkersViewAction"
-           disabledIcon="icons/elcl16/focus-disabled.gif"
-           enablesFor="*"
-           icon="icons/elcl16/focus.gif"
-           id="org.eclipse.mylyn.ide.ui.actions.focus.markers.all"
-           label="%FocusAllMarkersViewAction.label"
-           menubarPath="mylyn"
-           style="toggle"
-           toolbarPath="mylyn"
-           tooltip="%FocusAllMarkersViewAction.tooltip">
-        <enablement>
-           <systemProperty
-                 name="org.eclipse.mylyn.context.core.context.active"
-                 value="true">
-           </systemProperty>
-        </enablement>
-  		</action>  
-      </viewContribution>
-      
 	  <viewContribution 
 		id="org.eclipse.mylyn.markers.tasks.contribution" 
    		targetID="org.eclipse.ui.views.TaskList">

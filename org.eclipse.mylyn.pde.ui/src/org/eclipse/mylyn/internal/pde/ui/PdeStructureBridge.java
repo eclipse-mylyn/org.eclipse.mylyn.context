@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.internal.resources.File;
-import org.eclipse.core.internal.resources.Marker;
 import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -28,8 +27,8 @@ import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.mylyn.commons.core.StatusHandler;
 import org.eclipse.mylyn.context.core.AbstractContextStructureBridge;
-import org.eclipse.mylyn.context.core.ContextCore;
 import org.eclipse.mylyn.context.core.IInteractionElement;
+import org.eclipse.mylyn.internal.context.core.ContextCorePlugin;
 import org.eclipse.mylyn.internal.ide.ui.XmlNodeHelper;
 import org.eclipse.pde.internal.core.text.build.BuildEntry;
 import org.eclipse.pde.internal.core.text.plugin.PluginNode;
@@ -38,13 +37,12 @@ import org.eclipse.pde.internal.ui.editor.PDEFormPage;
 import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.views.markers.internal.ConcreteMarker;
+import org.eclipse.ui.views.markers.internal.ProblemMarker;
 
 /**
  * @author Mik Kersten
  * 
  */
-@SuppressWarnings("restriction")
 public class PdeStructureBridge extends AbstractContextStructureBridge {
 
 	public final static String CONTENT_TYPE = "plugin.xml"; //$NON-NLS-1$
@@ -103,7 +101,8 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 			}
 		} else if (object instanceof IFile) {
 			// String fileHandle = parentBridge.getParentHandle(handle);
-			AbstractContextStructureBridge parentBridge = ContextCore.getStructureBridge(parentContentType);
+			AbstractContextStructureBridge parentBridge = ContextCorePlugin.getDefault().getStructureBridge(
+					parentContentType);
 			return parentBridge.getParentHandle(handle);
 		} else {
 			return null;
@@ -121,7 +120,8 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 		int first = handle.indexOf(";"); //$NON-NLS-1$
 		String filename = ""; //$NON-NLS-1$
 		if (first == -1) {
-			AbstractContextStructureBridge parentBridge = ContextCore.getStructureBridge(parentContentType);
+			AbstractContextStructureBridge parentBridge = ContextCorePlugin.getDefault().getStructureBridge(
+					parentContentType);
 			return parentBridge.getObjectForHandle(handle);
 		} else {
 			// extract the filename from the handle since it represents a node
@@ -288,29 +288,21 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 	}
 
 	@Override
-	public String getHandleForOffsetInObject(Object object, int offset) {
-		if (object == null) {
+	public String getHandleForOffsetInObject(Object resource, int offset) {
+		if (resource == null) {
 			return null;
 		}
+		if (resource instanceof ProblemMarker) {
+			ProblemMarker marker = (ProblemMarker) resource;
 
-		IResource markerResource = null;
-		try {
-			if (object instanceof ConcreteMarker) {
-				markerResource = ((ConcreteMarker) object).getMarker().getResource();
-			} else if (object instanceof Marker) {
-				markerResource = ((Marker) object).getResource();
-			}
-		} catch (Exception e) {
-			return null;
-		}
-
-		if (markerResource != null) {
 			// we can only get a handle for a marker with the resource
 			// plugin.xml
 			try {
-				if (markerResource instanceof IFile) {
-					IFile file = (IFile) markerResource;
-					if (file.getFullPath().toString().endsWith("plugin.xml")) { //$NON-NLS-1$
+				IResource res = marker.getResource();
+
+				if (res instanceof IFile) {
+					IFile file = (IFile) res;
+					if (file.getFullPath().toString().endsWith("plugin.xml")) {
 						return file.getFullPath().toString();
 					} else {
 						return null;
@@ -319,13 +311,13 @@ public class PdeStructureBridge extends AbstractContextStructureBridge {
 				return null;
 			} catch (Throwable t) {
 				StatusHandler.log(new Status(IStatus.WARNING, PdeUiBridgePlugin.ID_PLUGIN,
-						"Could not find element for: " + object)); //$NON-NLS-1$
+						"Could not find element for: " + marker));
 				return null;
 			}
-		} else if (object instanceof IFile) {
+		} else if (resource instanceof IFile) {
 			try {
-				IFile file = (IFile) object;
-				if (file.getFullPath().toString().endsWith("plugin.xml")) { //$NON-NLS-1$
+				IFile file = (IFile) resource;
+				if (file.getFullPath().toString().endsWith("plugin.xml")) {
 					String content = XmlNodeHelper.getContents(file.getContents());
 					IDocument d = new Document(content);
 					PluginObjectNode node = PdeEditingMonitor.getNode(d, file, offset, false);
