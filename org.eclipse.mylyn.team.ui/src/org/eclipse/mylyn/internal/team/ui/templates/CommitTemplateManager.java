@@ -179,11 +179,12 @@ public class CommitTemplateManager {
 				value = processKeyword(task, keyword);
 			}
 
+			String trailingCharacters = segment.substring(brace + 1);
 			if (value != null) {
 				evaluated.add(value);
-				evaluated.add(segment.substring(brace + 1));
+				evaluated.add(trailingCharacters);
 			} else if (!evaluated.isEmpty()) {
-				evaluated.pop();
+				evaluated.add(trailingCharacters);
 			}
 //			else {
 //				buffer.append("${");
@@ -195,7 +196,9 @@ public class CommitTemplateManager {
 			buffer.append(string);
 		}
 
-		return buffer.toString();
+		// remove duplicate whitespace
+		String commitTemplate = buffer.toString();
+		return commitTemplate.replaceAll("[ ]+", " "); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	private String processKeyword(ITask task, String keyword) {
