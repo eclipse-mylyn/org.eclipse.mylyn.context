@@ -33,7 +33,7 @@
    </url>
 
    <requires>
-      <import feature="org.eclipse.mylyn_feature" version="3.4.0.qualifier" match="perfect"/>
+      <import feature="org.eclipse.mylyn_feature" version="3.4.1.qualifier" match="perfect"/>
    </requires>
 
    <plugin
