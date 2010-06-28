@@ -33,7 +33,7 @@
    </url>
 
    <requires>
-      <import feature="org.eclipse.mylyn.java_feature" version="3.4.1.qualifier" match="equivalent"/>
+      <import feature="org.eclipse.mylyn.java_feature" version="3.4.1" match="equivalent"/>
       <import feature="org.eclipse.pde" version="3.4.0" match="compatible"/>
    </requires>
 
