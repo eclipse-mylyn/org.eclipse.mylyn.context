@@ -12,9 +12,9 @@
 
 <plugin>
 	<extension point="org.eclipse.mylyn.tasks.core.templates">
-		<repository addAutomatically="true" characterEncoding="ISO-8859-1"
+		<repository addAutomatically="true" characterEncoding="UTF-8"
 			label="Eclipse.org" repositoryKind="bugzilla" urlRepository="https://bugs.eclipse.org/bugs"
-			version="3.0" />
+			version="3.6" />
 	</extension>
 	<extension point="org.eclipse.mylyn.tasks.bugs.support">
     <category
