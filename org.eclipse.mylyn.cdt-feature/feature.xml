@@ -12,7 +12,7 @@
 <feature
       id="org.eclipse.cdt.mylyn"
       label="%featureName"
-      version="5.2.101.qualifier"
+      version="5.2.102.qualifier"
       provider-name="%providerName"
       plugin="org.eclipse.mylyn">
 
@@ -27,10 +27,6 @@
    <license url="license.html">
       %license
    </license>
-
-   <url>
-      <update label="%updateSiteName" url="http://download.eclipse.org/tools/mylyn/update/e3.4"/>
-   </url>
 
    <requires>
       <import feature="org.eclipse.cdt.platform" version="5.0.0" match="greaterOrEqual"/>
