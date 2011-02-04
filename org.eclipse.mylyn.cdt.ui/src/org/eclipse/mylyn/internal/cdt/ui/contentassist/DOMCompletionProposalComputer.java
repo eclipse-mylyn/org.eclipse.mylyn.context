@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2010 Tasktop Technologies and others.
+ * Copyright (c) 2004, 2011 Tasktop Technologies and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -338,7 +338,7 @@ public class DOMCompletionProposalComputer extends ParsingBasedProposalComputer 
 				for (ICPPConstructor constructor : constructors) {
 					handleFunction(constructor, context, baseRelevance, proposals);
 				}
-			} catch (DOMException e) {
+			} catch (Throwable e) {
 			}
 		} else {
 			int relevance = 0;
@@ -354,7 +354,7 @@ public class DOMCompletionProposalComputer extends ParsingBasedProposalComputer 
 					relevance = RelevanceConstants.UNION_TYPE_RELEVANCE;
 					break;
 				}
-			} catch (DOMException exc) {
+			} catch (Throwable exc) {
 			}
 			if (astContext instanceof IASTName && !(astContext instanceof ICPPASTQualifiedName)) {
 				IASTName name = (IASTName) astContext;
@@ -417,7 +417,7 @@ public class DOMCompletionProposalComputer extends ParsingBasedProposalComputer 
 					returnTypeStr = ASTTypeUtil.getType(returnType, false);
 				}
 			}
-		} catch (DOMException e) {
+		} catch (Throwable e) {
 		}
 
 		String dispargString = dispargs.toString();
@@ -468,7 +468,7 @@ public class DOMCompletionProposalComputer extends ParsingBasedProposalComputer 
 			if (varType != null) {
 				returnTypeStr = ASTTypeUtil.getType(varType, false);
 			}
-		} catch (DOMException e) {
+		} catch (Throwable e) {
 		}
 
 		StringBuilder dispStringBuff = new StringBuilder(repStringBuff.toString());
@@ -704,7 +704,7 @@ public class DOMCompletionProposalComputer extends ParsingBasedProposalComputer 
 					return getImage(delegates[0]);
 				}
 			}
-		} catch (DOMException e) {
+		} catch (Throwable e) {
 		}
 
 		return imageDescriptor != null ? CommonImages.getImage(imageDescriptor) : null;
