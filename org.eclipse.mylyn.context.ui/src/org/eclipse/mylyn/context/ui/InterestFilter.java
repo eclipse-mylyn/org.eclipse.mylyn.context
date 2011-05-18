@@ -13,6 +13,9 @@
 
 package org.eclipse.mylyn.context.ui;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
@@ -27,6 +30,7 @@ import org.eclipse.mylyn.commons.core.StatusHandler;
 import org.eclipse.mylyn.context.core.AbstractContextStructureBridge;
 import org.eclipse.mylyn.context.core.ContextCore;
 import org.eclipse.mylyn.context.core.IImplicitlyIntersting;
+import org.eclipse.mylyn.context.core.IInteractionContext;
 import org.eclipse.mylyn.context.core.IInteractionElement;
 import org.eclipse.mylyn.internal.context.core.CompositeContextElement;
 import org.eclipse.mylyn.internal.context.ui.ContextUiPlugin;
@@ -42,7 +46,23 @@ import org.eclipse.ui.internal.WorkingSet;
  */
 public class InterestFilter extends ViewerFilter {
 
-	private Object temporarilyUnfiltered = null;
+	private Set<Object> temporarilyUnfiltered = null;
+
+	private Object lastTemporarilyUnfiltered = null;
+
+	private IInteractionContext context;
+
+	public InterestFilter() {
+		// ignore
+	}
+
+	/**
+	 * @since 3.6
+	 */
+	public InterestFilter(IInteractionContext context) {
+		this.context = context;
+
+	}
 
 	@Override
 	public boolean select(Viewer viewer, Object parent, Object object) {
@@ -52,7 +72,7 @@ public class InterestFilter extends ViewerFilter {
 			}
 			if (isTemporarilyUnfiltered(parent)) {
 				return true;
-			} else if (temporarilyUnfiltered instanceof Tree
+			} else if (temporarilyUnfiltered != null && temporarilyUnfiltered.contains(Tree.class)
 					&& (isRootElement(object) || isRootElement(viewer, parent, object))) {
 				return true;
 			}
@@ -82,7 +102,11 @@ public class InterestFilter extends ViewerFilter {
 
 				if (!object.getClass().getName().equals(Object.class.getCanonicalName())) {
 					String handle = bridge.getHandleIdentifier(object);
-					element = ContextCore.getContextManager().getElement(handle);
+					if (context == null) {
+						element = ContextCore.getContextManager().getElement(handle);
+					} else {
+						element = context.get(handle);
+					}
 
 					// if we can't find the element, check the parent bridge
 					if (element == null
@@ -92,8 +116,12 @@ public class InterestFilter extends ViewerFilter {
 						AbstractContextStructureBridge parentBridge = ContextCore.getStructureBridge(parentContentType);
 						if (parentBridge != null) {
 							String parentHandle = parentBridge.getHandleIdentifier(object);
-							IInteractionElement parentElement = ContextCore.getContextManager()
-									.getElement(parentHandle);
+							IInteractionElement parentElement;
+							if (context == null) {
+								parentElement = ContextCore.getContextManager().getElement(parentHandle);
+							} else {
+								parentElement = context.get(parentHandle);
+							}
 							if (parentElement != null && isInteresting(parentElement)) {
 								// do a sanity check to make sure that we are trying to display the element
 								// and not some other representation
@@ -139,32 +167,63 @@ public class InterestFilter extends ViewerFilter {
 //		}
 	}
 
-	private boolean isTemporarilyUnfiltered(Object parent) {
+	/**
+	 * @since 3.5
+	 */
+	public boolean isTemporarilyUnfiltered(Object parent) {
 		if (parent instanceof TreePath) {
 			TreePath treePath = (TreePath) parent;
 			parent = treePath.getLastSegment();
 		}
-		return temporarilyUnfiltered != null && temporarilyUnfiltered.equals(parent);
+		return temporarilyUnfiltered != null && temporarilyUnfiltered.contains(parent);
+
 	}
 
-	public void setTemporarilyUnfiltered(Object temprarilyUnfiltered) {
-		this.temporarilyUnfiltered = temprarilyUnfiltered;
+	@Deprecated
+	public void setTemporarilyUnfiltered(Object temporarilyUnfiltered) {
+		addTemporarilyUnfiltered(temporarilyUnfiltered);
+	}
+
+	/**
+	 * @since 3.5
+	 */
+	public void addTemporarilyUnfiltered(Object temporarilyUnfilteredObject) {
+		if (temporarilyUnfiltered == null) {
+			temporarilyUnfiltered = new HashSet<Object>();
+		}
+		if (temporarilyUnfilteredObject instanceof Tree) {
+			this.temporarilyUnfiltered.add(Tree.class);
+		} else {
+			// make sure to remove the tree so that we dont have weird performance issues
+			this.temporarilyUnfiltered.remove(Tree.class);
+			this.temporarilyUnfiltered.add(temporarilyUnfilteredObject);
+		}
+		this.lastTemporarilyUnfiltered = temporarilyUnfilteredObject;
 	}
 
 	/**
 	 * @return true if there was an unfiltered node
 	 */
 	public boolean resetTemporarilyUnfiltered() {
-		if (temporarilyUnfiltered != null) {
+		if (temporarilyUnfiltered != null || lastTemporarilyUnfiltered != null) {
 			this.temporarilyUnfiltered = null;
+			this.lastTemporarilyUnfiltered = null;
 			return true;
 		} else {
 			return false;
 		}
 	}
 
+	/**
+	 * @since 3.5
+	 */
+	public Object getLastTemporarilyUnfiltered() {
+		return lastTemporarilyUnfiltered;
+	}
+
+	@Deprecated
 	public Object getTemporarilyUnfiltered() {
-		return temporarilyUnfiltered;
+		return getLastTemporarilyUnfiltered();
 	}
 
 }

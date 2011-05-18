@@ -199,9 +199,35 @@ public class FocusedViewerManager extends AbstractContextListener implements ISe
 		}
 	}
 
+	private final Map<TreeViewer, FilteredChildrenDecorationDrawer> decorationMap = new HashMap<TreeViewer, FilteredChildrenDecorationDrawer>();
+
+	private void removeFilterDecorations(StructuredViewer viewer) {
+		if (viewer instanceof TreeViewer) {
+			TreeViewer treeViewer = (TreeViewer) viewer;
+
+			FilteredChildrenDecorationDrawer filterViewDrawer = decorationMap.remove(treeViewer);
+			if (filterViewDrawer != null) {
+				filterViewDrawer.dispose();
+			}
+		}
+	}
+
+	private void addFilterDecorations(StructuredViewer viewer, BrowseFilteredListener listener) {
+		if (viewer instanceof TreeViewer) {
+			TreeViewer treeViewer = (TreeViewer) viewer;
+			FilteredChildrenDecorationDrawer filteredViewDrawer = new FilteredChildrenDecorationDrawer(treeViewer,
+					listener);
+			if (filteredViewDrawer.applyToTreeViewer()) {
+				decorationMap.put(treeViewer, filteredViewDrawer);
+			}
+
+		}
+	}
+
 	public void removeManagedViewer(StructuredViewer viewer, IWorkbenchPart viewPart) {
 		managedViewers.remove(viewer);
 		partToViewerMap.remove(viewPart);
+		removeFilterDecorations(viewer);
 		BrowseFilteredListener listener = listenerMap.get(viewer);
 		if (listener != null && viewer != null && !viewer.getControl().isDisposed()) {
 			viewer.getControl().removeMouseListener(listener);
@@ -214,6 +240,10 @@ public class FocusedViewerManager extends AbstractContextListener implements ISe
 		if (viewer != null && action != null) {
 			focusActions.put(viewer, action);
 		}
+		BrowseFilteredListener listener = listenerMap.get(viewer);
+		if (listener != null) {
+			addFilterDecorations(viewer, listener);
+		}
 	}
 
 	@Deprecated
@@ -224,6 +254,7 @@ public class FocusedViewerManager extends AbstractContextListener implements ISe
 	}
 
 	public void removeFilteredViewer(StructuredViewer viewer) {
+		removeFilterDecorations(viewer);
 		focusActions.remove(viewer);
 		filteredViewers.remove(viewer);
 	}
@@ -368,9 +399,8 @@ public class FocusedViewerManager extends AbstractContextListener implements ISe
 		if (viewer instanceof TreeViewer
 				&& filteredViewers.contains(viewer)
 				&& hasInterestFilter(viewer, true)
-				&& ContextUiPlugin.getDefault()
-						.getPreferenceStore()
-						.getBoolean(IContextUiPreferenceContstants.AUTO_MANAGE_EXPANSION)) {
+				&& ContextUiPlugin.getDefault().getPreferenceStore().getBoolean(
+						IContextUiPreferenceContstants.AUTO_MANAGE_EXPANSION)) {
 			TreeViewer treeViewer = (TreeViewer) viewer;
 
 			// HACK to fix bug 278569: [context] errors with Markers view and active Mylyn task

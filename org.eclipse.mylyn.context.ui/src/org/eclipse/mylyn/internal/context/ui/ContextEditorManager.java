@@ -455,4 +455,9 @@ public class ContextEditorManager extends AbstractContextListener {
 		}
 	}
 
+	public boolean hasEditorMemento(String sourceHandle) {
+		Assert.isNotNull(sourceHandle);
+		return readEditorMemento(sourceHandle) != null;
+	}
+
 }

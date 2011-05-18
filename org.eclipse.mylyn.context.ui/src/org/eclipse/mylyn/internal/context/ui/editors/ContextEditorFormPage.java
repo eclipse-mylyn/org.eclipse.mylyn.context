@@ -14,13 +14,14 @@ package org.eclipse.mylyn.internal.context.ui.editors;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.eclipse.core.commands.NotEnabledException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.ISelection;
@@ -35,19 +36,19 @@ import org.eclipse.mylyn.context.core.ContextCore;
 import org.eclipse.mylyn.context.core.IInteractionElement;
 import org.eclipse.mylyn.internal.context.core.ContextCorePlugin;
 import org.eclipse.mylyn.internal.context.ui.ContextUiPlugin;
-import org.eclipse.mylyn.internal.context.ui.IContextUiConstants;
+import org.eclipse.mylyn.internal.context.ui.commands.AttachContextHandler;
+import org.eclipse.mylyn.internal.context.ui.commands.ClearContextHandler;
+import org.eclipse.mylyn.internal.context.ui.commands.CopyContextHandler;
+import org.eclipse.mylyn.internal.context.ui.commands.RetrieveContextHandler;
 import org.eclipse.mylyn.internal.context.ui.views.ContextNodeOpenListener;
 import org.eclipse.mylyn.internal.provisional.commons.ui.CommonImages;
 import org.eclipse.mylyn.internal.provisional.commons.ui.DelayedRefreshJob;
 import org.eclipse.mylyn.internal.tasks.ui.util.AttachmentUtil;
-import org.eclipse.mylyn.internal.tasks.ui.util.TasksUiInternal;
 import org.eclipse.mylyn.tasks.core.ITask;
 import org.eclipse.mylyn.tasks.ui.TasksUi;
 import org.eclipse.mylyn.tasks.ui.TasksUiImages;
 import org.eclipse.mylyn.tasks.ui.editors.TaskEditorInput;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
@@ -93,9 +94,7 @@ public class ContextEditorFormPage extends FormPage {
 
 	private CommonViewer commonViewer;
 
-	private Hyperlink activateTaskHyperlink;
-
-	private final ScalableInterestFilter interestFilter = new ScalableInterestFilter();
+	private ScalableInterestFilter interestFilter;
 
 	private Scale doiScale;
 
@@ -151,34 +150,36 @@ public class ContextEditorFormPage extends FormPage {
 
 		@Override
 		public void contextChanged(ContextChangeEvent event) {
-			Control partControl = getPartControl();
 			switch (event.getEventKind()) {
 			case ACTIVATED:
-				if (partControl != null && !partControl.isDisposed()) {
-					updateContentArea();
-					refresh();
+				if (isActiveTask()) {
+					context.setWrappedContext(ContextCorePlugin.getContextManager().getActiveContext());
+					refresh();// in case activation was caused by a retrieve context
 				}
 				break;
 			case DEACTIVATED:
-				if (partControl != null && !partControl.isDisposed()) {
-					updateContentArea();
-					refresh();
+				if (context.isForSameTaskAs(event.getContext())) {
+					context.setWrappedContext(ContextCorePlugin.getContextStore().loadContext(
+							task.getHandleIdentifier()));
 				}
 				break;
 			case CLEARED:
-				if (event.isActiveContext()) {
-					refresh();
+				if (context.isForSameTaskAs(event.getContextHandle())) {// context may be null so check handle
+					context.setWrappedContext(ContextCorePlugin.getContextStore().loadContext(
+							task.getHandleIdentifier()));
+					refresh();//in this case the context has actually changed so refresh
 				}
 				break;
 			case ELEMENTS_DELETED:
 			case INTEREST_CHANGED:
 			case LANDMARKS_ADDED:
 			case LANDMARKS_REMOVED:
-				refresh(event.getElements());
+				if (isActiveTask()) {
+					refresh(event.getElements());
+				}
 				break;
 			}
 		}
-
 	};
 
 	public ContextEditorFormPage(FormEditor editor, String id, String title) {
@@ -193,7 +194,12 @@ public class ContextEditorFormPage extends FormPage {
 		form = managedForm.getForm();
 
 		toolkit = managedForm.getToolkit();
-
+		if (isActiveTask()) {
+			context = new ContextWrapper(ContextCorePlugin.getContextManager().getActiveContext(), task);
+		} else {
+			context = new ContextWrapper(ContextCorePlugin.getContextStore().loadContext(task.getHandleIdentifier()),
+					task);
+		}
 		//form.setImage(TaskListImages.getImage(TaskListImages.TASK_ACTIVE_CENTERED));
 		//form.setText(LABEL);
 		//toolkit.decorateFormHeading(form.getForm());
@@ -220,7 +226,12 @@ public class ContextEditorFormPage extends FormPage {
 		super.dispose();
 		// ContextUiPlugin.getViewerManager().removeManagedViewer(commonViewer,
 		// this);
+		disposeRefreshJob();
 		ContextCore.getContextManager().removeListener(CONTEXT_LISTENER);
+		if (invisiblePart != null) {
+			invisiblePart.dispose();
+			invisiblePart = null;
+		}
 	}
 
 	private void createActionsSection(Composite composite) {
@@ -276,17 +287,20 @@ public class ContextEditorFormPage extends FormPage {
 			}
 		});
 
-		if (!isActiveTask()) {
-			doiScale.setEnabled(false);
-		}
-
 		if (AttachmentUtil.canUploadAttachment(task)) {
 			Label attachImage = toolkit.createLabel(sectionClient, ""); //$NON-NLS-1$
 			attachImage.setImage(CommonImages.getImage(TasksUiImages.CONTEXT_ATTACH));
 			attachImage.setEnabled(task != null);
 			Hyperlink attachHyperlink = toolkit.createHyperlink(sectionClient,
 					Messages.ContextEditorFormPage_Attach_context_, SWT.NONE);
-			bindCommand(attachHyperlink, IContextUiConstants.ID_COMMAND_ATTACH_CONTEXT, null);
+			//bindCommand(attachHyperlink, IContextUiConstants.ID_COMMAND_ATTACH_CONTEXT, null);
+			attachHyperlink.setEnabled(task != null);
+			attachHyperlink.addHyperlinkListener(new HyperlinkAdapter() {
+				@Override
+				public void linkActivated(HyperlinkEvent e) {
+					AttachContextHandler.run(task);
+				}
+			});
 		}
 
 		if (AttachmentUtil.canDownloadAttachment(task)) {
@@ -295,50 +309,65 @@ public class ContextEditorFormPage extends FormPage {
 			retrieveImage.setEnabled(task != null);
 			Hyperlink retrieveHyperlink = toolkit.createHyperlink(sectionClient,
 					Messages.ContextEditorFormPage_Retrieve_Context_, SWT.NONE);
-			bindCommand(retrieveHyperlink, IContextUiConstants.ID_COMMAND_RETRIEVE_CONTEXT,
-					Messages.ContextEditorFormPage_No_context_attachments_Error);
+			//bindCommand(retrieveHyperlink, IContextUiConstants.ID_COMMAND_RETRIEVE_CONTEXT,
+			//		Messages.ContextEditorFormPage_No_context_attachments_Error);
+			retrieveHyperlink.setEnabled(task != null);
+			retrieveHyperlink.addHyperlinkListener(new HyperlinkAdapter() {
+				@Override
+				public void linkActivated(HyperlinkEvent e) {
+					RetrieveContextHandler.run(task);
+				}
+			});
 		}
 
 		Label copyImage = toolkit.createLabel(sectionClient, ""); //$NON-NLS-1$
 		copyImage.setImage(CommonImages.getImage(TasksUiImages.CONTEXT_COPY));
 		Hyperlink copyHyperlink = toolkit.createHyperlink(sectionClient,
 				Messages.ContextEditorFormPage_Copy_Context_to_, SWT.NONE);
-		bindCommand(copyHyperlink, IContextUiConstants.ID_COMMAND_COPY_CONTEXT,
-				Messages.ContextEditorFormPage_Context_is_empty_Error);
+		//bindCommand(copyHyperlink, IContextUiConstants.ID_COMMAND_COPY_CONTEXT,
+		//		Messages.ContextEditorFormPage_Context_is_empty_Error);
+		copyHyperlink.addHyperlinkListener(new HyperlinkAdapter() {
+			@Override
+			public void linkActivated(HyperlinkEvent e) {
+				CopyContextHandler.run(task);
+			}
+		});
 
 		Label clearImage = toolkit.createLabel(sectionClient, ""); //$NON-NLS-1$
 		clearImage.setImage(CommonImages.getImage(TasksUiImages.CONTEXT_CLEAR));
 		Hyperlink clearHyperlink = toolkit.createHyperlink(sectionClient, Messages.ContextEditorFormPage_RemoveAll,
 				SWT.NONE);
-		bindCommand(clearHyperlink, IContextUiConstants.ID_COMMAND_CLEAR_CONTEXT,
-				Messages.ContextEditorFormPage_Context_is_empty_Error);
+		//bindCommand(clearHyperlink, IContextUiConstants.ID_COMMAND_CLEAR_CONTEXT,
+		//		Messages.ContextEditorFormPage_Context_is_empty_Error);
+		clearHyperlink.addHyperlinkListener(new HyperlinkAdapter() {
+			@Override
+			public void linkActivated(HyperlinkEvent e) {
+				ClearContextHandler.run(task);
+			}
+		});
+
 		section.setExpanded(true);
 	}
 
-	private void bindCommand(final Hyperlink hyperlink, final String commandId, final String notEnabledMessage) {
-		hyperlink.addHyperlinkListener(new HyperlinkAdapter() {
-			@Override
-			public void linkActivated(HyperlinkEvent event) {
-				try {
-					TasksUiInternal.executeCommand(getSite(), commandId, hyperlink.getText(), task, null);
-				} catch (NotEnabledException e) {
-					TasksUiInternal.displayStatus(hyperlink.getText(), new Status(IStatus.ERROR,
-							ContextUiPlugin.ID_PLUGIN, notEnabledMessage));
-				}
-			}
-		});
-//		command.addCommandListener(new ICommandListener() {
-//		public void commandChanged(CommandEvent commandEvent) {
-//				if (commandEvent.isEnabledChanged()) {
-//					hyperlink.setEnabled(commandEvent.getCommand().isEnabled());
+//	private void bindCommand(final Hyperlink hyperlink, final String commandId, final String notEnabledMessage) {
+//		hyperlink.addHyperlinkListener(new HyperlinkAdapter() {
+//			@Override
+//			public void linkActivated(HyperlinkEvent event) {
+//				try {
+//					TasksUiInternal.executeCommand(getSite(), commandId, hyperlink.getText(), task, null);
+//				} catch (NotEnabledException e) {
+//					TasksUiInternal.displayStatus(hyperlink.getText(), new Status(IStatus.ERROR,
+//							ContextUiPlugin.ID_PLUGIN, notEnabledMessage));
 //				}
 //			}
 //		});
-	}
+//	}
 
 	private ContextEditorDelayedRefreshJob refreshJob;
 
 	private InvisibleContextElementsPart invisiblePart;
+
+	private ContextWrapper context;
 
 	/**
 	 * Scales logarithmically to a reasonable interest threshold range (e.g. -10000..10000).
@@ -375,7 +404,7 @@ public class ContextEditorFormPage extends FormPage {
 	private void refresh(List<IInteractionElement> elements) {
 		createRefreshJob();
 		if (refreshJob != null) {
-			refreshJob.doRefresh(elements.toArray());
+			refreshJob.refreshElements(elements.toArray());
 		}
 	}
 
@@ -387,62 +416,49 @@ public class ContextEditorFormPage extends FormPage {
 		sectionClient = toolkit.createComposite(section);
 		sectionClient.setLayout(new FillLayout());
 		section.setClient(sectionClient);
+		createToolBar(section);
 
-		updateContentArea();
+		doiScale.setEnabled(true);
+		doiScale.setSelection(SCALE_STEPS / 2);
+		if (commonViewer == null) {
+			createViewer(sectionClient);
+		}
+
+		if (invisiblePart != null) {
+			invisiblePart.setCommonViewer(commonViewer);
+		}
+		updateFilterThreshold();
+		sectionClient.layout();
 
 		toolkit.createLabel(composite, "  "); //$NON-NLS-1$
 
-		invisiblePart = new InvisibleContextElementsPart(commonViewer);
+		invisiblePart = new InvisibleContextElementsPart(commonViewer, context);
 		Control invisibleControl = invisiblePart.createControl(toolkit, composite);
 		GridDataFactory.fillDefaults().applyTo(invisibleControl);
 	}
 
-	private void createActivateTaskHyperlink(Composite parent) {
-		activateTaskHyperlink = toolkit.createHyperlink(parent,
-				Messages.ContextEditorFormPage_Activate_task_to_edit_context, SWT.NONE);
-		activateTaskHyperlink.addMouseListener(new MouseAdapter() {
+	private void createToolBar(Section section) {
+		Composite composite = toolkit.createComposite(section);
+		composite.setBackground(null);
+		section.setTextClient(composite);
+		ToolBarManager manager = new ToolBarManager(SWT.FLAT);
+		manager.add(new Action(Messages.ContextEditorFormPage_Collapse_All, CommonImages.COLLAPSE_ALL_SMALL) {
 			@Override
-			public void mouseUp(MouseEvent e) {
-				TasksUiInternal.activateTaskThroughCommand(task);
+			public void run() {
+				if (commonViewer != null && commonViewer.getTree() != null && !commonViewer.getTree().isDisposed()) {
+					commonViewer.collapseAll();
+				}
 			}
 		});
-	}
-
-	/**
-	 * Disposes the viewer when the current task is not active or creates it if task is activated.
-	 */
-	private void updateContentArea() {
-		if (isActiveTask()) {
-			doiScale.setEnabled(true);
-			doiScale.setSelection(SCALE_STEPS / 2);
-			if (activateTaskHyperlink != null) {
-				activateTaskHyperlink.dispose();
-				activateTaskHyperlink = null;
-			}
-			if (commonViewer == null) {
-				createViewer(sectionClient);
-			}
-
-			if (invisiblePart != null) {
-				invisiblePart.setCommonViewer(commonViewer);
-			}
-			updateFilterThreshold();
-		} else {
-			doiScale.setEnabled(false);
-			doiScale.setSelection(SCALE_STEPS / 2);
-			if (commonViewer != null) {
-				commonViewer.getControl().dispose();
-				commonViewer = null;
-				if (invisiblePart != null) {
-					invisiblePart.setCommonViewer(commonViewer);
+		manager.add(new Action(Messages.ContextEditorFormPage_Expand_All, CommonImages.EXPAND_ALL_SMALL) {
+			@Override
+			public void run() {
+				if (commonViewer != null && commonViewer.getTree() != null && !commonViewer.getTree().isDisposed()) {
+					commonViewer.expandAll();
 				}
-				disposeRefreshJob();
 			}
-			if (activateTaskHyperlink == null) {
-				createActivateTaskHyperlink(sectionClient);
-			}
-		}
-		sectionClient.layout();
+		});
+		manager.createControl(composite);
 	}
 
 	private synchronized void disposeRefreshJob() {
@@ -459,8 +475,9 @@ public class ContextEditorFormPage extends FormPage {
 	private void createViewer(Composite parent) {
 		commonViewer = new CommonViewer(ID_VIEWER, parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		commonViewer.setUseHashlookup(true);
+		interestFilter = new ScalableInterestFilter(context);
 		commonViewer.addFilter(interestFilter);
-		commonViewer.addOpenListener(new ContextNodeOpenListener(commonViewer));
+		commonViewer.addOpenListener(new ContextNodeOpenListener(commonViewer, context));
 		try {
 			commonViewer.getControl().setRedraw(false);
 
@@ -497,13 +514,24 @@ public class ContextEditorFormPage extends FormPage {
 	}
 
 	private void hookContextMenu() {
-		MenuManager menuManager = new MenuManager("#PopupMenu"); //$NON-NLS-1$
-		menuManager.setRemoveAllWhenShown(true);
-		menuManager.addMenuListener(new IMenuListener() {
-			public void menuAboutToShow(IMenuManager manager) {
-				fillContextMenu(manager);
+		MenuManager menuManager = new MenuManager("#PopupMenu") { //$NON-NLS-1$
+			private final IMenuListener listener = new IMenuListener() {
+				public void menuAboutToShow(IMenuManager manager) {
+					fillContextMenu(manager);
+				}
+			};
+			{
+				addMenuListener(listener);
 			}
-		});
+
+			@Override
+			public void addMenuListener(IMenuListener listener) {
+				// HACK - ensure we are the last listener so we can remove items added by other listeners
+				super.removeMenuListener(this.listener);
+				super.addMenuListener(listener);
+				super.addMenuListener(this.listener);
+			}
+		};
 		Menu menu = menuManager.createContextMenu(commonViewer.getControl());
 		commonViewer.getControl().setMenu(menu);
 		getSite().registerContextMenu(menuManager, commonViewer);
@@ -511,6 +539,13 @@ public class ContextEditorFormPage extends FormPage {
 
 	protected void fillContextMenu(IMenuManager manager) {
 		//manager.add(removeFromContextAction);
+		if (!isActiveTask()) {
+			manager.remove("org.eclipse.mylyn.java.ui.interest.remove.element"); //$NON-NLS-1$
+			// the following ID is used for both make less interesting and mark as landmark so remove it twice 
+			manager.remove("org.eclipse.mylyn.java.ui.interest.increase.element"); //$NON-NLS-1$
+			manager.remove("org.eclipse.mylyn.java.ui.interest.increase.element");//$NON-NLS-1$
+			manager.remove("org.eclipse.mylyn.resources.ui.ui.interest.remove.element"); //$NON-NLS-1$
+		}
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 	}
 

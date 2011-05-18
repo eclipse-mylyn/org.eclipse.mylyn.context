@@ -75,7 +75,7 @@
             name="%ContextUiPreferencePage.name"
             class="org.eclipse.mylyn.internal.context.ui.preferences.ContextUiPreferencePage"
             id="org.eclipse.mylyn.context.ui.preferences"
-            category="org.eclipse.mylyn.tasks.ui.preferences">
+            category="org.eclipse.mylyn.preferencePages.Mylyn">
          <keywordReference id="org.eclipse.mylyn.context.ui.keywords"/>
       </page> 
    </extension>
@@ -183,13 +183,16 @@
             name="%commands.interest.increment.name"
             description="%commands.interest.increment.description"
             id="org.eclipse.mylyn.context.ui.commands.interest.increment"
+            defaultHandler="org.eclipse.mylyn.internal.context.ui.actions.MarkAsLandmarkCommandHandler"
             categoryId="org.eclipse.mylyn.context.ui.commands">
       </command>
       <command
             name="%commands.interest.decrement.name"
             description="%commands.interest.decrement.description"
             id="org.eclipse.mylyn.context.ui.commands.interest.decrement"
+            defaultHandler="org.eclipse.mylyn.internal.context.ui.actions.RemoveFromContextCommandHandler"
             categoryId="org.eclipse.mylyn.context.ui.commands">
+            
       </command>
       <command
             name="%commands.open.context.dialog.name"
