@@ -25,9 +25,9 @@ import org.eclipse.mylyn.context.core.ContextCore;
 import org.eclipse.mylyn.context.core.IInteractionContext;
 import org.eclipse.mylyn.context.ui.AbstractFocusViewAction;
 import org.eclipse.mylyn.internal.context.core.StrategiesExtensionPointReader;
+import org.eclipse.mylyn.internal.tasks.ui.TasksUiPlugin;
 import org.eclipse.mylyn.monitor.core.InteractionEvent;
 import org.eclipse.mylyn.tasks.core.ITask;
-import org.eclipse.mylyn.tasks.core.ITask.SynchronizationState;
 import org.eclipse.mylyn.tasks.core.data.TaskData;
 import org.eclipse.mylyn.tasks.ui.TasksUi;
 import org.eclipse.ui.IViewPart;
@@ -62,17 +62,12 @@ public class ContextPopulationStrategy {
 			ITask task = TasksUi.getRepositoryModel().getTask(event.getContextHandle());
 			if (task != null) {
 				try {
-					TaskData taskData;
-					if (task.getSynchronizationState() == SynchronizationState.OUTGOING
-							|| task.getSynchronizationState() == SynchronizationState.OUTGOING_NEW) {
-						taskData = TasksUi.getTaskDataManager().getWorkingCopy(task).getEditsData();
-					} else {
-						taskData = TasksUi.getTaskDataManager().getTaskData(task);
+					TaskData taskData = null;
+					if (TasksUiPlugin.getTaskDataManager().hasTaskData(task)) {
+						taskData = TasksUiPlugin.getTaskDataManager().getWorkingCopy(task, false).getLocalData();
 					}
-					if (taskData != null) {
-						IInteractionContext context = event.getContext();
-						populateContext(context, taskData);
-					}
+					IInteractionContext context = event.getContext();
+					populateContext(context, task, taskData);
 				} catch (CoreException e) {
 					ContextUiPlugin.getDefault().getLog().log(e.getStatus());
 				}
@@ -80,7 +75,7 @@ public class ContextPopulationStrategy {
 		}
 	}
 
-	public void populateContext(final IInteractionContext context, final TaskData taskData) {
+	public void populateContext(final IInteractionContext context, final ITask task, final TaskData taskData) {
 		Job job = new Job(Messages.ContextPopulationStrategy_Populate_Context_Job_Label) {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
@@ -92,7 +87,9 @@ public class ContextPopulationStrategy {
 				final List<Object> contextItems = strategy.computeContext(context, new IAdaptable() {
 					public Object getAdapter(@SuppressWarnings("rawtypes")
 					Class adapter) {
-						if (adapter == TaskData.class) {
+						if (adapter == ITask.class) {
+							return task;
+						} else if (adapter == TaskData.class) {
 							return taskData;
 						}
 						return null;
@@ -109,7 +106,7 @@ public class ContextPopulationStrategy {
 						@Override
 						public IStatus runInUIThread(IProgressMonitor monitor) {
 							IInteractionContext activeContext = ContextCore.getContextManager().getActiveContext();
-							if (activeContext != null
+							if (activeContext != null && activeContext.getHandleIdentifier() != null
 									&& activeContext.getHandleIdentifier().equals(context.getHandleIdentifier())) {
 								monitor.beginTask(Messages.ContextPopulationStrategy_Populate_Context_Job_Label,
 										contextItems.size());
