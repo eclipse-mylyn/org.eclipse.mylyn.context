@@ -52,7 +52,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.XMLMemento;
-import org.eclipse.ui.internal.EditorManager;
 import org.eclipse.ui.internal.IPreferenceConstants;
 import org.eclipse.ui.internal.IWorkbenchConstants;
 import org.eclipse.ui.internal.Workbench;
@@ -256,7 +255,7 @@ public class ContextEditorManager extends AbstractContextListener {
 				memento.putInteger(ATTRIBUTE_NUMER, number);
 				memento.putBoolean(ATTRIBUTE_IS_LAUNCHING, window == launchingWindow);
 				memento.putBoolean(ATTRIBUTE_IS_ACTIVE, window == activeWindow);
-				((WorkbenchPage) window.getActivePage()).getEditorManager().saveState(memento);
+				//((WorkbenchPage) window.getActivePage()).getEditorManager().saveState(memento);
 			}
 			// TODO: avoid storing with preferences due to bloat?
 			StringWriter writer = new StringWriter();
@@ -309,7 +308,7 @@ public class ContextEditorManager extends AbstractContextListener {
 	 */
 	@SuppressWarnings("unchecked")
 	private void restoreEditors(WorkbenchPage page, IMemento memento, boolean isActiveWindow) {
-		EditorManager editorManager = page.getEditorManager();
+		//EditorManager editorManager = page.getEditorManager();
 		final ArrayList visibleEditors = new ArrayList(5);
 		final IEditorReference activeEditor[] = new IEditorReference[1];
 		final MultiStatus result = new MultiStatus(PlatformUI.PLUGIN_ID, IStatus.OK, "", null); //$NON-NLS-1$
@@ -320,21 +319,21 @@ public class ContextEditorManager extends AbstractContextListener {
 			editorMementoSet.addAll(Arrays.asList(editorMementos));
 			// HACK: same parts could have different editors
 			Set<String> restoredPartNames = new HashSet<String>();
-			List<IEditorReference> alreadyVisibleEditors = Arrays.asList(editorManager.getEditors());
-			for (IEditorReference editorReference : alreadyVisibleEditors) {
-				restoredPartNames.add(editorReference.getPartName());
-			}
+//			List<IEditorReference> alreadyVisibleEditors = Arrays.asList(editorManager.getEditors());
+//			for (IEditorReference editorReference : alreadyVisibleEditors) {
+//				restoredPartNames.add(editorReference.getPartName());
+//			}
 			for (IMemento editorMemento : editorMementoSet) {
 				String partName = editorMemento.getString(IWorkbenchConstants.TAG_PART_NAME);
 				if (!restoredPartNames.contains(partName)) {
-					editorManager.restoreEditorState(editorMemento, visibleEditors, activeEditor, result);
+					//editorManager.restoreEditorState(editorMemento, visibleEditors, activeEditor, result);
 				} else {
 					restoredPartNames.add(partName);
 				}
 			}
 
 			for (int i = 0; i < visibleEditors.size(); i++) {
-				editorManager.setVisibleEditor((IEditorReference) visibleEditors.get(i), false);
+				//editorManager.setVisibleEditor((IEditorReference) visibleEditors.get(i), false);
 			}
 
 			if (activeEditor[0] != null && isActiveWindow) {
