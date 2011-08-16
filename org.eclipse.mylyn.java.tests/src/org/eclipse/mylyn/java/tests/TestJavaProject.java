@@ -49,8 +49,10 @@ import org.eclipse.ui.progress.IProgressService;
 /**
  * From Erich Gamma's "Contributing to Eclipse" book.
  * 
+ * @deprecated use {@link org.eclipse.mylyn.context.sdk.java.TestJavaProject} instead
  * @author Mik Kersten
  */
+@Deprecated
 public class TestJavaProject {
 	public IProject project;
 
