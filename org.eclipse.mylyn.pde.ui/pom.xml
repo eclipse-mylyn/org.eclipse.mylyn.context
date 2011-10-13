@@ -5,7 +5,7 @@
   <parent>
     <artifactId>mylyn-context-parent</artifactId>
     <groupId>org.eclipse.mylyn.context</groupId>
-    <version>3.6.2-SNAPSHOT</version>
+    <version>3.6.3-SNAPSHOT</version>
   </parent>
   <groupId>org.eclipse.mylyn.context</groupId>
   <artifactId>org.eclipse.mylyn.pde.ui</artifactId>
