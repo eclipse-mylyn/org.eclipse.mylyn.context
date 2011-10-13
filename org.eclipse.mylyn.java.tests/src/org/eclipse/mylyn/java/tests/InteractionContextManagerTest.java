@@ -37,6 +37,7 @@ import org.eclipse.mylyn.context.core.ContextChangeEvent;
 import org.eclipse.mylyn.context.core.ContextCore;
 import org.eclipse.mylyn.context.core.IInteractionContext;
 import org.eclipse.mylyn.context.core.IInteractionElement;
+import org.eclipse.mylyn.context.sdk.java.AbstractJavaContextTest;
 import org.eclipse.mylyn.internal.context.core.CompositeInteractionContext;
 import org.eclipse.mylyn.internal.context.core.ContextCorePlugin;
 import org.eclipse.mylyn.internal.context.core.InteractionContext;
@@ -340,6 +341,7 @@ public class InteractionContextManagerTest extends AbstractJavaContextTest {
 
 		project.build();
 		IJavaElement parent = m1.getParent();
+		@SuppressWarnings("unused")
 		int level = 1;
 		do {
 			level++;
@@ -365,6 +367,7 @@ public class InteractionContextManagerTest extends AbstractJavaContextTest {
 
 		// make all the parents interest propated to have negative interest
 		IJavaElement parent = m1.getParent();
+		@SuppressWarnings("unused")
 		int level = 1;
 		do {
 			level++;
