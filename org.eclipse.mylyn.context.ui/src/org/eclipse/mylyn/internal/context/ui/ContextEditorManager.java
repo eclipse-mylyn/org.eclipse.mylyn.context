@@ -53,7 +53,6 @@ import org.eclipse.ui.internal.IPreferenceConstants;
 import org.eclipse.ui.internal.IWorkbenchConstants;
 import org.eclipse.ui.internal.Workbench;
 import org.eclipse.ui.internal.WorkbenchPage;
-import org.eclipse.ui.internal.WorkbenchWindow;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
 /**
@@ -188,9 +187,10 @@ public class ContextEditorManager extends AbstractContextListener {
 		Set<IWorkbenchWindow> monitoredWindows = MonitorUi.getMonitoredWindows();
 		for (IWorkbenchWindow window : monitoredWindows) {
 			int windowNumber = 0;
-			if (window instanceof WorkbenchWindow) {
-				windowNumber = ((WorkbenchWindow) window).getNumber();
-			}
+			// FIXME e4 find new API to identify window number
+//			if (window instanceof WorkbenchWindow) {
+//				windowNumber = ((WorkbenchWindow) window).getNumber();
+//			}
 			if (window.getClass().getCanonicalName().equals(windowToRestoreClassName)
 					&& windowNumber == windowToRestorenumber) {
 				return (WorkbenchPage) window.getActivePage();
@@ -249,9 +249,10 @@ public class ContextEditorManager extends AbstractContextListener {
 
 				memento.putString(ATTRIBUTE_CLASS, window.getClass().getCanonicalName());
 				int number = 0;
-				if (window instanceof WorkbenchWindow) {
-					number = ((WorkbenchWindow) window).getNumber();
-				}
+				// FIXME e4 find new API to identify window number
+//				if (window instanceof WorkbenchWindow) {
+//					number = ((WorkbenchWindow) window).getNumber();
+//				}
 				memento.putInteger(ATTRIBUTE_NUMER, number);
 				memento.putBoolean(ATTRIBUTE_IS_LAUNCHING, window == launchingWindow);
 				memento.putBoolean(ATTRIBUTE_IS_ACTIVE, window == activeWindow);
