@@ -12,7 +12,7 @@
 <feature
       id="org.eclipse.mylyn.team_feature"
       label="%featureName"
-      version="3.6.4.qualifier"
+      version="3.6.5.qualifier"
       provider-name="%providerName"
       plugin="org.eclipse.mylyn">
 
@@ -29,7 +29,7 @@
    </license>
 
    <requires>
-      <import feature="org.eclipse.mylyn.context_feature" version="3.6.4" match="equivalent"/>
+      <import feature="org.eclipse.mylyn.context_feature" version="3.6.5" match="equivalent"/>
    </requires>
 
    <plugin
