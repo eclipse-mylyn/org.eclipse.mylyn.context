@@ -167,7 +167,7 @@ public class InteractionContextManagerTest extends AbstractJavaContextTest {
 	}
 
 	public void testHasContext() {
-		contextStore.getFileForContext("1").delete();
+		manager.deleteContext("1");
 		assertFalse(contextStore.getFileForContext("1").exists());
 		assertFalse(manager.hasContext("1"));
 		manager.internalActivateContext(contextStore.loadContext("1"));
@@ -184,7 +184,6 @@ public class InteractionContextManagerTest extends AbstractJavaContextTest {
 	}
 
 	public void testDelete() {
-		contextStore.getFileForContext("1").delete();
 		manager.deleteContext("1");
 		assertFalse(contextStore.getFileForContext("1").exists());
 		assertFalse(manager.hasContext("1"));
