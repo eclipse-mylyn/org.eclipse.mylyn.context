@@ -15,6 +15,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.mylyn.commons.ui.CommonImages;
+import org.eclipse.swt.graphics.Image;
 
 /**
  * @author Mik Kersten
@@ -54,6 +56,14 @@ public class ContextUiImages {
 		buffer.append('/');
 		buffer.append(name);
 		return new URL(baseURL, buffer.toString());
+	}
+
+	/**
+	 * @deprecated use {@link CommonImages#getImage(ImageDescriptor)} instead
+	 */
+	@Deprecated
+	public static Image getImage(ImageDescriptor imageDescriptor) {
+		return CommonImages.getImage(imageDescriptor);
 	}
 
 }
