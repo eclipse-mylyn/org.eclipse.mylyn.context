@@ -32,7 +32,7 @@
 
    <requires>
       <import feature="org.eclipse.cdt.platform" version="7.0.0" match="greaterOrEqual"/>
-      <import feature="org.eclipse.mylyn.context_feature" version="3.24.1" match="compatible"/>
+      <import feature="org.eclipse.mylyn.context_feature" version="3.24.2" match="compatible"/>
    </requires>
 
    <plugin
