@@ -32,8 +32,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.mylyn.common.context.CommonContextPlugin;
-import org.eclipse.mylyn.common.context.ContextCallBack;
 import org.eclipse.mylyn.commons.core.ExtensionPointReader;
 import org.eclipse.mylyn.commons.core.StatusHandler;
 import org.eclipse.mylyn.context.core.AbstractContextContributor;
@@ -41,7 +39,6 @@ import org.eclipse.mylyn.context.core.AbstractContextStructureBridge;
 import org.eclipse.mylyn.context.core.ContextCore;
 import org.eclipse.mylyn.context.core.IContextContributor;
 import org.eclipse.mylyn.context.core.IInteractionContextScaling;
-import org.eclipse.mylyn.monitor.core.InteractionEvent;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -159,21 +156,6 @@ public class ContextCorePlugin extends Plugin {
 		}
 		contextStore.setContextDirectory(storeFile);
 		contextManager = new InteractionContextManager(contextStore);
-		CommonContextPlugin.getDefault().setContextCallBack(new ContextCallBack() {
-
-			@Override
-			public void processActivityMetaContextEvent(InteractionEvent event) {
-				ContextCorePlugin.getContextManager().processActivityMetaContextEvent(event);
-			}
-
-			@Override
-			public String getActiveContextHandleIdentifier() {
-				if (ContextCore.getContextManager().getActiveContext().getHandleIdentifier() != null) {
-					return ContextCore.getContextManager().getActiveContext().getHandleIdentifier();
-				}
-				return null;
-			}
-		});
 	}
 
 	@Override
