@@ -22,15 +22,15 @@ import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.mylyn.commons.core.StatusHandler;
+import org.eclipse.mylyn.context.core.AbstractContextInteractionMonitor;
 import org.eclipse.mylyn.context.core.ContextCore;
-import org.eclipse.mylyn.monitor.ui.AbstractUserInteractionMonitor;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.EditorPart;
 
 /**
  * @author Mik Kersten
  */
-public class ResourceInteractionMonitor extends AbstractUserInteractionMonitor {
+public class ResourceInteractionMonitor extends AbstractContextInteractionMonitor {
 
 	private static final String ID_SYNCHRONIZE_VIEW = "org.eclipse.team.sync.views.SynchronizeView"; //$NON-NLS-1$
 

@@ -14,12 +14,10 @@ package org.eclipse.mylyn.context.tasks.tests;
 
 import java.util.Calendar;
 
-import junit.framework.TestCase;
-
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.mylyn.common.context.CommonInteractionContextManager;
 import org.eclipse.mylyn.internal.context.core.ContextCorePlugin;
 import org.eclipse.mylyn.internal.context.core.InteractionContext;
-import org.eclipse.mylyn.internal.context.core.InteractionContextManager;
 import org.eclipse.mylyn.internal.tasks.core.AbstractTask;
 import org.eclipse.mylyn.internal.tasks.core.RepositoryQuery;
 import org.eclipse.mylyn.internal.tasks.core.TaskList;
@@ -32,6 +30,8 @@ import org.eclipse.mylyn.tasks.tests.connector.MockRepositoryQuery;
 import org.eclipse.mylyn.tasks.tests.connector.MockTask;
 import org.junit.Before;
 import org.junit.Test;
+
+import junit.framework.TestCase;
 
 /**
  * @author Robert Elves
@@ -88,16 +88,16 @@ public class RefactorRepositoryUrlOperationTest extends TestCase {
 		InteractionContext metaContext = ContextCorePlugin.getContextManager().getActivityMetaContext();
 		assertEquals(0, metaContext.getInteractionHistory().size());
 
-		ContextCorePlugin.getContextManager().processActivityMetaContextEvent(
-				new InteractionEvent(InteractionEvent.Kind.ATTENTION,
-						InteractionContextManager.ACTIVITY_STRUCTUREKIND_TIMING, task1.getHandleIdentifier(), "origin",
-						null, InteractionContextManager.ACTIVITY_DELTA_ADDED, 1f, startDate.getTime(),
+		ContextCorePlugin.getContextManager()
+				.processActivityMetaContextEvent(new InteractionEvent(InteractionEvent.Kind.ATTENTION,
+						CommonInteractionContextManager.ACTIVITY_STRUCTUREKIND_TIMING, task1.getHandleIdentifier(),
+						"origin", null, CommonInteractionContextManager.ACTIVITY_DELTA_ADDED, 1f, startDate.getTime(),
 						endDate.getTime()));
 
-		ContextCorePlugin.getContextManager().processActivityMetaContextEvent(
-				new InteractionEvent(InteractionEvent.Kind.ATTENTION,
-						InteractionContextManager.ACTIVITY_STRUCTUREKIND_TIMING, task2.getHandleIdentifier(), "origin",
-						null, InteractionContextManager.ACTIVITY_DELTA_ADDED, 1f, startDate2.getTime(),
+		ContextCorePlugin.getContextManager()
+				.processActivityMetaContextEvent(new InteractionEvent(InteractionEvent.Kind.ATTENTION,
+						CommonInteractionContextManager.ACTIVITY_STRUCTUREKIND_TIMING, task2.getHandleIdentifier(),
+						"origin", null, CommonInteractionContextManager.ACTIVITY_DELTA_ADDED, 1f, startDate2.getTime(),
 						endDate2.getTime()));
 
 		assertEquals(2, metaContext.getInteractionHistory().size());
