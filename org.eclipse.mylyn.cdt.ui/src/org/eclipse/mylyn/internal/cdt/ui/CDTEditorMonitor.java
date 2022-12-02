@@ -21,7 +21,7 @@ import org.eclipse.cdt.internal.ui.actions.SelectionConverter;
 import org.eclipse.cdt.internal.ui.editor.CEditor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.mylyn.context.core.AbstractContextInteractionMonitor;
+import org.eclipse.mylyn.context.ui.AbstractContextInteractionMonitor;
 import org.eclipse.ui.IWorkbenchPart;
 
 /**

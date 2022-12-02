@@ -18,11 +18,11 @@ import java.util.List;
 import org.eclipse.core.internal.resources.File;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.mylyn.context.core.AbstractContextInteractionMonitor;
+import org.eclipse.mylyn.context.ui.AbstractContextInteractionMonitor;
 import org.eclipse.ui.IWorkbenchPart;
 
 /**
- * @deprecated use {@link org.eclipse.mylyn.context.sdk.util.AbstractContextInteractionMonitor} instead
+ * @deprecated use {@link org.org.eclipse.mylyn.context.ui.AbstractContextInteractionMonitor} instead
  * @author Mik Kersten
  */
 @Deprecated
