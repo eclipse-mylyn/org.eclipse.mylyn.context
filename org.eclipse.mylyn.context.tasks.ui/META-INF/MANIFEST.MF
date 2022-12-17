@@ -19,7 +19,8 @@ Require-Bundle: com.google.guava;bundle-version="[21.0.0,22.0.0)",
  org.eclipse.mylyn.tasks.ui;bundle-version="3.26.0",
  org.eclipse.ui;bundle-version="0.0.0",
  org.eclipse.ui.forms;bundle-version="0.0.0",
- org.eclipse.ui.navigator;bundle-version="0.0.0"
+ org.eclipse.ui.navigator;bundle-version="0.0.0",
+ org.eclipse.mylyn.commons.context;bundle-version="3.26.0"
 Bundle-Vendor: %Bundle-Vendor
 Export-Package: org.eclipse.mylyn.internal.context.tasks.ui;x-internal:=true,
  org.eclipse.mylyn.internal.context.tasks.ui.editors;x-internal:=true
