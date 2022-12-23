@@ -39,6 +39,7 @@ import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ILock;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.mylyn.common.context.CommonInteractionContextManager;
 import org.eclipse.mylyn.commons.core.StatusHandler;
 import org.eclipse.mylyn.context.core.AbstractContextListener;
 import org.eclipse.mylyn.context.core.AbstractContextStructureBridge;
@@ -84,27 +85,13 @@ public class InteractionContextManager implements IInteractionContextManager {
 
 	public static final String ACTIVITY_STRUCTUREKIND_ACTIVATION = "activation"; //$NON-NLS-1$
 
-	public static final String ACTIVITY_STRUCTUREKIND_TIMING = "timing"; //$NON-NLS-1$
-
-	public static final String ACTIVITY_STRUCTUREKIND_WORKINGSET = "workingset"; //$NON-NLS-1$
-
 	public static final String ACTIVITY_STRUCTUREKIND_LIFECYCLE = "lifecycle"; //$NON-NLS-1$
 
-	public static final String ACTIVITY_ORIGINID_USER = "user"; //$NON-NLS-1$
-
 	public static final String ACTIVITY_ORIGINID_OS = "os"; //$NON-NLS-1$
-
-	public static final String ACTIVITY_ORIGINID_WORKBENCH = "org.eclipse.ui.workbench"; //$NON-NLS-1$
-
-	public static final String ACTIVITY_HANDLE_NONE = "none"; //$NON-NLS-1$
 
 	public static final String ACTIVITY_DELTA_STOPPED = "stopped"; //$NON-NLS-1$
 
 	public static final String ACTIVITY_DELTA_STARTED = "started"; //$NON-NLS-1$
-
-	public static final String ACTIVITY_DELTA_REMOVED = "removed"; //$NON-NLS-1$
-
-	public static final String ACTIVITY_DELTA_ADDED = "added"; //$NON-NLS-1$
 
 	public static final String ACTIVITY_DELTA_ACTIVATED = "activated"; //$NON-NLS-1$
 
@@ -329,7 +316,7 @@ public class InteractionContextManager implements IInteractionContextManager {
 		for (InteractionEvent event : context.getInteractionHistory()) {
 
 			if (event.getKind().equals(InteractionEvent.Kind.ATTENTION)
-					&& event.getDelta().equals(InteractionContextManager.ACTIVITY_DELTA_ADDED)) {
+					&& event.getDelta().equals(CommonInteractionContextManager.ACTIVITY_DELTA_ADDED)) {
 				if (event.getStructureHandle() == null || event.getStructureHandle().equals("")) { //$NON-NLS-1$
 					continue;
 				}
@@ -474,7 +461,7 @@ public class InteractionContextManager implements IInteractionContextManager {
 			if (!activationHistorySuppressed) {
 				processActivityMetaContextEvent(new InteractionEvent(InteractionEvent.Kind.COMMAND,
 						InteractionContextManager.ACTIVITY_STRUCTUREKIND_ACTIVATION, handleIdentifier,
-						InteractionContextManager.ACTIVITY_ORIGINID_WORKBENCH, null,
+						CommonInteractionContextManager.ACTIVITY_ORIGINID_WORKBENCH, null,
 						InteractionContextManager.ACTIVITY_DELTA_DEACTIVATED, 1f));
 			}
 //			saveActivityMetaContext();
@@ -698,7 +685,7 @@ public class InteractionContextManager implements IInteractionContextManager {
 		if (!activationHistorySuppressed) {
 			processActivityMetaContextEvent(new InteractionEvent(InteractionEvent.Kind.COMMAND,
 					InteractionContextManager.ACTIVITY_STRUCTUREKIND_ACTIVATION, context.getHandleIdentifier(),
-					InteractionContextManager.ACTIVITY_ORIGINID_WORKBENCH, null,
+					CommonInteractionContextManager.ACTIVITY_ORIGINID_WORKBENCH, null,
 					InteractionContextManager.ACTIVITY_DELTA_ACTIVATED, 1f));
 		}
 

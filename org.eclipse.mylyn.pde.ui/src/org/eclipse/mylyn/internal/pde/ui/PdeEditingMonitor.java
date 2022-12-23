@@ -23,8 +23,8 @@ import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.mylyn.commons.core.StatusHandler;
+import org.eclipse.mylyn.context.ui.AbstractContextInteractionMonitor;
 import org.eclipse.mylyn.internal.ide.ui.XmlNodeHelper;
-import org.eclipse.mylyn.monitor.ui.AbstractUserInteractionMonitor;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.core.plugin.IPluginObject;
 import org.eclipse.pde.internal.core.plugin.ImportObject;
@@ -43,7 +43,7 @@ import org.eclipse.ui.part.FileEditorInput;
  * @author Mik Kersten
  */
 @SuppressWarnings("restriction")
-public class PdeEditingMonitor extends AbstractUserInteractionMonitor {
+public class PdeEditingMonitor extends AbstractContextInteractionMonitor {
 
 	public PdeEditingMonitor() {
 		super();

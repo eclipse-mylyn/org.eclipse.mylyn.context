@@ -14,6 +14,7 @@ package org.eclipse.mylyn.internal.context.core;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.mylyn.common.context.CommonInteractionContextManager;
 import org.eclipse.mylyn.commons.core.StatusHandler;
 import org.eclipse.mylyn.monitor.core.InteractionEvent;
 
@@ -41,9 +42,10 @@ public class LegacyActivityAdaptor {
 						&& event.getStructureHandle().equals(LEGACY_HANDLE_ATTENTION)) {
 					if (currentTask != null && !currentTask.equals("")) { //$NON-NLS-1$
 						return new InteractionEvent(InteractionEvent.Kind.ATTENTION,
-								InteractionContextManager.ACTIVITY_STRUCTUREKIND_TIMING, currentTask,
-								InteractionContextManager.ACTIVITY_ORIGINID_WORKBENCH, null,
-								InteractionContextManager.ACTIVITY_DELTA_ADDED, 1f, event.getDate(), event.getEndDate());
+								CommonInteractionContextManager.ACTIVITY_STRUCTUREKIND_TIMING, currentTask,
+								CommonInteractionContextManager.ACTIVITY_ORIGINID_WORKBENCH, null,
+								CommonInteractionContextManager.ACTIVITY_DELTA_ADDED, 1f, event.getDate(),
+								event.getEndDate());
 					} else if (currentTask == null) {
 						// bogus event remove.
 						return null;

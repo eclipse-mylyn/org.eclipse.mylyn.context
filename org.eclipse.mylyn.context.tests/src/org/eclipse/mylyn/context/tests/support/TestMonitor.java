@@ -18,15 +18,15 @@ import java.util.List;
 import org.eclipse.core.internal.resources.File;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.mylyn.monitor.ui.AbstractUserInteractionMonitor;
+import org.eclipse.mylyn.context.ui.AbstractContextInteractionMonitor;
 import org.eclipse.ui.IWorkbenchPart;
 
 /**
- * @deprecated use {@link org.eclipse.mylyn.context.sdk.util.AbstractUserInteractionMonitor} instead
+ * @deprecated use {@link org.org.eclipse.mylyn.context.ui.AbstractContextInteractionMonitor} instead
  * @author Mik Kersten
  */
 @Deprecated
-public class TestMonitor extends AbstractUserInteractionMonitor {
+public class TestMonitor extends AbstractContextInteractionMonitor {
 
 	List<IJavaElement> selections = new ArrayList<IJavaElement>();
 
